@@ -6,6 +6,19 @@ fraud verdict and the system-owned scoreboard owns scoring.
 
 ## API
 
+For a `message` subject, rules inspect only the target message and reports directly
+targeting it. Account-wide login, payment, listing and dispute signals are not
+loaded, and anomaly checks have no applicable rate rules in this scope. Request
+an `account` subject to inspect account-wide activity; that behavior is unchanged.
+
+The optional LLM receives the target separately from up to 20 earlier messages
+in the same conversation, with sender/recipient IDs and timestamps. Background
+cannot independently trigger rule/anomaly checks. Messages at or after the target
+timestamp are excluded from background, even if visible at simulation time, to
+avoid looking ahead; equal timestamps have no established causal order. LLM
+triggers identify target and background IDs and return the referenced evidence.
+This is text classification; image-only messages remain inconclusive for LLM.
+
 - `GET /health`
 - `GET /ready`
 - `POST /detect`
@@ -101,7 +114,25 @@ A successful response remains the shared `DetectionResult` contract:
 An unknown or unsafe version returns HTTP `404` with error code
 `policy_not_found`; it never falls back to the active/default policy.
 
+Each request reads one PostgreSQL repeatable-read snapshot and captures its
+Environment simulation time as `as_of`. Anomaly windows use `(as_of - window,
+as_of]`, exclude undated events, and expire old activity. Login diversity is
+computed per account; security-change correlations require the same account and
+a successful novel-device login. Trigger raw results include `as_of`.
+
+An empty check list, unimplemented ML check, or unconfigured LLM check returns
+HTTP 422 `check_unavailable`. Missing LLM text or unusable classifier output
+(including missing binary logprobs) returns HTTP 422 `check_inconclusive` with
+the reason. A valid binary probability below 0.6 is a completed, non-triggering
+decision, not an execution failure. Incomplete multi-check requests return an
+error rather than a partial clean result. The successful DetectionResult schema
+is unchanged; error responses must not be counted as negative predictions.
+
 ## Local run
+
+On existing database volumes, apply
+`environment/migrations/001-visible-products.sql` before rebuilding this service.
+Product evidence now reads time-correct prices from `visible_products`.
 
 ```bash
 docker compose up -d --build detection

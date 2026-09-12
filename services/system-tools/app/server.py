@@ -217,7 +217,7 @@ async def get_account_activity(account_id: str, limit_per_type: int = 20) -> dic
     )
     products = await fetch_all(
         "SELECT id, shop_id, title, description, image_urls, price, created_at, attributes "
-        "FROM products WHERE seller_account_id = %s ORDER BY created_at DESC LIMIT %s",
+        "FROM visible_products WHERE seller_account_id = %s ORDER BY created_at DESC LIMIT %s",
         (account_id, limit),
     )
     transactions = await fetch_all(
@@ -373,13 +373,13 @@ async def get_subject_association_seeds(
         )
         products = await fetch_all(
             "SELECT id, shop_id, seller_account_id, title, price, created_at, attributes "
-            "FROM products WHERE shop_id = %s ORDER BY created_at DESC LIMIT %s",
+            "FROM visible_products WHERE shop_id = %s ORDER BY created_at DESC LIMIT %s",
             (subject_id, limit),
         )
         return {"found": subject is not None, "subject": subject, "products": products}
     subject = await fetch_one(
         "SELECT id, shop_id, seller_account_id, title, price, created_at, attributes "
-        "FROM products WHERE id = %s",
+        "FROM visible_products WHERE id = %s",
         (subject_id,),
     )
     buyers = await fetch_all(
@@ -834,7 +834,7 @@ async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
         SELECT id, 'environment', 'product', seller_account_id, created_at,
                jsonb_build_object('shop_id', shop_id, 'seller_account_id', seller_account_id,
                                   'title', title, 'price', price, 'attributes', attributes)
-        FROM products WHERE id = ANY(%s)
+        FROM visible_products WHERE id = ANY(%s)
         UNION ALL
         SELECT id, 'environment', 'transaction', seller_account_id, created_at,
                jsonb_build_object('buyer_account_id', buyer_account_id,

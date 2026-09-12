@@ -57,6 +57,23 @@ def test_health_and_request_id() -> None:
     assert response.headers["X-Request-ID"]
 
 
+def test_unavailable_checks_return_explicit_error():
+    with make_client() as client:
+        for checks in [[], ['llm_classifier'], ['ml_classifier']]:
+            response = client.post('/detect', json={'subject': {'type': 'account', 'id': 'A'}, 'requested_checks': checks})
+            assert response.status_code == 422
+            assert response.json()['error']['code'] == 'check_unavailable'
+            assert 'detected' not in response.json()
+
+
+def test_llm_without_text_returns_inconclusive_error():
+    with make_client() as client:
+        client.app.state.detection_service.classifier = object()
+        response = client.post('/detect', json={'subject': {'type': 'account', 'id': 'A'}, 'requested_checks': ['llm_classifier']})
+        assert response.status_code == 422
+        assert response.json()['error']['code'] == 'check_inconclusive'
+
+
 def test_ready_checks_database() -> None:
     with make_client() as client:
         response = client.get("/ready", headers={"X-Request-ID": "request-123"})

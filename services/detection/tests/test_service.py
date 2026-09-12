@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
+import pytest
+from app.errors import CheckUnavailableError
 
 from app.domain.context import DetectionContext
 from app.domain.models import DetectionRequest, Evidence, Subject
@@ -79,6 +82,7 @@ def test_legitimate_warning_is_not_flagged() -> None:
 def test_anomaly_detector_finds_payment_instrument_churn() -> None:
     subject = Subject(type="transaction", id="TXN-0091")
     context = DetectionContext(
+        as_of=datetime.fromisoformat("2026-09-04T10:10:00+08:00"),
         subject=subject,
         account_ids=["ACC-0091"],
         evidence=[
@@ -146,12 +150,8 @@ def test_explicit_empty_requested_checks_runs_no_detectors() -> None:
     )
     service = DetectionService(FakeRepository(context))
 
-    result = asyncio.run(
-        service.detect(DetectionRequest(subject=subject, requested_checks=[]))
-    )
-
-    assert result.detected is False
-    assert result.triggers == []
+    with pytest.raises(CheckUnavailableError):
+        asyncio.run(service.detect(DetectionRequest(subject=subject, requested_checks=[])))
 
 
 def test_only_referenced_evidence_is_returned() -> None:
@@ -207,6 +207,7 @@ def test_llm_check_uses_classifier_threshold_result() -> None:
 def test_baseline_and_candidate_policies_are_selected_independently() -> None:
     subject = Subject(type="account", id="ACC-0001")
     context = DetectionContext(
+        as_of=datetime.fromisoformat("2026-09-01T10:10:00+08:00"),
         subject=subject,
         account_ids=["ACC-0001"],
         evidence=[evidence("RPT-0001", "report_record", status="open")]

@@ -1,4 +1,21 @@
 services:
+  replay:
+    profiles: ["replay"]
+    build: ./services/replay
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      DETECTION_URL: http://detection:8000
+      REPLAY_POLICY_VERSION: ${REPLAY_POLICY_VERSION:-baseline-v1}
+      REPLAY_STEP_SECONDS: ${REPLAY_STEP_SECONDS:-300}
+      REPLAY_INTERVAL_SECONDS: ${REPLAY_INTERVAL_SECONDS:-5}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      detection:
+        condition: service_started
+    networks:
+      - fraud-intelligence-network
+
   postgres:
     image: postgres:16-alpine
     container_name: environment-db

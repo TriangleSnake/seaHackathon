@@ -10,6 +10,7 @@ from app.detectors.rules import RuleDetector
 from app.domain.context import DetectionContext
 from app.domain.models import DetectionRequest, DetectionResult, DetectionTrigger, Subject
 from app.policies.repository import FilePolicyRepository
+from app.errors import CheckUnavailableError
 
 
 class SubjectNotFoundError(LookupError):
@@ -50,10 +51,16 @@ class DetectionService:
             if "requested_checks" in request.model_fields_set
             else policy.default_checks
         )
+        if not checks:
+            raise CheckUnavailableError("No checks requested")
+        if "ml_classifier" in checks:
+            raise CheckUnavailableError("ml_classifier is not implemented")
+        if "llm_classifier" in checks and self.classifier is None:
+            raise CheckUnavailableError("llm_classifier is not configured")
 
         detectors = {
             "rule_based": RuleDetector(policy.rule_based),
-            "anomaly": AnomalyDetector(policy.anomaly),
+            "anomaly": AnomalyDetector(policy.anomaly, context.as_of),
         }
         llm_detector = (
             LLMDetector(self.classifier, policy.llm_classifier.confidence_threshold)
@@ -66,18 +73,21 @@ class DetectionService:
             if check in detectors:
                 triggers.extend(await detectors[check].detect(context))
             elif check == "llm_classifier" and llm_detector:
-                triggers.extend(await llm_detector.detect(context.evidence))
-            # ml_classifier remains a contract-compatible no-op until a model exists.
+                triggers.extend(await llm_detector.detect(
+                    context.evidence,
+                    target_message_id=request.subject.id if request.subject.type == "message" else None,
+                    background=context.conversation_context,
+                ))
 
         triggers = [
             trigger.model_copy(
-                update={"raw_result": {**(trigger.raw_result or {}), "policy_version": policy.version}}
+                update={"raw_result": {**(trigger.raw_result or {}), "policy_version": policy.version, "as_of": context.as_of.isoformat()}}
             )
             for trigger in triggers
         ]
 
         referenced = {ref for trigger in triggers for ref in trigger.evidence_refs}
-        evidence = [item for item in context.evidence if item.id in referenced]
+        evidence = [item for item in context.evidence + context.conversation_context if item.id in referenced]
         return DetectionResult(
             detection_id=f"DET-{uuid4()}",
             subject=request.subject,
