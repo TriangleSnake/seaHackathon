@@ -55,6 +55,7 @@ export function RuntimeGraph() {
   const [clock, setClock] = useState("--:--:--");
   const { data: detectionStatus } = useQuery({ queryKey: ["detection-status"], queryFn: detectionApi.status, refetchInterval: 10_000, retry: false });
   const { data: liveJobs = [] } = useQuery({ queryKey: ["system-jobs"], queryFn: systemControlApi.jobs, enabled: mode === "live", refetchInterval: 5_000, retry: false });
+  const { data: liveHealth } = useQuery({ queryKey: ["component-health"], queryFn: async () => { const response = await fetch("/api/components"); if (!response.ok) throw new Error("health unavailable"); return response.json() as Promise<{components:{name:string;status:string;latency_ms:number}[]}>; }, enabled: mode === "live", refetchInterval: 5_000, retry: false });
 
   useEffect(() => {
     const update = () => setClock(new Date().toLocaleTimeString("zh-TW", { hour12: false }));
@@ -69,10 +70,12 @@ export function RuntimeGraph() {
     const threads = jobs.map(jobToThread);
     const hasActive = jobs.some((job) => ["queued", "running", "dispatched"].includes(job.status));
     const hasFailure = jobs.some((job) => ["failed", "dead_letter"].includes(job.status));
+    const health = liveHealth?.components.find((item) => item.name.toLowerCase().replace(" ", "") === component.id.replace("gateway", "gateway"));
     if (component.id === "detection") return { ...component, status: detectionStatus?.ready ? (hasActive ? "running" as const : "healthy" as const) : "degraded" as const, latencyMs: detectionStatus?.latencyMs, threads };
     if (["patrol", "investigation", "association"].includes(component.id)) return { ...component, status: hasActive ? "running" as const : hasFailure ? "degraded" as const : "idle" as const, latencyMs: undefined, threads };
-    return { ...component, status: component.id === "dashboard" || component.id === "system" ? "healthy" as const : "idle" as const, latencyMs: undefined, threads: [] };
-  }), [detectionStatus, liveJobs, mode]);
+    if (health) return { ...component, status: health.status === "healthy" ? "healthy" as const : "degraded" as const, latencyMs: health.latency_ms, threads };
+    return { ...component, status: component.id === "dashboard" ? "healthy" as const : "idle" as const, latencyMs: undefined, threads: [] };
+  }), [detectionStatus, liveHealth, liveJobs, mode]);
   const byId = useMemo(() => Object.fromEntries(components.map((component) => [component.id, component])) as Record<string, RuntimeComponent>, [components]);
   const component = byId[componentId] ?? components[0];
   const thread = component.threads.find((item) => item.id === threadId);

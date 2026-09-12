@@ -207,6 +207,7 @@ services:
       DASHBOARD_PATROL_URL: ${DASHBOARD_PATROL_URL:-http://patrol:10003}
       DASHBOARD_ASSOCIATION_URL: ${DASHBOARD_ASSOCIATION_URL:-http://association:10004}
       DASHBOARD_INVESTIGATION_URL: ${DASHBOARD_INVESTIGATION_URL:-http://investigation:8000}
+      DASHBOARD_GOVERNANCE_URL: ${DASHBOARD_GOVERNANCE_URL:-http://governance:8000}
     depends_on:
       system:
         condition: service_started
@@ -216,8 +217,18 @@ services:
         condition: service_started
       investigation:
         condition: service_started
+      governance:
+        condition: service_started
     ports:
       - "${DASHBOARD_PORT:-3001}:3000"
+    networks:
+      - fraud-intelligence-network
+
+  governance:
+    build:
+      context: ./services/governance
+    ports:
+      - "${GOVERNANCE_PORT:-10008}:8000"
     networks:
       - fraud-intelligence-network
 
