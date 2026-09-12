@@ -3,6 +3,7 @@ import { agentPolicyProfiles, getAgentPolicyProfile, getSubAgentProfile, getSubA
 import { ArrowLeft, Bot, FileCode2, LockKeyhole, Wrench } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InvestigationSubAgentLive } from "@/features/policies/investigation-policy-live";
 
 export function generateStaticParams() {
   return agentPolicyProfiles.flatMap((profile) => getSubAgentProfiles(profile.slug).map((subAgent) => ({ agent: profile.slug, subagent: subAgent.slug })));
@@ -12,7 +13,15 @@ export default async function SubAgentPolicyPage({ params }: { params: Promise<{
   const { agent, subagent } = await params;
   const parent = getAgentPolicyProfile(agent);
   const profile = getSubAgentProfile(agent, subagent);
-  if (!parent || !profile) notFound();
+  if (!parent) notFound();
+
+  if (agent === "investigation") return <AppShell><div className="agent-policy-detail subagent-detail">
+    <Link href="/policies/investigation" className="back-link"><ArrowLeft size={15}/>返回 Investigation Agent</Link>
+    <div className="agent-detail-head"><div className="agent-detail-title"><span className="agent-detail-icon"><Bot size={21}/></span><div><div className="agent-detail-kicker">RUNTIME SUB-AGENT</div><h1>{subagent.replaceAll("_", " ")}</h1></div></div><span className="implementation-state implemented">Runtime Registry</span></div>
+    <InvestigationSubAgentLive id={subagent}/>
+  </div></AppShell>;
+
+  if (!profile) notFound();
 
   return <AppShell><div className="agent-policy-detail subagent-detail">
     <Link href={`/policies/${parent.slug}`} className="back-link"><ArrowLeft size={15}/>返回 {parent.name}</Link>

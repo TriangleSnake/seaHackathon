@@ -30,11 +30,20 @@ class DomainAgent:
 
     def __init__(self, analyzer: Analyzer, prompt_path: Path) -> None:
         self._analyzer = analyzer
+        self._prompt_path = prompt_path
         self._prompt = prompt_path.read_text(encoding="utf-8")
 
     @property
     def allowed_tool_names(self) -> tuple[str, ...]:
         return self.allowed_tools
+
+    @property
+    def prompt_snapshot(self) -> str:
+        return self._prompt
+
+    @property
+    def prompt_source(self) -> str:
+        return self._prompt_path.name
 
     @staticmethod
     def _has_content(item: Evidence) -> bool:

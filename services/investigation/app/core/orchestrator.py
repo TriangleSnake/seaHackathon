@@ -56,6 +56,25 @@ class InvestigationOrchestrator:
             else None
         )
 
+    def policy_documents(self) -> list[dict[str, Any]]:
+        return [config.model_dump(mode="json") for config in self._policies.documents()]
+
+    def agent_registry(self) -> list[dict[str, Any]]:
+        """Describe the runtime registry; the Dashboard must not duplicate it."""
+        return [
+            {
+                "id": agent.name,
+                "name": agent.name.replace("_", " ").title(),
+                "enabled": True,
+                "prompt": agent.prompt_snapshot,
+                "prompt_source": agent.prompt_source,
+                "allowed_tools": list(agent.allowed_tool_names),
+                "primary_subject_types": list(agent.primary_subject_types),
+                "score_dimensions": list(agent.item_score_weights),
+            }
+            for agent in self._agents
+        ]
+
     async def investigate(
         self,
         request: InvestigationRequest,

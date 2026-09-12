@@ -2,6 +2,7 @@ import { AppShell } from "@/components/app-shell";
 import { AgentPolicyEditor } from "@/features/policies/agent-policy-editor";
 import { DetectionPolicyEditor } from "@/features/policies/detection-policy-editor";
 import { PolicyEditorSwitch } from "@/features/policies/live-agent-policy-editor";
+import { InvestigationPolicyLive } from "@/features/policies/investigation-policy-live";
 import { agentPolicyProfiles, getAgentPolicyProfile, getSubAgentProfiles } from "@/lib/api/agent-policies";
 import { structuredPolicyConfigs } from "@/lib/api/structured-policies";
 import { ArrowLeft, ArrowUpRight, Bot, Check, Database, FileCode2, GitBranch, LockKeyhole, RefreshCw, ShieldCheck, Wrench } from "lucide-react";
@@ -25,7 +26,8 @@ export default async function AgentPolicyPage({ params }: { params: Promise<{ ag
     <section className="panel agent-detail-meta"><div><span>Active Policy</span><strong>{profile.slug === "detection" ? "Live API" : profile.policies[0]?.version ?? "尚未發布"}</strong></div><div><span>Runtime</span><strong>{profile.runtimeVersion}</strong></div><div><span>Owner</span><strong>{profile.owner}</strong></div><div><span>最後發布</span><strong>{profile.slug === "detection" ? "由服務回報" : profile.updatedAt}</strong></div></section>
 
     <div className="agent-detail-grid"><div className="agent-detail-main">
-      {subAgents.length > 0 && <section className="panel subagent-registry"><header><div><Bot size={18}/><div><span>DYNAMIC SUB-AGENT REGISTRY</span><h2>Investigation Sub-agents</h2></div></div><b>{subAgents.length} 個已註冊</b></header><div className="subagent-grid">{subAgents.map((subAgent) => <Link href={`/policies/${profile.slug}/${subAgent.slug}`} key={subAgent.slug}><div><span className={`implementation-state ${subAgent.implementationState ?? "implemented"}`}>{subAgent.implementationState === "placeholder" ? "尚未實作" : "可用"}</span><h3>{subAgent.name}</h3><p>{subAgent.role}</p></div><ArrowUpRight size={15}/></Link>)}</div></section>}
+      {profile.slug === "investigation" && <InvestigationPolicyLive/>}
+      {profile.slug !== "investigation" && subAgents.length > 0 && <section className="panel subagent-registry"><header><div><Bot size={18}/><div><span>DYNAMIC SUB-AGENT REGISTRY</span><h2>Investigation Sub-agents</h2></div></div><b>{subAgents.length} 個已註冊</b></header><div className="subagent-grid">{subAgents.map((subAgent) => <Link href={`/policies/${profile.slug}/${subAgent.slug}`} key={subAgent.slug}><div><span className={`implementation-state ${subAgent.implementationState ?? "implemented"}`}>{subAgent.implementationState === "placeholder" ? "尚未實作" : "可用"}</span><h3>{subAgent.name}</h3><p>{subAgent.role}</p></div><ArrowUpRight size={15}/></Link>)}</div></section>}
 
       {profile.slug === "detection" && <DetectionPolicyEditor/>}
       {structuredPolicy && (profile.slug === "patrol" || profile.slug === "association") && <PolicyEditorSwitch agent={profile.slug} demo={<AgentPolicyEditor config={structuredPolicy} toolCatalog={profile.toolConfiguration?.tools ?? []}/>}/>}

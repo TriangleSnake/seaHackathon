@@ -21,6 +21,23 @@ from app.policies.repository import PolicyNotFoundError
 router = APIRouter()
 
 
+@router.get("/policies/investigation", tags=["control-plane"])
+async def investigation_policies(request: Request) -> dict:
+    documents = request.app.state.orchestrator.policy_documents()
+    return {
+        "active": next((item for item in documents if item["status"] == "active"), None),
+        "versions": documents,
+    }
+
+
+@router.get("/agents", tags=["control-plane"])
+async def agent_registry(request: Request) -> dict:
+    return {
+        "orchestrator": request.app.state.orchestrator.orchestrator_name,
+        "agents": request.app.state.orchestrator.agent_registry(),
+    }
+
+
 @router.get("/health", response_model=HealthResponse, tags=["operations"])
 async def health(request: Request) -> HealthResponse:
     return HealthResponse(status="ok", service=request.app.state.settings.service_name)

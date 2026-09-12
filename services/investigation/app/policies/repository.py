@@ -46,3 +46,7 @@ class FilePolicyRepository:
 
     def versions(self) -> list[str]:
         return sorted(self._configs)
+
+    def documents(self) -> list[ScoreboardConfig]:
+        """Return the immutable configurations visible to the control plane."""
+        return [self._configs[version] for version in self.versions()]
