@@ -50,6 +50,8 @@ class RunState(str, Enum):
     FROZEN = "FROZEN"
     HOLDOUT = "HOLDOUT"
     AWAITING_APPROVAL = "AWAITING_APPROVAL"
+    APPROVED = "APPROVED"
+    ACTIVATING = "ACTIVATING"
     ACTIVE = "ACTIVE"
     REJECTED = "REJECTED"
     ABORTED = "ABORTED"
@@ -159,6 +161,35 @@ class CandidatePolicy:
     def __post_init__(self) -> None:
         if self.policy_ref.policy_type is not self.target_policy:
             raise ValueError("CandidatePolicy reference must match its target policy")
+
+
+@dataclass(frozen=True)
+class CandidatePolicyRecord:
+    """Internal lineage joining a shared CandidateResult to one policy change."""
+
+    candidate_id: str
+    build_id: str
+    target_policy: PolicyType
+    base_policy_version: str
+    base_defense_version: str
+    candidate_policy_version: str | None
+    artifact_ref: str | None
+    artifact_root: str | None
+    build_log_ref: str | None
+    build_status: str
+    candidate_result: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class FormalPolicyVersion:
+    """Internal production policy record; shared contracts expose only its PolicyRef."""
+
+    policy_type: PolicyType
+    version: str
+    candidate_id: str
+    candidate_policy_version: str
+    artifact_ref: str | None
+    created_at: str
 
 
 @dataclass(frozen=True)

@@ -16,6 +16,7 @@ from app.domain import (
     PolicyChangeProposal,
     PolicyReference,
 )
+from app.repositories import InMemoryVersionRepository
 
 
 class FakeEvolutionPlanner:
@@ -124,12 +125,9 @@ class FakeCandidateBuilder:
         return BuildOutcome(True, result, candidate_policy=policy)
 
 
-class FakeDefenseVersionRepository:
+class FakeDefenseVersionRepository(InMemoryVersionRepository):
     def __init__(self, versions: list[DefenseVersionSnapshot]) -> None:
-        self._versions = {item.version: item for item in versions}
-
-    def get(self, version: str) -> DefenseVersionSnapshot:
-        return self._versions[version]
+        super().__init__(versions)
 
 
 class FakeCandidateVersionFactory:

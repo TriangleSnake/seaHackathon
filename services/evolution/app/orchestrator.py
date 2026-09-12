@@ -141,6 +141,13 @@ class EvolutionOrchestrator:
         builder = self._builders.builder_for(directive)
         build = builder.build(build_request, proposal, directive)
         candidate_result = dict(build.candidate_result)
+        base = self._versions.read_base(context.current_defense_version)
+        self._versions.register_build(
+            candidate_result,
+            proposal.target_policy,
+            base,
+            build.candidate_policy,
+        )
 
         if not build.success:
             self._states.transition(
@@ -160,10 +167,7 @@ class EvolutionOrchestrator:
         self._states.transition(
             run, RunState.VALIDATING, "Candidate built; validation is next"
         )
-        candidate_policy = build.candidate_policy
-        if candidate_policy is None:  # guarded by BuildOutcome
-            raise ValueError("Successful build has no CandidatePolicy")
-        base = self._versions.read_base(context.current_defense_version)
+        candidate_policy = self._versions.candidate_registry.resolve(candidate_id)
         candidate_version = self._candidate_versions.create(
             run, base, candidate_policy, candidate_id
         )
