@@ -47,4 +47,5 @@ def test_runtime_capability_exposes_only_supported_field_and_current_values() ->
     assert field["required_signals"] == ["message.text"]
     assert field["current_values"] == ["外部轉帳"]
     assert detection["config_builder_scope"]["supports_compound_conditions"] is False
+    assert detection["config_builder_scope"]["code_builder_available"] is True
     assert "threshold" not in str(result).lower()

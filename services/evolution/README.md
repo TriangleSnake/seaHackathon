@@ -25,6 +25,9 @@ publishing, deployment, governance, persistent storage, or rollback.
   builder routing.
 - `app/config_builder.py`: the real Detection CONFIG builder, dual policy
   validation, and environment-backed local assembly.
+- `app/code_builder.py`: the thin adapter from CODE directives to the isolated
+  real Codex runtime under `services/codex-builder`, preserving CandidateResult
+  and the existing candidate registry flow.
 - `app/artifacts.py`: deterministic atomic publication of immutable JSON
   artifacts.
 - `app/versioning.py`: deterministic single-policy composition, evaluation
@@ -140,8 +143,9 @@ a narrower replacement without introducing a rule-expression DSL or changing
 Detection's Python logic.
 
 `DetectionPolicyCapabilityAdapter` routes supported typed changes to
-`ConfigBuilder`. Unstructured Detection behavior remains on the deferred CODE
-route, and missing capabilities remain unsupported. `ConfigBuilder` loads the
+`ConfigBuilder`. Unstructured, role-aware, and compound Detection behavior
+routes to the CODE builder, while missing capabilities remain unsupported.
+`ConfigBuilder` loads the
 named baseline through Detection's existing repository, validates the baseline
 and candidate with both Detection's Pydantic runtime model and the shared JSON
 Schema, then publishes a deterministic `DP-CAND-NNN.json`. The existing

@@ -68,7 +68,7 @@ class DetectionConfigCapabilityProvider:
                 "supports_generic_allowlists": False,
                 "supports_custom_trigger_generation": False,
                 "unsupported_behavior_resolution": "CODE",
-                "code_builder_available": False,
+                "code_builder_available": True,
             },
             "configurable_fields": [
                 {
