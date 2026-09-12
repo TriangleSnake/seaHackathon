@@ -20,6 +20,7 @@ class PatrolScope(StrictModel):
 class PatrolRequest(StrictModel):
     run_id: str = Field(min_length=1)
     mode: Literal["scheduled", "manual"]
+    strategy: Literal["exploit", "explore"] = "exploit"
     scope: PatrolScope
 
 
@@ -60,6 +61,7 @@ class PatrolBudget(StrictModel):
 class PatrolPolicy(StrictModel):
     policy_id: str
     version: str
+    strategy: Literal["exploit", "explore"]
     objective: str
     allowed_tools: list[str]
     exploration_guidance: list[str] = Field(default_factory=list)

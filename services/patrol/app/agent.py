@@ -13,6 +13,7 @@ from .prompt import build_system_prompt
 def _run_input(request: PatrolRequest, policy: PatrolPolicy) -> str:
     payload = {
         "request": request.model_dump(mode="json"),
+        "strategy": request.strategy,
         "policy_version": policy.version,
     }
     return (

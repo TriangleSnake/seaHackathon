@@ -172,6 +172,28 @@ async def search_accounts(
 
 
 @mcp.tool()
+async def sample_accounts(
+    created_within_days: int = 30,
+    status: Literal["active", "restricted", "banned"] | None = None,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Return a bounded random account sample for unbiased Patrol exploration."""
+    days = max(1, min(created_within_days, 365))
+    rows = await fetch_all(
+        """
+        SELECT id, created_at, status, activity_score, kyc_status, bot_check_score, attributes
+        FROM accounts
+        WHERE created_at >= NOW() - (%s * INTERVAL '1 day')
+          AND (%s::text IS NULL OR status = %s)
+        ORDER BY RANDOM()
+        LIMIT %s
+        """,
+        (days, status, status, bounded_limit(limit)),
+    )
+    return {"created_within_days": days, "accounts": rows, "count": len(rows)}
+
+
+@mcp.tool()
 async def get_account_activity(account_id: str, limit_per_type: int = 20) -> dict[str, Any]:
     """Get recent login, report, product, transaction, and message activity for one account."""
     limit = bounded_limit(limit_per_type)

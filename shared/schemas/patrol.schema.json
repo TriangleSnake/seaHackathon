@@ -22,6 +22,14 @@
             "manual"
           ]
         },
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "exploit",
+            "explore"
+          ],
+          "default": "exploit"
+        },
         "scope": {
           "type": "object",
           "additionalProperties": false,

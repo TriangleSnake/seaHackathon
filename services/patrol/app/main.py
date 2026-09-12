@@ -13,17 +13,19 @@ app = FastAPI(title="Patrol Service", version="0.1.0")
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    policy = load_active_policy()
+    exploit_policy = load_active_policy("exploit")
+    explore_policy = load_active_policy("explore")
     return {
         "status": "ok",
-        "policy_version": policy.version,
+        "exploit_policy_version": exploit_policy.version,
+        "explore_policy_version": explore_policy.version,
         "prompt_version": PATROL_PROMPT_VERSION,
     }
 
 
 @app.post("/patrol/run", response_model=PatrolResult)
 async def patrol_run(request: PatrolRequest) -> PatrolResult:
-    policy = load_active_policy()
+    policy = load_active_policy(request.strategy)
     try:
         return await run_patrol(request, policy)
     except Exception as exc:
