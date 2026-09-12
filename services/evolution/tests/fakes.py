@@ -15,6 +15,7 @@ from app.domain import (
     ImplementationDirective,
     PolicyChangeProposal,
     PolicyReference,
+    RevisionFeedback,
 )
 from app.repositories import InMemoryVersionRepository
 
@@ -25,6 +26,7 @@ class FakeEvolutionPlanner:
     def __init__(self, diagnosis: DiagnosisResult) -> None:
         self.diagnosis = diagnosis
         self.proposal_calls = 0
+        self.feedback_calls: list[RevisionFeedback | None] = []
 
     def diagnose(self, context: EvolutionContext) -> DiagnosisResult:
         return self.diagnosis
@@ -34,17 +36,23 @@ class FakeEvolutionPlanner:
         run: EvolutionRun,
         context: EvolutionContext,
         diagnosis: DiagnosisResult,
+        feedback: RevisionFeedback | None = None,
     ) -> PolicyChangeProposal:
         self.proposal_calls += 1
+        self.feedback_calls.append(feedback)
         gap = diagnosis.primary_gap
         if gap is None:
             raise ValueError("Fake planner cannot propose without a primary gap")
         return PolicyChangeProposal(
-            proposal_id=f"proposal-{run.run_id}",
+            proposal_id=f"proposal-{run.run_id}-{self.proposal_calls}",
             target_policy=gap.policy_type,
             base_defense_version=context.current_defense_version,
             objective=f"Address: {gap.symptom}",
-            requested_behavior="Apply the requested test behavior",
+            requested_behavior=(
+                "Revise the requested test behavior from aggregate evaluation feedback"
+                if feedback is not None
+                else "Apply the requested test behavior"
+            ),
             required_signals=("account.activity_score",),
             expected_impact="Improve detection coverage",
             known_risks=("False positives",),
@@ -78,7 +86,7 @@ class FakePolicyCapabilityAdapter:
 class FakeCandidateBuilder:
     """Create a schema-shaped result without writing files or invoking Codex."""
 
-    def __init__(self, *, succeeds: bool, policy_version: str = "DP-CAND-TEST") -> None:
+    def __init__(self, *, succeeds: bool, policy_version: str | None = None) -> None:
         self.succeeds = succeeds
         self.policy_version = policy_version
         self.calls: list[Mapping[str, Any]] = []
@@ -117,9 +125,10 @@ class FakeCandidateBuilder:
         }
         if not self.succeeds:
             return BuildOutcome(False, result, error="Fake builder failure")
+        policy_version = self.policy_version or f"DP-CAND-{len(self.calls):03d}"
         policy = CandidatePolicy(
             target_policy=proposal.target_policy,
-            policy_ref=PolicyReference(proposal.target_policy, self.policy_version),
+            policy_ref=PolicyReference(proposal.target_policy, policy_version),
             artifact_ref=f"candidate/{proposal.target_policy.value}/policy.json",
         )
         return BuildOutcome(True, result, candidate_policy=policy)
@@ -140,4 +149,4 @@ class FakeCandidateVersionFactory:
         candidate_policy: CandidatePolicy,
         candidate_id: str,
     ) -> str:
-        return f"test-candidate-for-{base.version}"
+        return f"test-candidate-{run.iteration}-for-{candidate_id}"

@@ -53,15 +53,50 @@ class VersionLifecycle:
             raise VersionRepositoryError(
                 "Evaluation can only be linked during validation or holdout"
             )
+        evaluation_state = run.current_state
+        failed_iteration = run.iteration
         updated = self._versions.record_evaluation(candidate_version, evaluation)
+        run.record_evaluation(
+            str(evaluation["candidate_id"]),
+            str(evaluation["evaluation_id"]),
+            str(evaluation["status"]),
+            phase=(
+                "validation"
+                if evaluation_state is RunState.VALIDATING
+                else "holdout"
+            ),
+        )
         if evaluation.get("status") == "failed":
-            self._states.transition(
-                run,
-                RunState.REJECTED,
-                "Evaluation failed; candidate rejected",
-                evaluation_id=evaluation.get("evaluation_id"),
-            )
-        elif run.current_state is RunState.VALIDATING:
+            if evaluation_state is RunState.VALIDATING and run.retry_budget > 0:
+                next_iteration = failed_iteration + 1
+                remaining_retries = run.retry_budget - 1
+                self._states.transition(
+                    run,
+                    RunState.REVISING,
+                    "Validation failed; retrying with structured feedback",
+                    candidate_id=evaluation.get("candidate_id"),
+                    evaluation_id=evaluation.get("evaluation_id"),
+                    failed_iteration=failed_iteration,
+                    next_iteration=next_iteration,
+                    retry_budget_remaining=remaining_retries,
+                )
+                run.iteration = next_iteration
+                run.retry_budget = remaining_retries
+            else:
+                self._states.transition(
+                    run,
+                    RunState.REJECTED,
+                    (
+                        "Validation failed and retry budget is exhausted"
+                        if evaluation_state is RunState.VALIDATING
+                        else "Holdout evaluation failed; candidate rejected"
+                    ),
+                    candidate_id=evaluation.get("candidate_id"),
+                    evaluation_id=evaluation.get("evaluation_id"),
+                    failed_iteration=failed_iteration,
+                    retry_budget_remaining=run.retry_budget,
+                )
+        elif evaluation_state is RunState.VALIDATING:
             self.freeze_after_validation(run)
         else:
             self._states.transition(

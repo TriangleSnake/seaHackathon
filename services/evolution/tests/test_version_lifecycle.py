@@ -288,6 +288,32 @@ class VersionLifecycleTests(unittest.TestCase):
         )
         self.assertEqual(self.repository.next_defense_version(), "DV-002")
 
+    def test_failed_validation_with_retry_enters_revising_and_consumes_one_retry(
+        self,
+    ) -> None:
+        candidate = self.build_candidate()
+        run = EvolutionRun(
+            "run-lifecycle-retry",
+            "fixture",
+            current_state=RunState.VALIDATING,
+            retry_budget=2,
+        )
+
+        rejected_attempt = self.lifecycle.record_evaluation(
+            run,
+            candidate.version,
+            evaluation(candidate.candidate_id or "", status="failed"),
+        )
+
+        self.assertEqual(rejected_attempt.status, "rejected")
+        self.assertEqual(run.current_state, RunState.REVISING)
+        self.assertEqual(run.iteration, 2)
+        self.assertEqual(run.retry_budget, 1)
+        event = run.history[-1]
+        self.assertEqual(event.details["failed_iteration"], 1)
+        self.assertEqual(event.details["next_iteration"], 2)
+        self.assertEqual(event.details["retry_budget_remaining"], 1)
+
     def test_needs_review_keeps_candidate_unpromoted_and_active_unchanged(self) -> None:
         candidate = self.build_candidate()
         result = evaluation(candidate.candidate_id or "")

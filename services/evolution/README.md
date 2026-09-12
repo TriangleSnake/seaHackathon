@@ -1,16 +1,23 @@
 # Evolution and version lifecycle
 
-This package is the deterministic Member 4 Evolution Core. It proves the
-architecture with test-only fakes and implements the repository-level normal
-version lifecycle. It does not implement fraud policy logic, LLM diagnosis,
-Codex execution, deployment infrastructure, persistence, or rollback.
+This package contains the deterministic Member 4 Evolution Core plus a real
+OpenAI-backed planner. The runtime keeps state transitions, retry accounting,
+IDs, versioning, evaluator decisions, and governance outside the model. The
+model diagnoses policy gaps and proposes what behavior should change and why.
+
+It does not implement ConfigBuilder/Codex execution, Detection HTTP execution,
+publishing, deployment, governance, persistent storage, or rollback.
 
 ## Layers
 
 - `app/domain.py`: internal models for diagnosis, one-policy proposals,
-  capability directives, candidates, defense snapshots, and run history.
+  CONFIG mutation intent, revision feedback, candidates, defense snapshots,
+  and append-oriented attempt history.
 - `app/ports.py`: replaceable planner, policy adapter, builder, repository, and
   version-naming boundaries.
+- `app/planner.py`: OpenAI Responses structured-output planner, strict response
+  validation, Detection CONFIG capability summary, and protected-boundary
+  checks.
 - `app/repositories.py`: candidate-policy registry plus append-oriented in-memory
   policy and defense version storage.
 - `app/state_machine.py`: the only authority that changes EvolutionRun state.
@@ -27,8 +34,40 @@ Codex execution, deployment infrastructure, persistence, or rollback.
 - `app/adapters.py`: mapping between internal models and existing shared
   contracts without changing those contracts.
 - `app/orchestrator.py`: deterministic flow from trigger through candidate
-  composition.
+  composition plus evaluation-driven autonomous revision.
 - `tests/fakes.py`: clearly labelled deterministic fakes used only by tests.
+
+## Runtime planner
+
+`OpenAIEvolutionPlanner` makes separate structured-output calls for diagnosis
+and proposal. Model output is validated into `DiagnosisResult`, `PolicyGap`,
+`PolicyMutationIntent`, and `PolicyChangeProposal`. Proposal IDs, the base
+defense version, target-policy consistency, and provenance are supplied or
+checked by runtime code; the model cannot set production versions or artifact
+paths.
+
+The current default capability summary exposes every field in the Detection
+policy schema. For example, a planner may emit a behavioral CONFIG intent such
+as:
+
+```json
+{
+  "operation": "append_unique",
+  "path": "rule_based.chat_request_phrases",
+  "values": ["a phrase inferred from the supplied PatternSpec"],
+  "rationale": "why this change addresses the diagnosed gap"
+}
+```
+
+This is carried as `BuildRequest.config.mutation_intent` for the separately
+owned ConfigBuilder. It contains no code or policy-file path. A runtime may
+inject a fresher capability summary when constructing the planner.
+
+The backend reads `OPENAI_API_KEY` and uses `EVOLUTION_OPENAI_MODEL`, falling
+back to the repository-wide `OPENAI_MODEL` and then `gpt-5-mini`. API keys are
+never embedded in proposals or source. Malformed JSON, schema-invalid output,
+refusals/incomplete responses, unsupported mutation fields, and API failures
+raise controlled `PlannerError` subclasses; no fallback proposal is invented.
 
 ## Contract mismatches intentionally isolated
 
@@ -49,6 +88,31 @@ Codex execution, deployment infrastructure, persistence, or rollback.
 5. Evaluation and Governance remain owners of their own shared results.
    `VersionLifecycle` consumes those results internally; governance authorizes
    promotion but never activates a defense.
+
+## Revision loop
+
+`EvolutionOrchestrator.handle_evaluation()` links an aggregate validation result
+and performs the next planner/build attempt when appropriate:
+
+```text
+VALIDATING
+  -> PASS: FROZEN
+  -> FAIL with retry: REVISING -> RESOLVING -> BUILDING -> VALIDATING
+  -> FAIL without retry: REJECTED
+```
+
+One failed validation consumes exactly one retry and increments the iteration
+before the planner receives `RevisionFeedback`. Every `EvolutionAttempt` keeps
+its proposal and candidate ID/version, with validation and holdout evaluation
+lineage in distinct fields. Candidate registry and defense-version history
+retain the rejected snapshot as well, so candidate IDs and failed attempts are
+never overwritten.
+
+Only validation aggregates are returned to the planner: failure reasons,
+regressions, baseline/candidate metrics, and incremental value. Holdout rows,
+labels, individual cases, caller-supplied thresholds, evaluator gates, and
+governance rules have no `RevisionFeedback` representation. Holdout failure is
+terminal and is never used for planner revision.
 
 ## Normal lifecycle
 
@@ -107,6 +171,23 @@ override is intentionally left to the runtime integration step.
 From `services/evolution`:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r requirements-dev.txt
 python3 -m unittest discover -s tests -v
 ```
+
+The tests use deterministic planners and response clients; they never call the
+live API.
+
+## Optional real-planner smoke
+
+With dependencies and `OPENAI_API_KEY` configured, run from
+`services/evolution`:
+
+```bash
+python3 -m app.manual_smoke
+```
+
+The entry point creates a schema-compatible manual EvolutionRequest, invokes
+the real diagnosis/proposal backend, prints the validated internal result, and
+stops before ConfigBuilder or Detection integration. It is intentionally not a
+CI test.
