@@ -171,7 +171,11 @@ WITH transaction_rows AS (
         ((n - 1) % 90) + 1 AS product_n,
         ((n - 1) % 40) + 81 AS buyer_n,
         (n % 3) + 1 AS quantity,
-        TIMESTAMPTZ '2026-08-01 08:00:00+08' + n * INTERVAL '2 hours' AS created_at
+        CASE n
+            WHEN 91 THEN TIMESTAMPTZ '2026-09-04 09:50:00+08'
+            WHEN 92 THEN TIMESTAMPTZ '2026-09-05 10:50:00+08'
+            ELSE TIMESTAMPTZ '2026-08-01 08:00:00+08' + n * INTERVAL '2 hours'
+        END AS created_at
     FROM generate_series(1, 100) AS n
 )
 INSERT INTO transactions (
@@ -208,7 +212,8 @@ CROSS JOIN LATERAL (
 ) AS parsed;
 
 INSERT INTO transaction_status_events (id, transaction_id, status, occurred_at)
-SELECT 'TSE-P-' || lpad(n::text, 4, '0'), id, 'paid', created_at + INTERVAL '15 minutes'
+SELECT 'TSE-P-' || lpad(n::text, 4, '0'), id, 'paid',
+       created_at + CASE WHEN n IN (91, 92) THEN INTERVAL '18 minutes' ELSE INTERVAL '15 minutes' END
 FROM transactions
 CROSS JOIN LATERAL (
     SELECT substring(transactions.id FROM '[0-9]+$')::integer AS n
@@ -252,11 +257,12 @@ SELECT
     t.id,
     t.buyer_account_id,
     t.payment_method,
-    'sha256-demo-payment-' || lpad((((n - 1) % 45) + 1)::text, 4, '0'),
+    CASE n WHEN 91 THEN 'sha256-demo-payment-x901' WHEN 92 THEN 'sha256-demo-payment-x903'
+        ELSE 'sha256-demo-payment-' || lpad((((n - 1) % 45) + 1)::text, 4, '0') END,
     t.amount,
     t.currency,
-    CASE WHEN t.status = 'cancelled' THEN 'declined' ELSE 'authorized' END,
-    CASE WHEN t.status = 'cancelled' THEN 'ISSUER_DECLINED' END,
+    CASE WHEN t.status = 'cancelled' OR n IN (91, 92) THEN 'declined' ELSE 'authorized' END,
+    CASE WHEN t.status = 'cancelled' OR n IN (91, 92) THEN 'ISSUER_DECLINED' END,
     'DEV-' || lpad((((n - 1) % 70) + 1)::text, 4, '0'),
     format('198.51.100.%s', (n % 250) + 1)::inet,
     t.created_at + INTERVAL '10 minutes'
@@ -329,7 +335,7 @@ SELECT
     t.id,
     t.created_at + INTERVAL '30 minutes'
 FROM generate_series(1, 40) AS n
-JOIN transactions t ON t.id = 'TXN-' || lpad(n::text, 4, '0')
+JOIN transactions t ON t.id = 'TXN-' || lpad((CASE n WHEN 37 THEN 93 WHEN 38 THEN 81 WHEN 39 THEN 94 WHEN 40 THEN 93 ELSE n END)::text, 4, '0')
 JOIN products p ON p.id = t.product_id;
 
 INSERT INTO conversation_participants (conversation_id, account_id, participant_role, joined_at)
@@ -345,19 +351,22 @@ WITH message_rows AS (
     SELECT
         n,
         ((n - 1) % 40) + 1 AS conversation_n,
-        TIMESTAMPTZ '2026-08-10 09:00:00+08' + n * INTERVAL '20 minutes' AS created_at,
+        (n - 1) / 40 AS turn_n,
+        TIMESTAMPTZ '2026-09-01 09:00:00+08' + ((n - 1) % 10) * INTERVAL '1 day'
+            + ((n - 1) / 40) * INTERVAL '30 minutes' AS created_at,
         (ARRAY[
-            '您好，請問今天下單大約何時出貨？',
-            '庫存充足，付款完成後會依序包裝。',
-            '尺寸表我看過了，麻煩幫我保留藍色。',
-            '沒問題，平台訂單成立後會為您保留。',
-            '物流進度可以在訂單頁面直接查詢。',
-            '收到商品了，包裝完整，謝謝。',
-            '銀行轉帳也請使用平台內建付款，不需要私下匯款。',
+            '您好，想確認這件商品的保養方式。',
+            '您好，可以先用乾布清潔，細節請參考頁面說明。',
+            '謝謝，請問需要保留外盒嗎？',
+            '建議保留外盒與平台交易紀錄，方便售後處理。',
+            '如果發現瑕疵，應該在哪裡申請？',
             '官方退貨步驟在 https://help.marketplace.test/returns 。',
-            '這筆刷卡第一次失敗，我會在平台內重新付款。',
-            '旅途中登入通知是我本人操作，裝置沒有更換。'
-        ])[1 + ((n - 1) % 10)] AS body
+            '有人傳連結說需要重新驗證付款，那是你們嗎？',
+            '不是，請不要提供卡片資料，也不需要私下匯款。',
+            '了解，我只會在平台內聯絡客服。',
+            '好的，有其他問題歡迎在這個對話詢問。',
+            '謝謝說明，我先按照商品說明操作。'
+        ])[1 + ((n - 1) / 40)] AS body
     FROM generate_series(1, 420) AS n
 )
 INSERT INTO messages (
@@ -367,23 +376,21 @@ INSERT INTO messages (
 SELECT
     'MSG-' || lpad(r.n::text, 4, '0'),
     c.id,
-    CASE WHEN r.n % 2 = 1 THEN t.buyer_account_id ELSE t.seller_account_id END,
-    CASE WHEN r.n % 2 = 1 THEN t.seller_account_id ELSE t.buyer_account_id END,
+    CASE WHEN r.turn_n % 2 = 0 THEN t.buyer_account_id ELSE t.seller_account_id END,
+    CASE WHEN r.turn_n % 2 = 0 THEN t.seller_account_id ELSE t.buyer_account_id END,
     'text',
-    r.body,
+    CASE WHEN r.turn_n = 0 THEN p.title || '：' ELSE '' END || r.body,
     '[]'::jsonb,
-    CASE WHEN r.n % 10 = 8
+    CASE WHEN r.turn_n = 5
         THEN '["https://help.marketplace.test/returns"]'::jsonb
         ELSE '[]'::jsonb
     END,
     r.created_at,
-    CASE
-        WHEN r.n % 10 IN (7, 8, 9, 0) THEN '{"context":"legitimate_edge_case"}'::jsonb
-        ELSE '{}'::jsonb
-    END
+    '{}'::jsonb
 FROM message_rows r
 JOIN conversations c ON c.id = 'CONV-' || lpad(r.conversation_n::text, 3, '0')
-JOIN transactions t ON t.id = c.transaction_id;
+JOIN transactions t ON t.id = c.transaction_id
+JOIN products p ON p.id = t.product_id;
 
 INSERT INTO message_attachments (id, message_id, attachment_type, resource_url, mime_type, created_at)
 SELECT
@@ -594,8 +601,8 @@ SELECT
 FROM (VALUES
     ('RPT-0901', 'TXN-0031', '對方要求離開平台驗證付款', TIMESTAMPTZ '2026-09-02 11:00:00+08'),
     ('RPT-0902', 'TXN-0032', '外部物流頁要求補填付款資料', TIMESTAMPTZ '2026-09-02 16:00:00+08'),
-    ('RPT-0903', 'TXN-0037', '收到空包裹', TIMESTAMPTZ '2026-09-06 19:00:00+08'),
-    ('RPT-0904', 'TXN-0038', '商品圖片疑似重複使用', TIMESTAMPTZ '2026-09-07 12:00:00+08')
+    ('RPT-0903', 'TXN-0093', '收到空包裹', TIMESTAMPTZ '2026-09-06 19:00:00+08'),
+    ('RPT-0904', 'TXN-0081', '商品圖片疑似重複使用', TIMESTAMPTZ '2026-09-07 12:00:00+08')
 ) AS v(report_id, transaction_id, reason, created_at)
 JOIN transactions t ON t.id = v.transaction_id;
 
@@ -607,16 +614,16 @@ WHERE id BETWEEN 'ACC-0001' AND 'ACC-0010';
 
 INSERT INTO entities (id, type, label, attributes)
 VALUES
-    ('IP-203-0-113-241', 'ip', '203.0.113.241', '{}'),
-    ('DEVICE-0069', 'device', 'DEV-0069', '{}');
+    ('IP-192-0-2-2', 'ip', '192.0.2.2', '{}'),
+    ('DEVICE-0001', 'device', 'DEV-0001', '{}');
 
 INSERT INTO relationships (
     source_id, target_id, type, value, confidence,
     evidence_refs, first_seen_at, last_seen_at
 )
 VALUES
-    ('ACC-0001', 'IP-203-0-113-241', 'login_from', '203.0.113.241', 1, '["LOG-0001"]', TIMESTAMPTZ '2026-07-01 02:00:00+08', TIMESTAMPTZ '2026-07-01 02:00:00+08'),
-    ('ACC-0001', 'DEVICE-0069', 'uses_device', 'DEV-0069', 1, '["LOG-0001"]', TIMESTAMPTZ '2026-07-01 02:00:00+08', TIMESTAMPTZ '2026-07-01 02:00:00+08');
+    ('ACC-0001', 'IP-192-0-2-2', 'login_from', '192.0.2.2', 1, '["LOG-0001"]', TIMESTAMPTZ '2026-07-01 02:00:00+08', TIMESTAMPTZ '2026-07-01 02:00:00+08'),
+    ('ACC-0001', 'DEVICE-0001', 'uses_device', 'DEV-0001', 1, '["LOG-0001"]', TIMESTAMPTZ '2026-07-01 02:00:00+08', TIMESTAMPTZ '2026-07-01 02:00:00+08');
 
 INSERT INTO cases (
     id, source, subject_type, subject_id, status, risk_score,
@@ -629,5 +636,90 @@ VALUES
 
 INSERT INTO case_entities (case_id, entity_id, role)
 VALUES ('CASE-DEMO-001', 'ACC-0001', 'subject');
+
+
+-- Boundary fixtures share the same simulation period as ordinary conversations.
+-- Expectations live in tests, never in marketplace attributes.
+INSERT INTO conversations(id, shop_id, created_at)
+SELECT 'CONV-' || (100+n), 'SHOP-001', TIMESTAMPTZ '2026-09-06 09:00:00+08'
+FROM generate_series(1,3) n;
+INSERT INTO conversation_participants(conversation_id,account_id,participant_role,joined_at)
+SELECT 'CONV-' || (100+n), 'ACC-' || lpad(n::text,4,'0'), 'buyer', TIMESTAMPTZ '2026-09-06 09:00:00+08' FROM generate_series(1,3) n
+UNION ALL
+SELECT 'CONV-' || (100+n), 'ACC-0004', 'seller', TIMESTAMPTZ '2026-09-06 09:00:00+08' FROM generate_series(1,3) n;
+INSERT INTO messages(id,conversation_id,sender_account_id,recipient_account_id,message_type,text,created_at)
+SELECT 'MSG-' || (2000+g*20+n), 'CONV-' || (100+g), 'ACC-' || lpad(g::text,4,'0'), 'ACC-0004',
+       'text', (ARRAY['請問有現貨嗎？','可以確認規格嗎？','配送需要幾天？','請提供保固資訊。','可以提供尺寸嗎？','能開發票嗎？','客服還在嗎？','麻煩回覆一下。','我有多筆訂單要確認。'])[n],
+       TIMESTAMPTZ '2026-09-06 10:00:00+08' + n*interval '2 minutes'
+FROM generate_series(1,3) g CROSS JOIN LATERAL generate_series(1,6+g) n;
+INSERT INTO messages(id,conversation_id,sender_account_id,recipient_account_id,message_type,text,created_at)
+SELECT 'MSG-' || (2100+g), 'CONV-' || (100+g), 'ACC-0004','ACC-' || lpad(g::text,4,'0'),
+       'text','您好，我們會依照問題順序回覆，請稍候。',TIMESTAMPTZ '2026-09-06 10:30:00+08'
+FROM generate_series(1,3) g;
+
+INSERT INTO products(id,shop_id,seller_account_id,title,description,category,price,currency,created_at)
+SELECT 'PROD-' || (2000+g*20+n),'SHOP-' || lpad(g::text,3,'0'),'ACC-' || lpad((g*4)::text,4,'0'),
+       '秋季生活配件 ' || n,'商品新批次上架','生活',199+n,'TWD',
+       TIMESTAMPTZ '2026-09-06 11:00:00+08' + n*interval '2 minutes'
+FROM generate_series(1,3) g CROSS JOIN LATERAL generate_series(1,3+g) n;
+INSERT INTO product_price_events(id,product_id,price,currency,occurred_at)
+SELECT 'PPE-' || substring(id FROM '[0-9]+$'),id,price,currency,created_at FROM products WHERE id LIKE 'PROD-2%';
+INSERT INTO product_status_events(id,product_id,status,occurred_at)
+SELECT 'PSE-' || substring(id FROM '[0-9]+$'),id,'active',created_at FROM products WHERE id LIKE 'PROD-2%';
+INSERT INTO product_images(id,product_id,image_url,image_hash,created_at)
+SELECT 'IMG-' || substring(id FROM '[0-9]+$'),id,'https://images.marketplace.test/products/'||id||'.jpg',
+       'sha256-demo-image-'||id,created_at FROM products WHERE id LIKE 'PROD-2%';
+
+INSERT INTO login_events(id,account_id,device_id,ip_address,country_code,success,auth_method,occurred_at)
+SELECT 'LOG-' || (2000+g*20+n),'ACC-' || lpad((g+4)::text,4,'0'),'DEV-' || lpad(n::text,4,'0'),
+       '192.0.2.10','TW',true,'password',TIMESTAMPTZ '2026-09-06 08:00:00+08'+n*interval '1 hour'
+FROM generate_series(1,3) g CROSS JOIN LATERAL generate_series(1,2+g) n;
+INSERT INTO login_events(id,account_id,device_id,ip_address,country_code,success,auth_method,occurred_at)
+SELECT 'LOG-' || (2100+g*20+n),'ACC-' || lpad((g+8)::text,4,'0'),'DEV-0060',
+       '192.0.2.20',(ARRAY['TW','JP','SG','US'])[n],true,'oauth',
+       TIMESTAMPTZ '2026-09-06 08:00:00+08'+n*interval '1 hour'
+FROM generate_series(1,3) g CROSS JOIN LATERAL generate_series(1,1+g) n;
+INSERT INTO login_events(id,account_id,device_id,ip_address,country_code,success,auth_method,occurred_at)
+SELECT 'LOG-' || (2300+n),'ACC-0013','DEV-0061','192.0.2.30','TW',true,'passkey',
+       TIMESTAMPTZ '2026-09-06 08:00:00+08'+n*interval '5 minutes' FROM generate_series(1,10)n;
+
+-- New transactions for disputes, with payment and delivery before each claim.
+INSERT INTO transactions(id,buyer_account_id,seller_account_id,product_id,payment_method,quantity,amount,currency,status,created_at)
+SELECT 'TXN-' || (3000+g*10+n),'ACC-' || lpad((ARRAY[14,15,17])[g]::text,4,'0'),
+       p.seller_account_id,p.id,'credit_card',1,p.price,p.currency,'delivered',TIMESTAMPTZ '2026-09-02 09:00:00+08'
+FROM products p CROSS JOIN generate_series(1,3)g CROSS JOIN LATERAL generate_series(1,g)n WHERE p.id='PROD-0001';
+INSERT INTO payment_attempts(id,transaction_id,payer_account_id,payment_method,payment_instrument_hash,amount,currency,status,occurred_at)
+SELECT 'PAY-' || substring(id FROM '[0-9]+$'),id,buyer_account_id,payment_method,'sha256-demo-'||buyer_account_id,
+       amount,currency,'authorized',created_at+interval '10 minutes' FROM transactions WHERE id LIKE 'TXN-3%';
+INSERT INTO transaction_status_events(id,transaction_id,status,occurred_at)
+SELECT 'TSE-'||v.status||'-'||substring(t.id FROM '[0-9]+$'),t.id,v.status,t.created_at+v.delay
+FROM transactions t CROSS JOIN (VALUES ('created',interval '0 seconds'),('paid',interval '10 minutes'),
+('shipped',interval '1 day'),('delivered',interval '3 days'))v(status,delay) WHERE t.id LIKE 'TXN-3%';
+INSERT INTO delivery_events(id,transaction_id,status,occurred_at)
+SELECT 'DEL-'||v.status||'-'||substring(t.id FROM '[0-9]+$'),t.id,v.status,t.created_at+v.delay
+FROM transactions t CROSS JOIN (VALUES ('picked_up',interval '1 day'),('delivered',interval '3 days'))v(status,delay) WHERE t.id LIKE 'TXN-3%';
+INSERT INTO disputes(id,transaction_id,opened_by_account_id,reason,status,created_at)
+SELECT 'DSP-'||substring(id FROM '[0-9]+$'),id,buyer_account_id,'商品規格與說明不同','open',
+       TIMESTAMPTZ '2026-09-07 12:00:00+08' FROM transactions WHERE id LIKE 'TXN-3%';
+
+-- Same-instrument retry control: multiple attempts do not imply instrument churn.
+INSERT INTO transactions(id,buyer_account_id,seller_account_id,product_id,payment_method,quantity,amount,currency,status,created_at)
+SELECT 'TXN-2001','ACC-0018',seller_account_id,id,'credit_card',1,price,currency,'paid',
+       TIMESTAMPTZ '2026-09-06 12:00:00+08' FROM products WHERE id='PROD-0002';
+INSERT INTO payment_attempts(id,transaction_id,payer_account_id,payment_method,payment_instrument_hash,amount,currency,status,failure_code,occurred_at)
+SELECT 'PAY-'||(2400+n),t.id,t.buyer_account_id,t.payment_method,'sha256-demo-stable-retry',t.amount,t.currency,
+       CASE WHEN n=3 THEN 'authorized' ELSE 'failed' END,CASE WHEN n<3 THEN 'NETWORK_TIMEOUT' END,
+       t.created_at+n*interval '2 minutes' FROM transactions t CROSS JOIN generate_series(1,3)n WHERE t.id='TXN-2001';
+INSERT INTO transaction_status_events(id,transaction_id,status,occurred_at)
+SELECT 'TSE-'||v.status||'-2001',t.id,v.status,t.created_at+v.delay
+FROM transactions t CROSS JOIN (VALUES ('created',interval '0 seconds'),('paid',interval '6 minutes'))v(status,delay) WHERE t.id='TXN-2001';
+
+-- In this self-contained fixture, novelty means first successful observation
+-- of an account/device pair. Failed attempts do not establish a known device.
+UPDATE login_events l SET attributes=l.attributes || jsonb_build_object('device_novel',
+    l.success AND l.device_id IS NOT NULL AND NOT EXISTS(
+        SELECT 1 FROM login_events prior WHERE prior.account_id=l.account_id AND prior.device_id=l.device_id
+        AND prior.success AND (prior.occurred_at,prior.id)<(l.occurred_at,l.id)
+    ));
 
 COMMIT;
