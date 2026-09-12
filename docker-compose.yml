@@ -72,5 +72,19 @@ services:
     volumes:
       - ./services/patrol/policies:/app/policies:ro
 
+  association:
+    build:
+      context: ./services/association
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
+    depends_on:
+      - agentgateway
+    ports:
+      - "${ASSOCIATION_PORT:-10004}:10004"
+    volumes:
+      - ./services/association/policies:/app/policies:ro
+
 volumes:
   postgres-data:

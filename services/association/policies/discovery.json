@@ -1,0 +1,27 @@
+{
+  "policy_id": "association-discovery",
+  "version": "0.1.0",
+  "strategy": "discovery",
+  "objective": "Discover evidence-backed clusters and indirect subjects near the case subject.",
+  "allowed_tools": [
+    "get_subject_association_seeds",
+    "find_accounts_by_indicator",
+    "get_indicator_prevalence",
+    "get_entity_neighbors",
+    "expand_association_graph",
+    "get_previous_cases",
+    "get_evidence_records"
+  ],
+  "relation_guidance": [
+    {"type": "shared_device", "base_weight": 0.45, "requires_corroboration": false},
+    {"type": "shared_ip", "base_weight": 0.20, "requires_corroboration": true},
+    {"type": "multi_path_cluster", "base_weight": 0.25, "requires_corroboration": false}
+  ],
+  "search": {"max_hops": 2, "max_nodes": 100, "lookback_days": 90, "minimum_independent_signals": 2},
+  "budget": {"max_turns": 18, "max_related_subjects": 20},
+  "stopping_conditions": [
+    "No evidence-backed frontier remains",
+    "New graph expansion has low marginal value",
+    "The turn, node, or related-subject budget is reached"
+  ]
+}

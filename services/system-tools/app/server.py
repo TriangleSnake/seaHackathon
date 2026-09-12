@@ -303,6 +303,259 @@ async def find_shared_device_accounts(
 
 
 @mcp.tool()
+async def get_subject_association_seeds(
+    subject_type: Literal["account", "shop", "product"],
+    subject_id: str,
+    lookback_days: int = 30,
+    limit_per_type: int = 30,
+) -> dict[str, Any]:
+    """Collect bounded, evidence-bearing indicators around an association seed."""
+    days = max(1, min(lookback_days, 365))
+    limit = bounded_limit(limit_per_type)
+    if subject_type == "account":
+        subject = await fetch_one(
+            "SELECT id, created_at, status, attributes FROM accounts WHERE id = %s",
+            (subject_id,),
+        )
+        indicators = await fetch_all(
+            """
+            SELECT 'ip' AS type, host(ip_address) AS value,
+                   'ip:' || host(ip_address) AS entity_id,
+                   COUNT(*) AS occurrence_count, MIN(occurred_at) AS first_seen_at,
+                   MAX(occurred_at) AS last_seen_at,
+                   ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
+            FROM login_events
+            WHERE account_id = %s AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY ip_address
+            UNION ALL
+            SELECT 'device', device_id, 'device:' || device_id,
+                   COUNT(*), MIN(occurred_at), MAX(occurred_at),
+                   ARRAY_AGG(DISTINCT id ORDER BY id)
+            FROM login_events
+            WHERE account_id = %s AND device_id IS NOT NULL
+              AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY device_id
+            ORDER BY last_seen_at DESC
+            LIMIT %s
+            """,
+            (subject_id, days, subject_id, days, limit),
+        )
+        shops = await fetch_all(
+            "SELECT id, owner_account_id, name, status, attributes FROM shops "
+            "WHERE owner_account_id = %s LIMIT %s",
+            (subject_id, limit),
+        )
+        counterparties = await fetch_all(
+            """
+            SELECT CASE WHEN buyer_account_id = %s THEN seller_account_id
+                        ELSE buyer_account_id END AS account_id,
+                   COUNT(*) AS occurrence_count, SUM(amount) AS total_amount,
+                   MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at,
+                   ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
+            FROM transactions
+            WHERE (buyer_account_id = %s OR seller_account_id = %s)
+              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (subject_id, subject_id, subject_id, days, limit),
+        )
+        return {
+            "found": subject is not None,
+            "subject": subject,
+            "indicators": indicators,
+            "shops": shops,
+            "transaction_counterparties": counterparties,
+        }
+    if subject_type == "shop":
+        subject = await fetch_one(
+            "SELECT id, owner_account_id, name, status, attributes FROM shops WHERE id = %s",
+            (subject_id,),
+        )
+        products = await fetch_all(
+            "SELECT id, shop_id, seller_account_id, title, price, created_at, attributes "
+            "FROM products WHERE shop_id = %s ORDER BY created_at DESC LIMIT %s",
+            (subject_id, limit),
+        )
+        return {"found": subject is not None, "subject": subject, "products": products}
+    subject = await fetch_one(
+        "SELECT id, shop_id, seller_account_id, title, price, created_at, attributes "
+        "FROM products WHERE id = %s",
+        (subject_id,),
+    )
+    buyers = await fetch_all(
+        "SELECT buyer_account_id AS account_id, COUNT(*) AS occurrence_count, "
+        "ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs, "
+        "MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at "
+        "FROM transactions WHERE product_id = %s GROUP BY buyer_account_id "
+        "ORDER BY occurrence_count DESC LIMIT %s",
+        (subject_id, limit),
+    )
+    return {"found": subject is not None, "subject": subject, "buyers": buyers}
+
+
+async def _find_accounts_by_indicator(
+    indicator_type: Literal["ip", "device", "shop", "product", "url", "domain"],
+    indicator_value: str,
+    lookback_days: int = 30,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Find accounts linked to one exact indicator without accepting arbitrary SQL."""
+    days = max(1, min(lookback_days, 365))
+    bounded = bounded_limit(limit)
+    if indicator_type in {"ip", "device"}:
+        predicate = "ip_address = %s::inet" if indicator_type == "ip" else "device_id = %s"
+        rows = await fetch_all(
+            f"""
+            SELECT account_id, COUNT(*) AS occurrence_count,
+                   MIN(occurred_at) AS first_seen_at, MAX(occurred_at) AS last_seen_at,
+                   ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
+            FROM login_events WHERE {predicate}
+              AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (indicator_value, days, bounded),
+        )
+    elif indicator_type == "shop":
+        rows = await fetch_all(
+            """
+            SELECT account_id, COUNT(*) AS occurrence_count,
+                   ARRAY_AGG(DISTINCT evidence_id ORDER BY evidence_id) AS evidence_refs
+            FROM (
+              SELECT owner_account_id AS account_id, id AS evidence_id FROM shops WHERE id = %s
+              UNION ALL
+              SELECT seller_account_id, id FROM products WHERE shop_id = %s
+            ) links GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (indicator_value, indicator_value, bounded),
+        )
+    elif indicator_type == "product":
+        rows = await fetch_all(
+            """
+            SELECT account_id, COUNT(*) AS occurrence_count,
+                   ARRAY_AGG(DISTINCT evidence_id ORDER BY evidence_id) AS evidence_refs
+            FROM (
+              SELECT seller_account_id AS account_id, id AS evidence_id FROM products WHERE id = %s
+              UNION ALL
+              SELECT buyer_account_id, id FROM transactions WHERE product_id = %s
+            ) links GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (indicator_value, indicator_value, bounded),
+        )
+    elif indicator_type == "url":
+        rows = await fetch_all(
+            """
+            SELECT sender_account_id AS account_id, COUNT(*) AS occurrence_count,
+                   MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at,
+                   ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
+            FROM messages WHERE urls ? %s
+              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY sender_account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (indicator_value, days, bounded),
+        )
+    else:
+        rows = await fetch_all(
+            """
+            SELECT sender_account_id AS account_id, COUNT(*) AS occurrence_count,
+                   MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at,
+                   ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
+            FROM messages, LATERAL jsonb_array_elements_text(urls) AS url(value)
+            WHERE lower(split_part(regexp_replace(value, '^https?://', '', 'i'), '/', 1)) = lower(%s)
+              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+            GROUP BY sender_account_id ORDER BY occurrence_count DESC LIMIT %s
+            """,
+            (indicator_value, days, bounded),
+        )
+    return {
+        "indicator": {"type": indicator_type, "value": indicator_value},
+        "lookback_days": days,
+        "accounts": rows,
+        "count": len(rows),
+    }
+
+
+@mcp.tool()
+async def find_accounts_by_indicator(
+    indicator_type: Literal["ip", "device", "shop", "product", "url", "domain"],
+    indicator_value: str,
+    lookback_days: int = 30,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Find accounts linked to one exact indicator without accepting arbitrary SQL."""
+    return await _find_accounts_by_indicator(
+        indicator_type, indicator_value, lookback_days, limit
+    )
+
+
+@mcp.tool()
+async def get_indicator_prevalence(
+    indicator_type: Literal["ip", "device", "shop", "product", "url", "domain"],
+    indicator_value: str,
+    lookback_days: int = 30,
+) -> dict[str, Any]:
+    """Measure how common an indicator is so shared infrastructure is not over-weighted."""
+    result = await _find_accounts_by_indicator(
+        indicator_type=indicator_type,
+        indicator_value=indicator_value,
+        lookback_days=lookback_days,
+        limit=100,
+    )
+    return {
+        "indicator": result["indicator"],
+        "lookback_days": result["lookback_days"],
+        "distinct_account_count": len(result["accounts"]),
+        "sample_truncated": len(result["accounts"]) == 100,
+    }
+
+
+@mcp.tool()
+async def expand_association_graph(
+    seed_entity_ids: list[str],
+    max_hops: int = 2,
+    max_nodes: int = 100,
+) -> dict[str, Any]:
+    """Expand a bounded, cycle-safe subgraph from explicit entity IDs."""
+    seeds = list(dict.fromkeys(item for item in seed_entity_ids if item))[:20]
+    hops = max(1, min(max_hops, 2))
+    node_limit = max(1, min(max_nodes, 100))
+    if not seeds:
+        return {"nodes": [], "edges": [], "truncated": False}
+    nodes = await fetch_all(
+        """
+        WITH RECURSIVE walk(node_id, depth, path) AS (
+          SELECT id, 0, ARRAY[id] FROM entities WHERE id = ANY(%s)
+          UNION ALL
+          SELECT CASE WHEN r.source_id = w.node_id THEN r.target_id ELSE r.source_id END,
+                 w.depth + 1,
+                 w.path || CASE WHEN r.source_id = w.node_id THEN r.target_id ELSE r.source_id END
+          FROM walk w JOIN relationships r
+            ON r.source_id = w.node_id OR r.target_id = w.node_id
+          WHERE w.depth < %s
+            AND NOT (CASE WHEN r.source_id = w.node_id THEN r.target_id ELSE r.source_id END = ANY(w.path))
+        )
+        SELECT e.id, e.type, e.label, e.attributes, MIN(w.depth) AS depth
+        FROM walk w JOIN entities e ON e.id = w.node_id
+        GROUP BY e.id ORDER BY depth, e.id LIMIT %s
+        """,
+        (seeds, hops, node_limit + 1),
+    )
+    truncated = len(nodes) > node_limit
+    nodes = nodes[:node_limit]
+    node_ids = [row["id"] for row in nodes]
+    edges = await fetch_all(
+        """
+        SELECT source_id AS source, target_id AS target, type, value, confidence,
+               evidence_refs, first_seen_at, last_seen_at
+        FROM relationships
+        WHERE source_id = ANY(%s) AND target_id = ANY(%s)
+        ORDER BY last_seen_at DESC NULLS LAST LIMIT 200
+        """,
+        (node_ids, node_ids),
+    )
+    return {"nodes": nodes, "edges": edges, "truncated": truncated}
+
+
+@mcp.tool()
 async def get_entity_neighbors(entity_id: str, limit: int = 50) -> dict[str, Any]:
     """Return one-hop association graph nodes and evidence-bearing edges for an entity."""
     nodes = await fetch_all(
@@ -348,7 +601,7 @@ async def get_previous_cases(
 
 @mcp.tool()
 async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
-    """Resolve record IDs into canonical Evidence objects for a PatrolResult."""
+    """Resolve record IDs into canonical Evidence objects for agent results."""
     ids = list(dict.fromkeys(item for item in evidence_ids if item))[:100]
     if not ids:
         return {"evidence": [], "missing_ids": []}
@@ -375,8 +628,32 @@ async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
                                   'risk_score', risk_score,
                                   'trigger_reason', trigger_reason)
         FROM cases WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'product', seller_account_id, created_at,
+               jsonb_build_object('shop_id', shop_id, 'seller_account_id', seller_account_id,
+                                  'title', title, 'price', price, 'attributes', attributes)
+        FROM products WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'transaction', seller_account_id, created_at,
+               jsonb_build_object('buyer_account_id', buyer_account_id,
+                                  'seller_account_id', seller_account_id,
+                                  'product_id', product_id, 'amount', amount,
+                                  'status', status, 'attributes', attributes)
+        FROM transactions WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'message', sender_account_id, created_at,
+               jsonb_build_object('conversation_id', conversation_id,
+                                  'sender_account_id', sender_account_id,
+                                  'recipient_account_id', recipient_account_id,
+                                  'urls', urls, 'attributes', attributes)
+        FROM messages WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'shop', owner_account_id, NULL,
+               jsonb_build_object('owner_account_id', owner_account_id,
+                                  'name', name, 'status', status, 'attributes', attributes)
+        FROM shops WHERE id = ANY(%s)
         """,
-        (ids, ids, ids),
+        (ids, ids, ids, ids, ids, ids, ids),
     )
     found_ids = {row["id"] for row in rows}
     return {

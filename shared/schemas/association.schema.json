@@ -6,130 +6,95 @@
     "AssociationRequest": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "case_id",
-        "subject"
-      ],
+      "required": ["case_id", "subject"],
       "properties": {
-        "case_id": {
-          "type": "string"
-        },
-        "subject": {
-          "$ref": "common.schema.json#/$defs/Subject"
+        "case_id": {"type": "string", "minLength": 1},
+        "subject": {"$ref": "common.schema.json#/$defs/Subject"},
+        "strategy": {
+          "type": "string",
+          "enum": ["focused", "discovery"],
+          "default": "focused"
         },
         "seed_indicators": {
           "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/Indicator"
-          }
+          "items": {"$ref": "common.schema.json#/$defs/Indicator"}
         }
+      }
+    },
+    "PolicyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1}
       }
     },
     "GraphNode": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "type"
-      ],
+      "required": ["id", "type"],
       "properties": {
-        "id": {
-          "type": "string"
-        },
+        "id": {"type": "string", "minLength": 1},
         "type": {
           "type": "string",
-          "enum": [
-            "account",
-            "shop",
-            "product",
-            "device",
-            "ip",
-            "payment_account",
-            "other"
-          ]
+          "enum": ["account", "shop", "product", "device", "ip", "payment_account", "domain", "url", "conversation", "order", "transaction", "message", "other"]
         },
-        "label": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "attributes": {
-          "type": "object",
-          "additionalProperties": true
-        }
+        "label": {"type": ["string", "null"]},
+        "attributes": {"type": "object", "additionalProperties": true}
       }
     },
     "GraphEdge": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "source",
-        "target",
-        "type",
-        "confidence",
-        "evidence_refs"
-      ],
+      "required": ["source", "target", "type", "relationship", "confidence", "evidence_refs"],
       "properties": {
-        "source": {
-          "type": "string"
-        },
-        "target": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "value": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "confidence": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "evidence_refs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true
-        }
+        "source": {"type": "string", "minLength": 1},
+        "target": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1},
+        "relationship": {"type": "string", "enum": ["observed", "inferred"]},
+        "value": {"type": ["string", "null"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "occurrence_count": {"type": ["integer", "null"], "minimum": 1},
+        "first_seen_at": {"type": ["string", "null"], "format": "date-time"},
+        "last_seen_at": {"type": ["string", "null"], "format": "date-time"},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "RelationPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edge_types", "evidence_refs"],
+      "properties": {
+        "nodes": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+        "edge_types": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "RelatedSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "association_score", "reason", "relation_paths", "evidence_refs"],
+      "properties": {
+        "subject": {"$ref": "common.schema.json#/$defs/Subject"},
+        "association_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "relation_paths": {"type": "array", "items": {"$ref": "#/$defs/RelationPath"}, "minItems": 1},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
       }
     },
     "AssociationResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "case_id",
-        "nodes",
-        "edges"
-      ],
+      "required": ["case_id", "strategy", "policy_ref", "nodes", "edges", "related_subjects", "evidence"],
       "properties": {
-        "case_id": {
-          "type": "string"
-        },
-        "nodes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/GraphNode"
-          }
-        },
-        "edges": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/GraphEdge"
-          }
-        },
-        "related_subjects": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/Subject"
-          }
-        }
+        "case_id": {"type": "string", "minLength": 1},
+        "strategy": {"type": "string", "enum": ["focused", "discovery"]},
+        "policy_ref": {"$ref": "#/$defs/PolicyRef"},
+        "nodes": {"type": "array", "items": {"$ref": "#/$defs/GraphNode"}},
+        "edges": {"type": "array", "items": {"$ref": "#/$defs/GraphEdge"}},
+        "related_subjects": {"type": "array", "items": {"$ref": "#/$defs/RelatedSubject"}},
+        "evidence": {"type": "array", "items": {"$ref": "common.schema.json#/$defs/Evidence"}}
       }
     }
   }

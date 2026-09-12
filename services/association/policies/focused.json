@@ -1,0 +1,27 @@
+{
+  "policy_id": "association-focused",
+  "version": "0.1.0",
+  "strategy": "focused",
+  "objective": "Find a small set of strongly supported subjects directly related to the case subject.",
+  "allowed_tools": [
+    "get_subject_association_seeds",
+    "find_accounts_by_indicator",
+    "get_indicator_prevalence",
+    "get_entity_neighbors",
+    "expand_association_graph",
+    "get_previous_cases",
+    "get_evidence_records"
+  ],
+  "relation_guidance": [
+    {"type": "shared_device", "base_weight": 0.45, "requires_corroboration": false},
+    {"type": "shared_ip", "base_weight": 0.20, "requires_corroboration": true},
+    {"type": "ordinary_transaction", "base_weight": 0.10, "requires_corroboration": true}
+  ],
+  "search": {"max_hops": 2, "max_nodes": 50, "lookback_days": 30, "minimum_independent_signals": 2},
+  "budget": {"max_turns": 12, "max_related_subjects": 10},
+  "stopping_conditions": [
+    "No evidence-backed direct relation remains",
+    "All ambiguous infrastructure links lack corroboration",
+    "The turn, node, or related-subject budget is reached"
+  ]
+}
