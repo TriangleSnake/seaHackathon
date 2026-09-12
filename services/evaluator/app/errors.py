@@ -25,5 +25,9 @@ class HoldoutAccessError(DatasetAccessError):
     """Builder/development access attempted to read holdout data."""
 
 
+class SnapshotGuardError(EvaluationError):
+    """Environment snapshot metadata is unavailable, malformed, or changed."""
+
+
 class BaselineExecutionError(EvaluationError):
     """The baseline could not run, so comparison is impossible."""
