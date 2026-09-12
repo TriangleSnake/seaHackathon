@@ -97,6 +97,35 @@ services:
     networks:
       - fraud-intelligence-network
 
+  system:
+    build:
+      context: ./services/system
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      DETECTION_URL: ${DETECTION_URL:-http://detection:8000}
+      PATROL_URL: ${PATROL_URL:-http://patrol:10003}
+      INVESTIGATION_URL: ${INVESTIGATION_URL:-http://investigation:8000}
+      ASSOCIATION_URL: ${ASSOCIATION_URL:-http://association:10004}
+      DEFAULT_DETECTION_POLICY_VERSION: ${DEFAULT_DETECTION_POLICY_VERSION:-baseline-v1}
+      SCOREBOARD_CONFIG_VERSION: ${SCOREBOARD_CONFIG_VERSION:-development-v1}
+      SYSTEM_EVENT_POLL_SECONDS: ${SYSTEM_EVENT_POLL_SECONDS:-5}
+      SYSTEM_SCHEDULE_POLL_SECONDS: ${SYSTEM_SCHEDULE_POLL_SECONDS:-5}
+      SYSTEM_WORKER_POLL_SECONDS: ${SYSTEM_WORKER_POLL_SECONDS:-2}
+      SYSTEM_REMOTE_POLL_SECONDS: ${SYSTEM_REMOTE_POLL_SECONDS:-5}
+      SYSTEM_REQUEST_TIMEOUT_SECONDS: ${SYSTEM_REQUEST_TIMEOUT_SECONDS:-30}
+      SYSTEM_MAX_CONCURRENCY: ${SYSTEM_MAX_CONCURRENCY:-4}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      patrol:
+        condition: service_started
+      investigation:
+        condition: service_started
+      association:
+        condition: service_started
+    ports:
+      - "${SYSTEM_PORT:-10005}:10005"
+
   investigation:
     build:
       context: ./services/investigation
@@ -123,6 +152,7 @@ services:
       AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
       DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
       PATROL_MAX_CONCURRENCY: ${PATROL_MAX_CONCURRENCY:-2}
+      PATROL_SCHEDULER_ENABLED: ${PATROL_SCHEDULER_ENABLED:-false}
       PATROL_SCHEDULER_POLL_SECONDS: ${PATROL_SCHEDULER_POLL_SECONDS:-15}
       INVESTIGATION_URL: ${INVESTIGATION_URL:-http://investigation:8000}
       INVESTIGATION_TIMEOUT_SECONDS: ${INVESTIGATION_TIMEOUT_SECONDS:-10}
@@ -163,6 +193,33 @@ services:
       - "${ASSOCIATION_PORT:-10004}:10004"
     volumes:
       - ./services/association/policies:/app/policies:ro
+    networks:
+      - fraud-intelligence-network
+
+  dashboard:
+    image: seahackathon-dashboard:latest
+    build:
+      context: ./services/dashboard
+    environment:
+      DASHBOARD_DATA_MODE: live
+      DASHBOARD_SYSTEM_URL: ${DASHBOARD_SYSTEM_URL:-http://system:10005}
+      DASHBOARD_DETECTION_URL: ${DASHBOARD_DETECTION_URL:-http://detection:8000}
+    depends_on:
+      system:
+        condition: service_started
+    ports:
+      - "${DASHBOARD_PORT:-3001}:3000"
+    networks:
+      - fraud-intelligence-network
+
+  dashboard-demo:
+    image: seahackathon-dashboard:latest
+    build:
+      context: ./services/dashboard
+    environment:
+      DASHBOARD_DATA_MODE: demo
+    ports:
+      - "${DASHBOARD_DEMO_PORT:-3002}:3000"
     networks:
       - fraud-intelligence-network
 

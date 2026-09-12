@@ -25,7 +25,7 @@
     {"type": "shared_payment_instrument", "base_weight": 0.60, "requires_corroboration": false},
     {"type": "reused_product_image", "base_weight": 0.35, "requires_corroboration": true}
   ],
-  "search": {"max_hops": 2, "max_nodes": 50, "lookback_days": 30, "minimum_independent_signals": 2},
+  "search": {"max_hops": 1, "max_nodes": 50, "lookback_days": 30, "minimum_independent_signals": 2},
   "budget": {"max_turns": 12, "max_related_subjects": 10},
   "stopping_conditions": [
     "No evidence-backed direct relation remains",

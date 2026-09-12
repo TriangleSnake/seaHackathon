@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from contextvars import ContextVar
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any
-from contextvars import ContextVar
 
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
@@ -107,41 +107,59 @@ class PostgresDetectionRepository:
             data=_json_safe(values),
         )
 
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         await self._open()
         async with self.pool.connection() as connection:
             async with connection.transaction():
-                await connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+                await connection.execute(
+                    "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"
+                )
                 token = self._snapshot_connection.set(connection)
                 try:
-                    rows = await self._fetch_all("SELECT simulation_time FROM simulation_state WHERE singleton_id = 1")
+                    rows = await self._fetch_all(
+                        "SELECT simulation_time FROM simulation_state WHERE singleton_id = 1"
+                    )
                     if not rows:
                         raise RuntimeError("Simulation state is not initialized")
-                    return await self._load_context(subject, rows[0]["simulation_time"])
+                    return await self._load_context(
+                        subject, required_evidence, rows[0]["simulation_time"]
+                    )
                 finally:
                     self._snapshot_connection.reset(token)
 
-    async def _load_context(self, subject: Subject, as_of: datetime) -> DetectionContext | None:
+    async def _load_context(
+        self,
+        subject: Subject,
+        required_evidence: set[str] | datetime | None = None,
+        as_of: datetime | None = None,
+    ) -> DetectionContext | None:
+        if isinstance(required_evidence, datetime) and as_of is None:
+            as_of = required_evidence
+            required_evidence = None
+        if as_of is None:
+            raise RuntimeError("Detection context requires a simulation timestamp")
         account_ids = await self._resolve_accounts(subject)
         if account_ids is None:
             return None
 
+        required = required_evidence if required_evidence is not None else {"message","report_record","login_event","account_security_event","product","product_image","payment_attempt","delivery_event","refund","dispute"}
         evidence: list[Evidence] = []
-        evidence.extend(await self._load_messages(subject, account_ids))
-        evidence.extend(await self._load_reports(subject, account_ids))
+        if "message" in required: evidence.extend(await self._load_messages(subject, account_ids))
+        if "report_record" in required: evidence.extend(await self._load_reports(subject, account_ids))
         if subject.type == "message":
+            unique = {item.id: item for item in evidence}
             return DetectionContext(
                 subject=subject,
                 account_ids=account_ids,
-                evidence=evidence,
+                evidence=list(unique.values()),
                 as_of=as_of,
                 conversation_context=await self._load_message_background(subject.id),
             )
-        evidence.extend(await self._load_account_access(account_ids))
-        evidence.extend(await self._load_products(subject, account_ids))
-        evidence.extend(await self._load_payments(subject, account_ids))
-        evidence.extend(await self._load_delivery(subject, account_ids))
-        evidence.extend(await self._load_claims(subject, account_ids))
+        if required & {"login_event", "account_security_event"}: evidence.extend(await self._load_account_access(account_ids))
+        if required & {"product", "product_image"}: evidence.extend(await self._load_products(subject, account_ids))
+        if "payment_attempt" in required: evidence.extend(await self._load_payments(subject, account_ids))
+        if "delivery_event" in required: evidence.extend(await self._load_delivery(subject, account_ids))
+        if required & {"refund", "dispute"}: evidence.extend(await self._load_claims(subject, account_ids))
         unique = {item.id: item for item in evidence}
         return DetectionContext(
             subject=subject,
@@ -180,18 +198,18 @@ class PostgresDetectionRepository:
     async def _load_message_background(self, message_id: str) -> list[Evidence]:
         rows = await self._fetch_all(
             """
-            SELECT m.id, m.conversation_id, m.sender_account_id,
-                   m.recipient_account_id, m.text, m.urls, m.created_at
-              FROM visible_messages m
-              JOIN visible_messages target ON target.id = %s
-             WHERE m.conversation_id = target.conversation_id
-               AND m.created_at < target.created_at
-             ORDER BY m.created_at DESC, m.id DESC LIMIT 20
+            SELECT prior.id, prior.conversation_id, prior.sender_account_id,
+                   prior.recipient_account_id, prior.text, prior.urls, prior.created_at
+              FROM visible_messages target
+              JOIN visible_messages prior
+                ON prior.conversation_id = target.conversation_id
+               AND (prior.created_at, prior.id) < (target.created_at, target.id)
+             WHERE target.id = %s
+             ORDER BY prior.created_at DESC, prior.id DESC
+             LIMIT 20
             """,
             (message_id,),
         )
-        # The target is never dropped by the background limit. Equal-time messages
-        # are excluded because their causal order is unknown.
         return [self._evidence("message", row, "created_at") for row in reversed(rows)]
 
     async def _load_reports(
@@ -263,8 +281,7 @@ class PostgresDetectionRepository:
             SELECT p.id, p.shop_id, p.seller_account_id, p.title, p.price,
                    p.currency, p.created_at
               FROM visible_products p CROSS JOIN simulation_state s
-             WHERE s.singleton_id = 1 AND p.created_at <= s.simulation_time
-               AND {where}
+             WHERE s.singleton_id = 1 AND {where}
              ORDER BY p.created_at DESC LIMIT 100
             """,
             params,

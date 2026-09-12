@@ -73,12 +73,24 @@ class DetectionTrigger(StrictModel):
     _unique_evidence_refs = field_validator("evidence_refs")(_unique)
 
 
+class ComponentResult(StrictModel):
+    component_id: str
+    detector: DetectorType
+    version: str
+    status: Literal["completed", "abstained", "unavailable", "failed"]
+    trigger_count: int = Field(ge=0)
+    latency_ms: float = Field(ge=0)
+    reason: str | None = None
+
+
 class DetectionResult(StrictModel):
     detection_id: str
     subject: Subject
+    policy_ref: PolicyRef
     detected: bool
     triggers: list[DetectionTrigger]
     evidence: list[Evidence]
+    component_results: list[ComponentResult] = Field(default_factory=list)
 
 
 class HealthResponse(StrictModel):

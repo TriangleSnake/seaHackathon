@@ -70,7 +70,9 @@ class LLMDetector:
         self.threshold = threshold
 
     async def detect(
-        self, evidence: list[Evidence], *, target_message_id: str | None = None,
+        self,
+        evidence: list[Evidence],
+        target_message_id: str | None = None,
         background: list[Evidence] | None = None,
     ) -> list[DetectionTrigger]:
         message_evidence = [
@@ -78,36 +80,64 @@ class LLMDetector:
         ]
         if not message_evidence:
             raise CheckInconclusiveError("llm_classifier: no message text available")
-        used_background: list[Evidence] = []
         if target_message_id is not None:
-            message_evidence = [item for item in message_evidence if item.id == target_message_id]
-            if not message_evidence:
+            targets = [item for item in message_evidence if item.id == target_message_id]
+            if not targets:
                 raise CheckInconclusiveError("llm_classifier: target message has no text")
-            used_background = [item for item in background or [] if item.type == "message" and item.data.get("text")]
-            def record(item: Evidence) -> dict[str, Any]:
-                return {"id": item.id, "sender_account_id": item.data.get("sender_account_id"),
-                        "recipient_account_id": item.data.get("recipient_account_id"),
-                        "observed_at": item.observed_at.isoformat() if item.observed_at else None,
-                        "text": item.data["text"], "urls": item.data.get("urls", [])}
-            inputs = [json.dumps({"target_message": record(message_evidence[0]),
-                                  "background_messages": [record(item) for item in used_background]}, ensure_ascii=False)]
-        else:
-            inputs = [str(item.data["text"]) for item in message_evidence]
-        classification = await self.classifier.classify(inputs, self.threshold)
-        if classification.raw_result.get("decision") == "abstain":
-            raise CheckInconclusiveError("llm_classifier: " + str(classification.raw_result.get("reason", "abstain")))
-        if not classification.suspicious:
-            return []
-        return [
-            DetectionTrigger(
+            target = targets[0]
+            context = [item for item in background or [] if item.data.get("text")]
+            classifier_input = json.dumps(
+                {
+                    "target_message": {
+                        "id": target.id,
+                        "sender_account_id": target.data.get("sender_account_id"),
+                        "recipient_account_id": target.data.get("recipient_account_id"),
+                        "text": target.data["text"],
+                        "urls": target.data.get("urls", []),
+                    },
+                    "background_messages": [
+                        {
+                            "id": item.id,
+                            "sender_account_id": item.data.get("sender_account_id"),
+                            "recipient_account_id": item.data.get("recipient_account_id"),
+                            "text": item.data["text"],
+                            "urls": item.data.get("urls", []),
+                        }
+                        for item in context
+                    ],
+                },
+                ensure_ascii=False,
+            )
+            classification = await self.classifier.classify([classifier_input], self.threshold)
+            if classification.raw_result.get("decision") == "abstain":
+                raise CheckInconclusiveError(
+                    "llm_classifier: " + str(classification.raw_result.get("reason", "abstain"))
+                )
+            if not classification.suspicious:
+                return []
+            return [DetectionTrigger(
+                type="llm_suspicious_chat", detector="llm_classifier", rule_id="LLM-CHAT-001",
+                reason="The optional binary classifier marked the target chat as suspicious.",
+                raw_result={**classification.raw_result, "target_message_id": target.id,
+                            "background_message_ids": [item.id for item in context]},
+                evidence_refs=[target.id, *[item.id for item in context]],
+            )]
+        triggers: list[DetectionTrigger] = []
+        for item in message_evidence:
+            classification = await self.classifier.classify([str(item.data["text"])], self.threshold)
+            if classification.raw_result.get("decision") == "abstain":
+                raise CheckInconclusiveError(
+                    "llm_classifier: "
+                    + str(classification.raw_result.get("reason", "abstain"))
+                )
+            if not classification.suspicious:
+                continue
+            triggers.append(DetectionTrigger(
                 type="llm_suspicious_chat",
                 detector="llm_classifier",
                 rule_id="LLM-CHAT-001",
                 reason="The optional binary classifier marked the chat as suspicious.",
-                raw_result={**classification.raw_result, **({
-                    "target_message_id": target_message_id,
-                    "background_message_ids": [item.id for item in used_background],
-                } if target_message_id else {})},
-                evidence_refs=[item.id for item in message_evidence + used_background],
-            )
-        ]
+                raw_result=classification.raw_result,
+                evidence_refs=[item.id],
+            ))
+        return triggers
