@@ -122,3 +122,23 @@ class JobState(StrictModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     updated_at: datetime
+
+
+class CaseState(StrictModel):
+    case_id: str
+    investigation_job_id: str
+    parent_job_id: str | None = None
+    subject: dict[str, Any] | None = None
+    status: Literal["investigating", "review", "failed"]
+    verdict: Literal["fraud", "suspicious", "normal", "unknown"] = "unknown"
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    summary: str | None = None
+    findings: list[dict[str, Any]] = Field(default_factory=list)
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    agents_invoked: list[dict[str, Any]] = Field(default_factory=list)
+    scoreboard: dict[str, Any] = Field(default_factory=dict)
+    stop_reason: str | None = None
+    detection_result: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
+    created_at: datetime
+    updated_at: datetime

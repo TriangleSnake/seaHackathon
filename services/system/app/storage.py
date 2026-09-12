@@ -58,6 +58,17 @@ async def initialize_storage() -> None:
         );
         CREATE INDEX IF NOT EXISTS system_jobs_status_available_idx ON system_jobs(status, available_at);
         CREATE INDEX IF NOT EXISTS system_jobs_agent_updated_idx ON system_jobs(agent, updated_at DESC);
+        CREATE TABLE IF NOT EXISTS system_cases (
+          case_id TEXT PRIMARY KEY, investigation_job_id TEXT NOT NULL UNIQUE REFERENCES system_jobs(job_id),
+          parent_job_id TEXT REFERENCES system_jobs(job_id), subject JSONB,
+          status TEXT NOT NULL DEFAULT 'investigating', verdict TEXT NOT NULL DEFAULT 'unknown',
+          confidence DOUBLE PRECISION, summary TEXT, findings JSONB NOT NULL DEFAULT '[]'::jsonb,
+          evidence JSONB NOT NULL DEFAULT '[]'::jsonb, agents_invoked JSONB NOT NULL DEFAULT '[]'::jsonb,
+          scoreboard JSONB NOT NULL DEFAULT '{}'::jsonb, stop_reason TEXT,
+          detection_result JSONB NOT NULL DEFAULT '{}'::jsonb, error TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+        CREATE INDEX IF NOT EXISTS system_cases_updated_idx ON system_cases(updated_at DESC);
         CREATE TABLE IF NOT EXISTS system_event_cursors (
           source TEXT PRIMARY KEY, occurred_at TIMESTAMPTZ NOT NULL, event_id TEXT NOT NULL DEFAULT '',
           updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -67,6 +78,21 @@ async def initialize_storage() -> None:
           reasoning_effort TEXT NOT NULL DEFAULT 'medium', enabled BOOLEAN NOT NULL DEFAULT true,
           allowed_models JSONB NOT NULL DEFAULT '[]'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
+        """)
+        await conn.execute("""
+        INSERT INTO system_cases
+          (case_id,investigation_job_id,parent_job_id,subject,status,verdict,confidence,summary,
+           findings,evidence,agents_invoked,scoreboard,stop_reason,detection_result,error,created_at,updated_at)
+        SELECT COALESCE(result->>'case_id',payload->>'case_id','case-'||job_id),job_id,parent_job_id,
+          COALESCE(result->'subject',subject),
+          CASE WHEN status IN ('queued','running','dispatched') THEN 'investigating'
+               WHEN status IN ('failed','dead_letter') THEN 'failed' ELSE 'review' END,
+          COALESCE(result->>'verdict','unknown'),NULLIF(result->>'confidence','')::double precision,
+          result->>'summary',COALESCE(result->'findings','[]'::jsonb),COALESCE(result->'evidence','[]'::jsonb),
+          COALESCE(result->'agents_invoked','[]'::jsonb),COALESCE(result->'scoreboard','{}'::jsonb),
+          result->>'stop_reason',COALESCE(payload->'detection_result','{}'::jsonb),error,created_at,updated_at
+        FROM system_jobs WHERE agent='investigation'
+        ON CONFLICT(case_id) DO NOTHING
         """)
         await conn.execute("""
         INSERT INTO system_trigger_policies
@@ -286,6 +312,15 @@ async def _insert_job(agent: str, trigger_type: str, trigger_ref: str, event_typ
           RETURNING *
         """, (job_id, agent, trigger_type, trigger_ref, event_type, json.dumps(subject), policy_version,
               idempotency_key, json.dumps(payload), max_attempts, parent_job_id))).fetchone()
+        if agent == "investigation":
+            case_id = str(payload.get("case_id") or f"case-{job_id}")
+            await conn.execute("""
+              INSERT INTO system_cases(case_id,investigation_job_id,parent_job_id,subject,detection_result)
+              VALUES (%s,%s,%s,%s::jsonb,%s::jsonb)
+              ON CONFLICT(case_id) DO UPDATE SET investigation_job_id=excluded.investigation_job_id,
+                parent_job_id=excluded.parent_job_id,subject=excluded.subject,status='investigating',
+                detection_result=excluded.detection_result,error=NULL,updated_at=now()
+            """, (case_id, row["job_id"], parent_job_id, json.dumps(subject), json.dumps(payload.get("detection_result", {}))))
         return dict(row)
 
 
@@ -357,6 +392,15 @@ async def complete_job(job_id: str, result: dict[str, Any]) -> None:
     async with await connect() as conn:
         await conn.execute("""UPDATE system_jobs SET status='completed',result=%s::jsonb,
           completed_at=now(),updated_at=now(),error=NULL WHERE job_id=%s""", (json.dumps(result), job_id))
+        await conn.execute("""UPDATE system_cases SET status='review',verdict=%s,confidence=%s,
+          summary=%s,findings=%s::jsonb,evidence=%s::jsonb,agents_invoked=%s::jsonb,
+          scoreboard=%s::jsonb,stop_reason=%s,subject=%s::jsonb,error=NULL,updated_at=now()
+          WHERE investigation_job_id=%s""", (
+            result.get("verdict", "unknown"), result.get("confidence"), result.get("summary"),
+            json.dumps(result.get("findings", [])), json.dumps(result.get("evidence", [])),
+            json.dumps(result.get("agents_invoked", [])), json.dumps(result.get("scoreboard", {})),
+            result.get("stop_reason"), json.dumps(result.get("subject")), job_id,
+          ))
 
 
 async def dispatch_job(job_id: str, remote_job_id: str, remote_status_url: str, result: dict[str, Any]) -> None:
@@ -374,6 +418,8 @@ async def fail_job(job: dict[str, Any], error: str) -> None:
           available_at=CASE WHEN %s THEN available_at ELSE now()+(%s||' seconds')::interval END,
           completed_at=CASE WHEN %s THEN now() ELSE NULL END,updated_at=now() WHERE job_id=%s""",
           ("dead_letter" if terminal else "queued", error[:1000], terminal, delay, terminal, job["job_id"]))
+        await conn.execute("""UPDATE system_cases SET status=%s,error=%s,updated_at=now()
+          WHERE investigation_job_id=%s""", ("failed" if terminal else "investigating", error[:1000], job["job_id"]))
 
 
 async def list_remote_jobs(limit: int = 50) -> list[dict[str, Any]]:
@@ -398,6 +444,23 @@ async def list_jobs(limit: int = 50, status: str | None = None) -> list[dict[str
         else:
             rows = await (await conn.execute("SELECT * FROM system_jobs ORDER BY updated_at DESC LIMIT %s", (limit,))).fetchall()
         return [dict(row) for row in rows]
+
+
+async def list_cases(limit: int = 50) -> list[dict[str, Any]]:
+    limit = max(1, min(limit, 200))
+    async with await connect(rows=True) as conn:
+        rows = await (await conn.execute(
+            "SELECT * FROM system_cases ORDER BY updated_at DESC LIMIT %s", (limit,)
+        )).fetchall()
+        return [dict(row) for row in rows]
+
+
+async def get_case(case_id: str) -> dict[str, Any] | None:
+    async with await connect(rows=True) as conn:
+        row = await (await conn.execute(
+            "SELECT * FROM system_cases WHERE case_id=%s", (case_id,)
+        )).fetchone()
+        return dict(row) if row else None
 
 
 async def ping() -> bool:

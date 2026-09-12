@@ -48,6 +48,26 @@ export type SystemJob = {
   updated_at: string;
 };
 
+export type SystemCase = {
+  case_id: string;
+  investigation_job_id: string;
+  parent_job_id: string | null;
+  subject: Record<string, unknown> | null;
+  status: "investigating" | "review" | "failed";
+  verdict: "fraud" | "suspicious" | "normal" | "unknown";
+  confidence: number | null;
+  summary: string | null;
+  findings: Array<Record<string, unknown>>;
+  evidence: Array<Record<string, unknown>>;
+  agents_invoked: Array<Record<string, unknown>>;
+  scoreboard: Record<string, unknown>;
+  stop_reason: string | null;
+  detection_result: Record<string, unknown>;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api/system/${path}`, { cache: "no-store", ...init });
   if (!response.ok) {
@@ -59,6 +79,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const systemControlApi = {
   jobs: () => request<SystemJob[]>("jobs?limit=200"),
+  cases: () => request<SystemCase[]>("cases?limit=200"),
+  case: (caseId: string) => request<SystemCase>(`cases/${encodeURIComponent(caseId)}`),
   triggers: () => request<TriggerPolicy[]>("control/triggers"),
   schedules: () => request<PatrolSchedule[]>("control/schedules"),
   saveTrigger: (policy: TriggerPolicy) => request<TriggerPolicy>(`control/triggers/${policy.policy_id}`, {

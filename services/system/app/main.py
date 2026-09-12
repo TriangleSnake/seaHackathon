@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Query, status
 
 from . import storage
 from .control import background_tasks, runtime_state
-from .models import AgentModelConfig, JobState, ManualJobRequest, SystemSchedule, TriggerPolicy
+from .models import AgentModelConfig, CaseState, JobState, ManualJobRequest, SystemSchedule, TriggerPolicy
 
 
 @asynccontextmanager
@@ -94,4 +94,17 @@ async def job(job_id: str) -> dict[str, Any]:
     found = await storage.get_job(job_id)
     if found is None:
         raise HTTPException(404, "System job not found")
+    return found
+
+
+@app.get("/cases", response_model=list[CaseState])
+async def cases(limit: int = Query(50, ge=1, le=200)) -> list[dict[str, Any]]:
+    return await storage.list_cases(limit)
+
+
+@app.get("/cases/{case_id}", response_model=CaseState)
+async def case(case_id: str) -> dict[str, Any]:
+    found = await storage.get_case(case_id)
+    if found is None:
+        raise HTTPException(404, "Case not found")
     return found

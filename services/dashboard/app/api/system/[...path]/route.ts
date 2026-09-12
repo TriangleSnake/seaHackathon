@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 const baseUrl = () => (process.env.DASHBOARD_SYSTEM_URL ?? process.env.SYSTEM_URL ?? "http://127.0.0.1:10005").replace(/\/$/, "");
 
 function isAllowed(method: string, path: string) {
-  if (method === "GET" && ["health", "ready", "control/triggers", "control/schedules", "jobs"].includes(path)) return true;
+  if (method === "GET" && ["health", "ready", "control/triggers", "control/schedules", "control/models", "jobs", "cases"].includes(path)) return true;
   if (method === "GET" && /^jobs\/job-[a-f0-9]{24}$/.test(path)) return true;
+  if (method === "GET" && /^cases\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(path)) return true;
   if (method === "POST" && path === "jobs") return true;
   if (method === "PUT" && /^control\/(triggers|schedules)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(path)) return true;
   return false;
