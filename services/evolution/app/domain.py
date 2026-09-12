@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+import re
 from typing import Any, Mapping
 
 
@@ -37,6 +38,17 @@ class CapabilityKind(str, Enum):
     CONFIG = "CONFIG"
     CODE = "CODE"
     UNSUPPORTED = "UNSUPPORTED"
+
+
+class ConfigListOperation(str, Enum):
+    ADD = "add"
+    REMOVE = "remove"
+
+
+DETECTION_CHAT_REQUEST_PHRASES_PATH = "rule_based.chat_request_phrases"
+_SAFE_DOTTED_CONFIG_PATH = re.compile(
+    r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+$"
+)
 
 
 class RunState(str, Enum):
@@ -111,6 +123,36 @@ class DiagnosisResult:
 
 
 @dataclass(frozen=True)
+class DetectionPolicyChange:
+    """One structurally safe list mutation for a Detection policy artifact."""
+
+    path: str
+    operation: ConfigListOperation
+    values: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.path, str) or not _SAFE_DOTTED_CONFIG_PATH.fullmatch(
+            self.path
+        ):
+            raise ValueError("Detection policy change path must be a safe dotted path")
+        if not isinstance(self.operation, ConfigListOperation):
+            raise ValueError(
+                "Detection policy change operation must be a ConfigListOperation"
+            )
+        if not isinstance(self.values, tuple) or not self.values:
+            raise ValueError("Detection policy change values must be a non-empty tuple")
+        if any(
+            not isinstance(value, str) or not value or value != value.strip()
+            for value in self.values
+        ):
+            raise ValueError(
+                "Detection policy change values must be non-blank, trimmed strings"
+            )
+        if len(self.values) != len(set(self.values)):
+            raise ValueError("Detection policy change values must be unique")
+
+
+@dataclass(frozen=True)
 class PolicyChangeProposal:
     proposal_id: str
     target_policy: PolicyType
@@ -121,6 +163,8 @@ class PolicyChangeProposal:
     required_signals: tuple[str, ...] = ()
     expected_impact: str = ""
     known_risks: tuple[str, ...] = ()
+    base_policy_version: str | None = None
+    detection_policy_changes: tuple[DetectionPolicyChange, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -144,6 +188,8 @@ class ImplementationDirective:
     summary: str
     boundary: ArtifactBoundary = field(default_factory=ArtifactBoundary)
     reason: str = ""
+    base_policy_version: str | None = None
+    detection_policy_changes: tuple[DetectionPolicyChange, ...] = ()
 
 
 @dataclass(frozen=True)

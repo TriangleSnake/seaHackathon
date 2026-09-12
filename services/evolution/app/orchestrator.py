@@ -106,6 +106,10 @@ class EvolutionOrchestrator:
         proposal = self._planner.propose(run, context, diagnosis)
         if proposal.target_policy is not gap.policy_type:
             raise ValueError("Planner proposal must target the selected primary PolicyGap")
+        if proposal.base_defense_version != context.current_defense_version:
+            raise ValueError(
+                "Planner proposal base defense must match the Evolution context"
+            )
         run.target_policy = proposal.target_policy
         run.proposal_ref = proposal.proposal_id
         self._states.transition(
@@ -131,17 +135,75 @@ class EvolutionOrchestrator:
                 evolution_result=evolution_result,
             )
 
+        try:
+            base = self._versions.read_base(context.current_defense_version)
+        except LookupError:
+            reason = (
+                "Base defense version is unavailable: "
+                f"{context.current_defense_version}"
+            )
+            self._states.transition(run, RunState.ABORTED, reason)
+            return EvolutionExecution(
+                run=run,
+                diagnosis=diagnosis,
+                proposal=proposal,
+                directive=directive,
+                evolution_result=evolution_result,
+            )
+
+        matching_base_policies = tuple(
+            policy
+            for policy in base.policies
+            if policy.policy_type is proposal.target_policy
+        )
+        if len(matching_base_policies) != 1:
+            reason = "Base defense must contain exactly one target policy reference"
+            self._states.transition(run, RunState.ABORTED, reason)
+            return EvolutionExecution(
+                run=run,
+                diagnosis=diagnosis,
+                proposal=proposal,
+                directive=directive,
+                evolution_result=evolution_result,
+            )
+        if (
+            proposal.base_policy_version is not None
+            and proposal.base_policy_version != matching_base_policies[0].version
+        ):
+            reason = (
+                "Proposed base policy artifact does not match the base defense "
+                f"reference: {proposal.base_policy_version} != "
+                f"{matching_base_policies[0].version}"
+            )
+            self._states.transition(run, RunState.ABORTED, reason)
+            return EvolutionExecution(
+                run=run,
+                diagnosis=diagnosis,
+                proposal=proposal,
+                directive=directive,
+                evolution_result=evolution_result,
+            )
+
+        build_id = self._id_factory("build")
+        if self._versions.candidate_registry.has_build(build_id):
+            reason = f"Build id is already registered: {build_id}"
+            self._states.transition(run, RunState.FAILED, reason)
+            return EvolutionExecution(
+                run=run,
+                diagnosis=diagnosis,
+                proposal=proposal,
+                directive=directive,
+                evolution_result=evolution_result,
+            )
         self._states.transition(
             run,
             RunState.BUILDING,
             f"Routing {directive.kind.value} directive to builder",
         )
-        build_id = self._id_factory("build")
         build_request = self._adapter.build_request(build_id, context, proposal)
         builder = self._builders.builder_for(directive)
         build = builder.build(build_request, proposal, directive)
         candidate_result = dict(build.candidate_result)
-        base = self._versions.read_base(context.current_defense_version)
         self._versions.register_build(
             candidate_result,
             proposal.target_policy,

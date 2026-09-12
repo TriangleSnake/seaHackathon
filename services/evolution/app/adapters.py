@@ -83,7 +83,39 @@ class SharedContractAdapter:
                 "expected_impact": proposal.expected_impact,
                 "known_risks": list(proposal.known_risks),
                 "provenance": deepcopy(proposal.provenance),
+                "base_policy_version": proposal.base_policy_version,
+                "detection_policy_changes": [
+                    {
+                        "path": change.path,
+                        "operation": change.operation.value,
+                        "values": list(change.values),
+                    }
+                    for change in proposal.detection_policy_changes
+                ],
             },
+        }
+
+    def candidate_result(
+        self,
+        *,
+        candidate_id: str,
+        build_id: str,
+        base_defense_version: str,
+        status: str,
+        changes: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...],
+        artifact_root: str | None = None,
+        build_log_ref: str | None = None,
+    ) -> dict[str, Any]:
+        """Map builder output to exactly the existing shared CandidateResult shape."""
+
+        return {
+            "candidate_id": candidate_id,
+            "build_id": build_id,
+            "base_defense_version": {"version": base_defense_version},
+            "status": status,
+            "changes": deepcopy(list(changes)),
+            "artifact_root": artifact_root,
+            "build_log_ref": build_log_ref,
         }
 
     def defense_version(self, snapshot: DefenseVersionSnapshot) -> dict[str, Any]:

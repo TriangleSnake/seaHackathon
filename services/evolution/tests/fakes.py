@@ -78,7 +78,7 @@ class FakePolicyCapabilityAdapter:
 class FakeCandidateBuilder:
     """Create a schema-shaped result without writing files or invoking Codex."""
 
-    def __init__(self, *, succeeds: bool, policy_version: str = "candidate-policy") -> None:
+    def __init__(self, *, succeeds: bool, policy_version: str = "DP-CAND-TEST") -> None:
         self.succeeds = succeeds
         self.policy_version = policy_version
         self.calls: list[Mapping[str, Any]] = []
