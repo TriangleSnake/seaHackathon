@@ -69,6 +69,26 @@ class PatrolResult(StrictModel):
     evidence: list[Evidence]
 
 
+class PatrolJobAccepted(StrictModel):
+    job_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    status_url: str
+
+
+class PatrolJobState(StrictModel):
+    job_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    run_id: str
+    strategy: Literal["exploit", "explore"]
+    policy_ref: PatrolPolicyRef
+    created_at: datetime
+    updated_at: datetime
+    result: PatrolResult | None = None
+    error: str | None = None
+    handoff_status: Literal["pending", "not_required", "delivered", "failed"]
+    handoff_attempts: int = Field(default=0, ge=0)
+
+
 class PatrolBudget(StrictModel):
     max_turns: int = Field(default=12, ge=1, le=50)
     max_discoveries: int = Field(default=5, ge=0, le=100)

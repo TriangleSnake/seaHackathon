@@ -62,18 +62,17 @@ async def handoff_to_investigation(result: PatrolResult) -> None:
         return
     base_url = os.environ.get("INVESTIGATION_URL", "http://investigation:8000").rstrip("/")
     timeout = float(os.environ.get("INVESTIGATION_TIMEOUT_SECONDS", "10"))
+    max_attempts = max(1, min(int(os.environ.get("INVESTIGATION_MAX_ATTEMPTS", "3")), 10))
     async with httpx.AsyncClient(timeout=timeout) as client:
-        requests = [
-            client.post(
-                f"{base_url}/investigate",
-                json=build_investigation_payload(result, discovery),
-                headers={
-                    "X-Request-ID": result.run_id,
-                    "Idempotency-Key": _case_id(result, discovery),
-                },
-            )
-            for discovery in result.discoveries
-        ]
-        responses = await asyncio.gather(*requests)
-        for response in responses:
-            response.raise_for_status()
+        for attempt in range(max_attempts):
+            try:
+                requests = [client.post(f"{base_url}/investigate", json=build_investigation_payload(result, discovery),
+                    headers={"X-Request-ID": result.run_id, "Idempotency-Key": _case_id(result, discovery)}) for discovery in result.discoveries]
+                responses = await asyncio.gather(*requests)
+                for response in responses:
+                    response.raise_for_status()
+                return
+            except Exception:
+                if attempt + 1 == max_attempts:
+                    raise
+                await asyncio.sleep(min(2**attempt, 5))

@@ -103,6 +103,8 @@ class AssociationJobState(StrictModel):
     result: AssociationResult | None = None
     error: str | None = None
     callback_status: Literal["not_configured", "pending", "delivered", "failed"]
+    callback_attempts: int = Field(default=0, ge=0)
+    callback_error: str | None = None
 
 
 class SearchPolicy(StrictModel):

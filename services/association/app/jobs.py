@@ -16,6 +16,9 @@ from .models import (
     AssociationRequest,
     PolicyRef,
 )
+from .storage import get_job as load_job
+from .storage import list_jobs as load_jobs
+from .storage import put_job, record_callback_attempt
 
 
 def _now() -> datetime:
@@ -53,7 +56,7 @@ class AssociationJobManager:
         job_id = _job_id(request, policy)
         async with self._lock:
             existing = self._jobs.get(job_id)
-            if existing is None:
+            if existing is None or existing.status == "failed":
                 now = _now()
                 callback_status = (
                     "pending" if os.environ.get("ASSOCIATION_RESULT_URL", "").strip()
@@ -69,6 +72,11 @@ class AssociationJobManager:
                     updated_at=now,
                     callback_status=callback_status,
                 )
+                await put_job(
+                    job_id,
+                    request.model_dump(mode="json"),
+                    self._jobs[job_id].model_dump(mode="json"),
+                )
                 task = asyncio.create_task(self._execute(job_id, request, policy))
                 self._tasks.add(task)
                 task.add_done_callback(self._tasks.discard)
@@ -82,7 +90,23 @@ class AssociationJobManager:
     async def get(self, job_id: str) -> AssociationJobState | None:
         async with self._lock:
             job = self._jobs.get(job_id)
-            return job.model_copy(deep=True) if job else None
+            if job:
+                return job.model_copy(deep=True)
+        stored = await load_job(job_id)
+        return AssociationJobState.model_validate(stored) if stored else None
+
+    async def list(self, limit: int = 50) -> list[AssociationJobState]:
+        return [AssociationJobState.model_validate(item) for item in await load_jobs(limit)]
+
+    async def retry_callback(self, job_id: str) -> AssociationJobState | None:
+        job = await self.get(job_id)
+        if job is None or job.status != "completed" or job.result is None:
+            return job
+        async with self._lock:
+            self._jobs[job_id] = job
+        await self._update(job_id, callback_status="pending")
+        await self._deliver_callback(job_id)
+        return await self.get(job_id)
 
     async def _execute(
         self,
@@ -110,6 +134,8 @@ class AssociationJobManager:
                 update={**changes, "updated_at": _now()},
                 deep=True,
             )
+            state = self._jobs[job_id].model_dump(mode="json")
+        await put_job(job_id, {}, state)
 
     async def _deliver_callback(self, job_id: str) -> None:
         callback_url = os.environ.get("ASSOCIATION_RESULT_URL", "").strip()
@@ -125,20 +151,27 @@ class AssociationJobManager:
             "case_id": job.case_id,
             "result": job.result.model_dump(mode="json"),
         }
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(
-                    callback_url,
-                    json=payload,
-                    headers={
-                        "X-Request-ID": job_id,
-                        "Idempotency-Key": job_id,
-                    },
-                )
-                response.raise_for_status()
-            await self._update(job_id, callback_status="delivered")
-        except Exception:
-            await self._update(job_id, callback_status="failed")
+        attempts = max(1, min(int(os.environ.get("ASSOCIATION_CALLBACK_MAX_ATTEMPTS", "3")), 10))
+        for attempt in range(attempts):
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(
+                        callback_url,
+                        json=payload,
+                        headers={"X-Request-ID": job_id, "Idempotency-Key": job_id},
+                    )
+                    response.raise_for_status()
+                latest = await self.get(job_id)
+                await record_callback_attempt(job_id, None)
+                await self._update(job_id, callback_status="delivered", callback_attempts=(latest.callback_attempts if latest else 0) + 1, callback_error=None)
+                return
+            except Exception as exc:
+                latest = await self.get(job_id)
+                await record_callback_attempt(job_id, type(exc).__name__)
+                await self._update(job_id, callback_attempts=(latest.callback_attempts if latest else 0) + 1, callback_error=type(exc).__name__)
+                if attempt + 1 < attempts:
+                    await asyncio.sleep(min(2**attempt, 5))
+        await self._update(job_id, callback_status="failed")
 
 
 job_manager = AssociationJobManager()

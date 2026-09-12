@@ -82,6 +82,32 @@
         "version": { "type": "string", "minLength": 1 }
       }
     },
+    "PatrolJobAccepted": {
+      "type": "object", "additionalProperties": false,
+      "required": ["job_id", "status", "status_url"],
+      "properties": {
+        "job_id": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
+        "status_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "PatrolJobState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["job_id", "status", "run_id", "strategy", "policy_ref", "created_at", "updated_at", "result", "error", "handoff_status", "handoff_attempts"],
+      "properties": {
+        "job_id": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
+        "run_id": {"type": "string", "minLength": 1},
+        "strategy": {"type": "string", "enum": ["exploit", "explore"]},
+        "policy_ref": {"$ref": "#/$defs/PatrolPolicyRef"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"},
+        "result": {"oneOf": [{"$ref": "#/$defs/PatrolResult"}, {"type": "null"}]},
+        "error": {"type": ["string", "null"]},
+        "handoff_status": {"type": "string", "enum": ["pending", "not_required", "delivered", "failed"]},
+        "handoff_attempts": {"type": "integer", "minimum": 0}
+      }
+    },
     "PatrolDiscovery": {
       "type": "object",
       "additionalProperties": false,

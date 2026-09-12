@@ -10,6 +10,34 @@ from .models import AssociationPolicy, AssociationRequest, AssociationResult
 from .prompt import build_system_prompt
 
 
+def _evidence_values(association: AssociationResult, evidence_refs: list[str], key: str) -> set[str]:
+    evidence_by_id = {item.id: item for item in association.evidence}
+    return {
+        str(evidence_by_id[ref].data[key])
+        for ref in evidence_refs
+        if ref in evidence_by_id and evidence_by_id[ref].data.get(key) is not None
+    }
+
+
+def validate_relation_evidence(association: AssociationResult) -> None:
+    """Reject graph claims whose cited raw evidence does not share the claimed key."""
+    evidence_keys = {
+        "shared_device": "device_id",
+        "shared_ip": "ip_address",
+        "shared_payment_instrument": "payment_instrument_hash",
+        "reused_product_image": "image_hash",
+    }
+    for edge in association.edges:
+        key = evidence_keys.get(edge.type)
+        if key is None:
+            continue
+        values = _evidence_values(association, edge.evidence_refs, key)
+        if len(values) != 1:
+            raise ValueError(
+                f"Association edge {edge.type!r} is not supported by one shared {key}"
+            )
+
+
 async def run_association(request: AssociationRequest, policy: AssociationPolicy) -> AssociationResult:
     gateway_url = os.environ.get("AGENTGATEWAY_MCP_URL", "http://agentgateway:3000/mcp")
     model = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
@@ -54,4 +82,5 @@ async def run_association(request: AssociationRequest, policy: AssociationPolicy
                 raise ValueError("Relation path references a missing node")
             if not set(path.evidence_refs).issubset(evidence_ids):
                 raise ValueError("Relation path references missing evidence")
+    validate_relation_evidence(association)
     return association

@@ -96,7 +96,7 @@
     "AssociationJobState": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["job_id", "status", "case_id", "strategy", "policy_ref", "created_at", "updated_at", "result", "error", "callback_status"],
+      "required": ["job_id", "status", "case_id", "strategy", "policy_ref", "created_at", "updated_at", "result", "error", "callback_status", "callback_attempts", "callback_error"],
       "properties": {
         "job_id": {"type": "string", "minLength": 1},
         "status": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
@@ -107,7 +107,9 @@
         "updated_at": {"type": "string", "format": "date-time"},
         "result": {"oneOf": [{"$ref": "#/$defs/AssociationResult"}, {"type": "null"}]},
         "error": {"type": ["string", "null"]},
-        "callback_status": {"type": "string", "enum": ["not_configured", "pending", "delivered", "failed"]}
+        "callback_status": {"type": "string", "enum": ["not_configured", "pending", "delivered", "failed"]},
+        "callback_attempts": {"type": "integer", "minimum": 0},
+        "callback_error": {"type": ["string", "null"]}
       }
     },
     "AssociationResult": {
