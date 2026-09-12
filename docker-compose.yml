@@ -243,6 +243,9 @@ services:
       context: ./services/evolution
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      EVOLUTION_OPENAI_MODEL: ${EVOLUTION_OPENAI_MODEL:-gpt-5-mini}
+      EVOLUTION_WORKER_POLL_SECONDS: ${EVOLUTION_WORKER_POLL_SECONDS:-2}
     depends_on:
       postgres:
         condition: service_healthy

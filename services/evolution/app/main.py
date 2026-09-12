@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
@@ -11,7 +12,11 @@ from psycopg.types.json import Jsonb
 from fastapi import FastAPI, Query, status
 from pydantic import BaseModel, Field
 
+from .adapters import SharedContractAdapter
+from .planner import OpenAIEvolutionPlanner
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://fraud:fraud_dev_password@postgres:5432/fraud_intelligence")
+WORKER_POLL_SECONDS = max(1, int(os.environ.get("EVOLUTION_WORKER_POLL_SECONDS", "2")))
 
 async def initialize() -> None:
     async with await psycopg.AsyncConnection.connect(DATABASE_URL) as connection:
@@ -45,7 +50,15 @@ async def rows(query: str, params: tuple[Any, ...]) -> list[dict[str, Any]]:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await initialize()
-    yield
+    worker = asyncio.create_task(worker_loop())
+    try:
+        yield
+    finally:
+        worker.cancel()
+        try:
+            await worker
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(title="Fraud Evolution Service", version="0.1.0", lifespan=lifespan)
 
@@ -91,7 +104,68 @@ class DefenseVersionResponse(BaseModel):
 
 STAGE_PROGRESS = {"RECEIVED": 0, "DIAGNOSING": 16, "PROPOSED": 32, "BUILDING": 48,
                   "VALIDATING": 64, "AWAITING_APPROVAL": 80, "APPROVED": 92,
-                  "ACTIVE": 100, "REJECTED": 100, "FAILED": 100}
+                  "ACTIVE": 100, "NO_ACTION": 100, "NEEDS_MORE_EVIDENCE": 100,
+                  "REJECTED": 100, "FAILED": 100}
+
+def diagnosis_payload(diagnosis: Any) -> dict[str, Any]:
+    return {"outcome": diagnosis.outcome.value, "reason": diagnosis.reason,
+            "considered_policies": [item.value for item in diagnosis.considered_policies],
+            "policy_gaps": [{"policy_type": gap.policy_type.value, "severity": gap.severity.value,
+              "confidence": gap.confidence, "symptom": gap.symptom,
+              "hypothesized_cause": gap.hypothesized_cause,
+              "evidence_refs": list(gap.evidence_refs), "reasoning": gap.reasoning}
+              for gap in diagnosis.policy_gaps]}
+
+async def claim_received_run() -> dict[str, Any] | None:
+    async with await psycopg.AsyncConnection.connect(DATABASE_URL, row_factory=psycopg.rows.dict_row) as connection:
+        async with connection.transaction():
+            result = await connection.execute("""SELECT * FROM evolution_runs WHERE state='RECEIVED'
+              ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1""")
+            record = await result.fetchone()
+            if record is None: return None
+            run = dict(record)
+            await connection.execute("UPDATE evolution_runs SET state='DIAGNOSING', updated_at=now() WHERE run_id=%s", (run["run_id"],))
+            await connection.execute("""INSERT INTO evolution_run_events
+              (event_id,run_id,stage,component,status,summary) VALUES
+              (%s,%s,'diagnosing','planner','running','Planner is validating input and diagnosing policy gaps.')""",
+              (f"EVT-{uuid4()}", run["run_id"]))
+            return run
+
+async def finish_stage(run_id: str, state: str, summary: str, details: dict[str, Any], failed: bool = False) -> None:
+    async with await psycopg.AsyncConnection.connect(DATABASE_URL) as connection:
+        await connection.execute("""UPDATE evolution_run_events SET status=%s,summary=%s,details=%s,completed_at=now()
+          WHERE event_id=(SELECT event_id FROM evolution_run_events WHERE run_id=%s AND status='running'
+          ORDER BY started_at DESC LIMIT 1)""", ("failed" if failed else "completed",summary,Jsonb(details),run_id))
+        await connection.execute("UPDATE evolution_runs SET state=%s,details=details || %s,updated_at=now() WHERE run_id=%s",
+                                 (state,Jsonb(details),run_id))
+
+def run_planner(payload: dict[str, Any]) -> tuple[str, str, dict[str, Any]]:
+    request = payload.get("request", payload)
+    context = SharedContractAdapter().evolution_context(request)
+    diagnosis = OpenAIEvolutionPlanner.from_env().diagnose(context)
+    serialized = diagnosis_payload(diagnosis)
+    outcome = diagnosis.outcome.value
+    if outcome == "no_action": return "NO_ACTION", diagnosis.reason, {"diagnosis": serialized}
+    if outcome == "needs_more_evidence": return "NEEDS_MORE_EVIDENCE", diagnosis.reason, {"diagnosis": serialized}
+    return "PROPOSED", "Planner identified a policy gap; candidate build is ready to dispatch.", {"diagnosis": serialized}
+
+async def process_run(run: dict[str, Any]) -> None:
+    try:
+        state,summary,details = await asyncio.to_thread(run_planner, run["details"])
+        await finish_stage(run["run_id"],state,summary,details)
+    except Exception as exc:
+        await finish_stage(run["run_id"],"FAILED","Planner could not process this run.",{"error":str(exc)},True)
+
+async def worker_loop() -> None:
+    while True:
+        try:
+            run = await claim_received_run()
+            if run is not None:
+                await process_run(run)
+                continue
+        except asyncio.CancelledError: raise
+        except Exception: pass
+        await asyncio.sleep(WORKER_POLL_SECONDS)
 
 async def run_responses(limit: int) -> list[EvolutionRunResponse]:
     records = await rows("SELECT * FROM evolution_runs ORDER BY updated_at DESC LIMIT %s", (limit,))
