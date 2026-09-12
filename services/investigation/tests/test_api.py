@@ -88,6 +88,11 @@ class FakeAnalyzer:
         max_tool_calls: int,
     ) -> AgentRun:
         assert prompt and max_output_tokens > 0
+        assert context["score_items"]
+        assert all(isinstance(item, str) for item in context["score_items"])
+        assert set(context["score_scale"]) == {"0", "1", "2", "3", "4", "5"}
+        assert "is_direct_evidence=true" in context["score_scale"]["5"]
+        assert context["output_language"] == "Traditional Chinese (zh-TW)"
         findings = []
         tool_calls = []
         if agent == "order":
@@ -123,7 +128,8 @@ class FakeAnalyzer:
                     [
                         AgentItemScore(
                             item_type="payment_activity",
-                            score=0.68,
+                            score=3,
+                            is_direct_evidence=False,
                             confidence=0.9,
                             rationale="Payment evidence requires review.",
                             evidence_refs=["PAY-0001"],
@@ -238,13 +244,13 @@ def test_investigate_runs_agents_and_returns_scoreboard() -> None:
     assert "X-Investigation-Placeholder" not in response.headers
     assert body["verdict"] == "suspicious"
     assert body["findings"][0]["evidence_refs"] == ["PAY-0001"]
-    assert body["scoreboard"]["fraud_score"] == 0.68
+    assert body["scoreboard"]["fraud_score"] == 0.6
     assert body["scoreboard"]["usage"]["tool_calls"] == 1
     assert body["scoreboard"]["scoring_policy_version"] == "specialist-weighted-v1"
     assert body["agents_invoked"][0]["agent"] == "order"
     assert body["agents_invoked"][0]["case_type"] == "order"
-    assert body["agent_results"][0]["raw_analysis"]["item_scores"][0]["score"] == 0.68
-    assert body["agent_results"][0]["score_aggregate"]["weighted_score"] == 0.68
+    assert body["agent_results"][0]["raw_analysis"]["item_scores"][0]["score"] == 3
+    assert body["agent_results"][0]["score_aggregate"]["weighted_score"] == 0.6
 
 
 def test_investigate_rejects_unknown_request_fields() -> None:

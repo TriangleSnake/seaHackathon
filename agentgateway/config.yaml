@@ -2,6 +2,8 @@
 mcp:
   port: 3000
   statefulMode: stateless
+  failureMode: failOpen
+  prefixMode: never
   policies:
     cors:
       allowOrigins:
@@ -14,3 +16,6 @@ mcp:
     - name: system
       mcp:
         host: http://system-tools:8000/mcp
+    - name: virustotal
+      mcp:
+        host: http://virustotal-tools:8000/mcp

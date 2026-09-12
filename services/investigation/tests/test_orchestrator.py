@@ -103,7 +103,8 @@ class DirectEvidenceAgent:
                 item_scores=[
                     AgentItemScore(
                         item_type="account_activity",
-                        score=0.99,
+                        score=5,
+                        is_direct_evidence=True,
                         confidence=0.99,
                         rationale="A prior case confirmed fraud.",
                         evidence_refs=["prior-fraud-case"],
@@ -164,8 +165,8 @@ def test_direct_evidence_stops_and_reaches_fraud_verdict() -> None:
     result = asyncio.run(orchestrator.investigate(request(), "request-1"))
     assert result.stop_reason == "direct_evidence"
     assert result.verdict == "fraud"
-    assert result.scoreboard["fraud_score"] == 0.99
-    assert result.confidence == 0.98
+    assert result.scoreboard["fraud_score"] == 1.0
+    assert result.confidence == 1.0
     assert result.findings[0].evidence_refs == ["prior-fraud-case"]
 
 
@@ -174,6 +175,7 @@ def test_gateway_failures_are_reported_without_crashing() -> None:
     result = asyncio.run(orchestrator.investigate(request(), "request-2"))
     assert result.verdict == "unknown"
     assert result.stop_reason == "insufficient_evidence"
+    assert result.summary == "調查已完成，但沒有足夠證據形成受支持的發現。"
     assert result.scoreboard["usage"]["tool_calls"] == 0
 
 
@@ -194,6 +196,9 @@ def test_specialists_have_role_scoped_tool_allowlists() -> None:
     assert "find_shared_payment_instrument_accounts" in OrderAgent.allowed_tools
     assert "find_conversation_accounts" in ChatAgent.allowed_tools
     assert "find_accounts_by_indicator" in ChatAgent.allowed_tools
+    assert "get_virustotal_reputation" in ChatAgent.allowed_tools
+    assert "get_virustotal_reputation" not in OrderAgent.allowed_tools
+    assert "get_virustotal_reputation" not in MarketplaceInfoAgent.allowed_tools
     assert "get_subject_association_seeds" in MarketplaceInfoAgent.allowed_tools
     assert "find_reused_product_image_accounts" in MarketplaceInfoAgent.allowed_tools
     for agent in (OrderAgent, ChatAgent, MarketplaceInfoAgent):
