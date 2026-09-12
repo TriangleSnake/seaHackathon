@@ -1,1 +1,131 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pattern.schema.json",
+  "title": "Pattern Specification",
+  "$defs": {
+    "BehaviorStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "action"
+      ],
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ObservedSignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "operator",
+        "value"
+      ],
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "eq",
+            "neq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "contains",
+            "regex",
+            "in"
+          ]
+        },
+        "value": {},
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "PatternSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pattern_id",
+        "name",
+        "observed_signals",
+        "current_defense_gap",
+        "confidence",
+        "evidence_refs"
+      ],
+      "properties": {
+        "pattern_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObservedSignal"
+          }
+        },
+        "behavior_sequence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BehaviorStep"
+          }
+        },
+        "supporting_cases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "counterexamples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current_defense_gap": {
+          "type": "string"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

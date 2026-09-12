@@ -1,1 +1,123 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "investigation.schema.json",
+  "title": "Investigation Contracts",
+  "$defs": {
+    "InvestigationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "detection_result",
+        "scoreboard_config_ref"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "detection_result": {
+          "$ref": "detection.schema.json#/$defs/DetectionResult"
+        },
+        "existing_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Evidence"
+          }
+        },
+        "scoreboard_config_ref": {
+          "$ref": "scoreboard.schema.json#/$defs/ScoreboardConfigRef",
+          "description": "Immutable reference to configuration stored by System. Limits are not supplied/decided by Investigation."
+        }
+      }
+    },
+    "AgentInvocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent",
+        "reason"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "InvestigationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "subject",
+        "verdict",
+        "confidence",
+        "summary",
+        "findings",
+        "evidence",
+        "agents_invoked",
+        "scoreboard",
+        "stop_reason"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "fraud",
+            "suspicious",
+            "normal",
+            "unknown"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Finding"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Evidence"
+          }
+        },
+        "agents_invoked": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentInvocation"
+          }
+        },
+        "scoreboard": {
+          "$ref": "scoreboard.schema.json#/$defs/ScoreboardState"
+        },
+        "stop_reason": {
+          "type": "string",
+          "enum": [
+            "direct_evidence",
+            "fraud_threshold",
+            "false_positive_evidence",
+            "budget_exhausted",
+            "diminishing_returns",
+            "insufficient_evidence"
+          ]
+        }
+      }
+    }
+  }
+}

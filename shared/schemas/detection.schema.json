@@ -1,1 +1,135 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detection.schema.json",
+  "title": "Detection Contracts",
+  "$defs": {
+    "DetectionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "trigger_context": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "patrol",
+                "manual",
+                "scheduled",
+                "api"
+              ]
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "requested_checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "rule_based",
+              "anomaly",
+              "llm_classifier",
+              "ml_classifier"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "DetectionTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "detector",
+        "reason",
+        "evidence_refs"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "detector": {
+          "type": "string",
+          "enum": [
+            "rule_based",
+            "anomaly",
+            "llm_classifier",
+            "ml_classifier"
+          ]
+        },
+        "rule_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "raw_result": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true,
+          "description": "Detector-specific raw output, e.g. classifier label/logprobs. Not a system fraud score."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "DetectionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detection_id",
+        "subject",
+        "detected",
+        "triggers",
+        "evidence"
+      ],
+      "properties": {
+        "detection_id": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "detected": {
+          "type": "boolean"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DetectionTrigger"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Evidence"
+          }
+        }
+      }
+    }
+  }
+}

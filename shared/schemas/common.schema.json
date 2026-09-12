@@ -1,1 +1,196 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Common Fraud Intelligence Schemas",
+  "$defs": {
+    "Subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "account",
+            "shop",
+            "product",
+            "order",
+            "transaction",
+            "message"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "environment",
+            "detection",
+            "investigation",
+            "patrol",
+            "association",
+            "external"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ref_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "description",
+        "impact",
+        "confidence",
+        "evidence_refs"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "enum": [
+            "supports_fraud",
+            "supports_legitimate",
+            "neutral"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Indicator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "value",
+        "evidence_refs"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ip",
+            "device",
+            "email",
+            "phone",
+            "url",
+            "domain",
+            "payment_account",
+            "shop",
+            "account",
+            "other"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "PolicyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "version"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "detection",
+            "scoring",
+            "investigation",
+            "exploration",
+            "association"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "DefenseVersionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

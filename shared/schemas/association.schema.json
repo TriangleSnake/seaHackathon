@@ -1,1 +1,136 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "association.schema.json",
+  "title": "Association Contracts",
+  "$defs": {
+    "AssociationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "subject"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "seed_indicators": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Indicator"
+          }
+        }
+      }
+    },
+    "GraphNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "account",
+            "shop",
+            "product",
+            "device",
+            "ip",
+            "payment_account",
+            "other"
+          ]
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "GraphEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "target",
+        "type",
+        "confidence",
+        "evidence_refs"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "AssociationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          }
+        },
+        "related_subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Subject"
+          }
+        }
+      }
+    }
+  }
+}

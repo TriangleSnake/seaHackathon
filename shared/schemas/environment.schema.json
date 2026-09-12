@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "environment.schema.json",
+  "title": "Environment Data Models",
+  "$defs": {
+    "Account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "created_at",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "restricted",
+            "banned"
+          ]
+        },
+        "activity_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "ip_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kyc_status": {
+          "type": "string",
+          "enum": [
+            "unverified",
+            "pending",
+            "verified",
+            "rejected"
+          ]
+        },
+        "bot_check_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "login_devices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ReportRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target_account_id",
+        "type",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "target_account_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "report",
+            "violation",
+            "enforcement",
+            "dispute"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Shop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "owner_account_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "owner_account_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "shop_id",
+        "seller_account_id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "shop_id": {
+          "type": "string"
+        },
+        "seller_account_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "price": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "price_history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "reviews": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "buyer_account_id",
+        "seller_account_id",
+        "quantity",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "buyer_account_id": {
+          "type": "string"
+        },
+        "seller_account_id": {
+          "type": "string"
+        },
+        "product_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payment_method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "conversation_id",
+        "sender_account_id",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "conversation_id": {
+          "type": "string"
+        },
+        "sender_account_id": {
+          "type": "string"
+        },
+        "recipient_account_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

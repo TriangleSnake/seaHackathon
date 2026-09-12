@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "governance.schema.json",
+  "title": "Governance Contracts",
+  "$defs": {
+    "GovernanceRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "evaluation"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string"
+        },
+        "evaluation": {
+          "$ref": "evaluation.schema.json#/$defs/EvaluationResult"
+        },
+        "requested_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "require_human_approval": {
+          "type": "boolean"
+        }
+      }
+    },
+    "GovernanceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "reason"
+      ],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "reject",
+            "needs_review"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "policy_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "passed"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "passed": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "approved_defense_version": {
+          "anyOf": [
+            {
+              "$ref": "defense-version.schema.json#/$defs/DefenseVersion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

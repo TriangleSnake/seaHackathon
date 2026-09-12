@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evolution.schema.json",
+  "title": "Evolution Contracts",
+  "$defs": {
+    "EvolutionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger",
+        "current_defense_version",
+        "system_performance"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "recurring",
+                "new_spec_ready",
+                "performance_degradation"
+              ]
+            },
+            "context": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "current_defense_version": {
+          "$ref": "common.schema.json#/$defs/DefenseVersionRef"
+        },
+        "system_performance": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "number",
+              "integer",
+              "string",
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "pattern_spec": {
+          "anyOf": [
+            {
+              "$ref": "pattern.schema.json#/$defs/PatternSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "EvolutionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "reason"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "no_change",
+            "build_candidate"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "pattern_spec": {
+          "anyOf": [
+            {
+              "$ref": "pattern.schema.json#/$defs/PatternSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_policies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "detection",
+              "scoring",
+              "investigation",
+              "exploration",
+              "association"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

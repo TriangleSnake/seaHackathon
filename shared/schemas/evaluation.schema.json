@@ -1,1 +1,165 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation.schema.json",
+  "title": "Evaluator Contracts",
+  "$defs": {
+    "DatasetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "ref"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "build",
+            "validation",
+            "holdout"
+          ]
+        },
+        "ref": {
+          "type": "string"
+        }
+      }
+    },
+    "Metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "precision",
+        "false_positive_count",
+        "false_positive_rate",
+        "trigger_volume"
+      ],
+      "properties": {
+        "precision": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "recall": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "f1": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "false_positive_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "false_positive_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "trigger_volume": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "EvaluationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_id",
+        "candidate_id",
+        "baseline_defense_version",
+        "datasets"
+      ],
+      "properties": {
+        "evaluation_id": {
+          "type": "string"
+        },
+        "candidate_id": {
+          "type": "string"
+        },
+        "baseline_defense_version": {
+          "$ref": "common.schema.json#/$defs/DefenseVersionRef"
+        },
+        "datasets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DatasetRef"
+          },
+          "minItems": 1
+        },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "EvaluationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_id",
+        "candidate_id",
+        "status",
+        "implementation_valid",
+        "candidate_metrics",
+        "baseline_metrics",
+        "incremental_value"
+      ],
+      "properties": {
+        "evaluation_id": {
+          "type": "string"
+        },
+        "candidate_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "implementation_valid": {
+          "type": "boolean"
+        },
+        "candidate_metrics": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "baseline_metrics": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "incremental_value": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "regressions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failure_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

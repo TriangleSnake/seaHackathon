@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "defense-version.schema.json",
+  "title": "Defense Version",
+  "$defs": {
+    "DefenseVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "status",
+        "policies",
+        "created_at"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "approved",
+            "active",
+            "retired",
+            "rejected"
+          ]
+        },
+        "base_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/PolicyRef"
+          },
+          "minItems": 1
+        },
+        "candidate_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evaluation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

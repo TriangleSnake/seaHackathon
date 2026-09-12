@@ -1,1 +1,125 @@
-
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate.schema.json",
+  "title": "Codex Builder Candidate Contracts",
+  "$defs": {
+    "BuildRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "build_id",
+        "pattern_spec",
+        "base_defense_version",
+        "target_policies"
+      ],
+      "properties": {
+        "build_id": {
+          "type": "string"
+        },
+        "pattern_spec": {
+          "$ref": "pattern.schema.json#/$defs/PatternSpec"
+        },
+        "base_defense_version": {
+          "$ref": "common.schema.json#/$defs/DefenseVersionRef"
+        },
+        "target_policies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "detection",
+              "scoring",
+              "investigation",
+              "exploration",
+              "association"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "CandidateChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "operation",
+        "summary"
+      ],
+      "properties": {
+        "target": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "create",
+            "modify",
+            "delete"
+          ]
+        },
+        "artifact_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "CandidateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "build_id",
+        "base_defense_version",
+        "status",
+        "changes"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string"
+        },
+        "build_id": {
+          "type": "string"
+        },
+        "base_defense_version": {
+          "$ref": "common.schema.json#/$defs/DefenseVersionRef"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "built",
+            "failed"
+          ]
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CandidateChange"
+          }
+        },
+        "artifact_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "build_log_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

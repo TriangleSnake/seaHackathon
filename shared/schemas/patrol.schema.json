@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "patrol.schema.json",
+  "title": "Patrol Contracts",
+  "$defs": {
+    "PatrolRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "mode",
+        "scope"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "scheduled",
+            "manual"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "subject_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "account",
+                  "shop",
+                  "product",
+                  "transaction",
+                  "message"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "since": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "PatrolDiscovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "reason",
+        "priority",
+        "evidence_refs"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "PatrolResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "discoveries",
+        "evidence"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "discoveries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PatrolDiscovery"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Evidence"
+          }
+        }
+      }
+    }
+  }
+}
