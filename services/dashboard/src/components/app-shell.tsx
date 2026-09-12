@@ -1,21 +1,22 @@
 "use client";
 
-import { Activity, Bell, BookOpenCheck, Boxes, ChartNoAxesCombined, ChevronsUp, CircleGauge, DatabaseZap, Menu, Radar, Search, ShieldAlert, ShieldCheck, X } from "lucide-react";
+import { Activity, Bell, BookOpenCheck, Boxes, ChartNoAxesCombined, ChevronsUp, CircleGauge, DatabaseZap, Menu, Radar, Search, ShieldAlert, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useDashboardMode } from "@/lib/dashboard-mode";
+import { DefenseContent } from "@/features/defense/defense-page";
 
 const nav = [
   ["總覽", "/overview", CircleGauge], ["案件", "/cases", ShieldAlert], ["關聯分析", "/association", Boxes], ["自主巡查", "/patrol", Radar],
-  ["策略演化", "/evolution", ChevronsUp], ["防禦版本", "/defense-versions", ShieldCheck], ["Agent Policy", "/policies", BookOpenCheck], ["系統狀態", "/system", Activity]
+  ["策略演化與防禦版本", "/evolution", ChevronsUp], ["Agent Policy", "/policies", BookOpenCheck], ["系統狀態", "/system", Activity]
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const mode = useDashboardMode();
-  const hasLiveReadModel = pathname === "/system" || pathname === "/overview" || pathname === "/policies" || pathname.startsWith("/policies/detection") || pathname.startsWith("/policies/patrol") || pathname.startsWith("/policies/association") || pathname.startsWith("/policies/investigation") || pathname === "/patrol" || pathname.startsWith("/patrol/") || pathname === "/association" || pathname === "/cases" || pathname.startsWith("/cases/");
+  const hasLiveReadModel = pathname === "/evolution" || pathname === "/system" || pathname === "/overview" || pathname === "/policies" || pathname.startsWith("/policies/detection") || pathname.startsWith("/policies/patrol") || pathname.startsWith("/policies/association") || pathname.startsWith("/policies/investigation") || pathname === "/patrol" || pathname.startsWith("/patrol/") || pathname === "/association" || pathname === "/cases" || pathname.startsWith("/cases/");
   return <div className="shell">
     <a href="#main" className="skip-link">跳至主要內容</a>
     <aside className={open ? "sidebar open" : "sidebar"} aria-label="主要導覽">
@@ -35,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="search"><Search size={17}/><input aria-label="搜尋案件、帳號或政策" placeholder="搜尋案件、帳號或政策"/><kbd>⌘ K</kbd></div>
         <div className="top-actions"><span className={`environment ${mode}`} title={mode === "demo" ? "固定展示資料，不代表目前系統狀態" : "只顯示已接入後端的即時資料"}><span/>{mode === "demo" ? "DEMO DATA" : "LIVE"}</span><button className="icon-button" aria-label="通知"><Bell size={19}/><i/></button><button className="avatar" aria-label="開啟使用者選單">YL</button></div>
       </header>
-      <main id="main">{mode === "live" && !hasLiveReadModel ? <section className="live-source-boundary panel"><DatabaseZap size={28}/><span>LIVE DATA BOUNDARY</span><h1>這個頁面的後端資料源尚未接入</h1><p>Live 版不會以 Demo 資料補值。請切到 3002 查看完整展示內容；此頁會在對應的 read API 完成後開放。</p><code>{pathname}</code></section> : children}</main>
+      <main id="main">{mode === "live" && !hasLiveReadModel ? <section className="live-source-boundary panel"><DatabaseZap size={28}/><span>LIVE DATA BOUNDARY</span><h1>這個頁面的後端資料源尚未接入</h1><p>Live 版不會以 Demo 資料補值。請切到 3002 查看完整展示內容；此頁會在對應的 read API 完成後開放。</p><code>{pathname}</code></section> : children}{pathname === "/evolution" && <section id="defense-versions" className="evolution-defense-section"><DefenseContent/></section>}</main>
     </div>
   </div>;
 }
