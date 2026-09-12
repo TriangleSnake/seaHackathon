@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from app.api.routes import router
-from app.service import GovernanceService
+from .api.routes import router
+from .service import GovernanceService
 
 
 def create_app(service: GovernanceService | None = None) -> FastAPI:

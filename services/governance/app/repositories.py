@@ -5,7 +5,7 @@ from __future__ import annotations
 from threading import Lock
 from typing import Protocol
 
-from app.domain.models import GovernanceAuditEvent, HumanReviewDecision
+from .domain.models import GovernanceAuditEvent, HumanReviewDecision
 
 
 class AuditRepository(Protocol):

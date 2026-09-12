@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Request
 
-from app.domain.models import GovernanceRequest, GovernanceResult
+from ..domain.models import GovernanceRequest, GovernanceResult
 
 
 router = APIRouter()

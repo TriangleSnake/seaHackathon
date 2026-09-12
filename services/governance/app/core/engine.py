@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from app.core.checks import (
+from .checks import (
     EvaluationPassedCheck,
     GovernanceCheck,
     HumanApprovalRequirementCheck,
     ImplementationValidCheck,
     ReportedRegressionsCheck,
 )
-from app.domain.models import GovernanceContext, GovernanceDecision, GovernanceResult
+from ..domain.models import GovernanceContext, GovernanceDecision, GovernanceResult
 
 
 class GovernancePolicyEngine:

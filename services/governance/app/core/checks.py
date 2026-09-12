@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from app.domain.models import (
+from ..domain.models import (
     CheckOutcome,
     GovernanceContext,
     GovernanceDecision,

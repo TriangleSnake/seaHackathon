@@ -6,9 +6,9 @@ from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from app.core.checks import GovernanceCheck
-from app.core.engine import GovernancePolicyEngine
-from app.domain.models import (
+from .core.checks import GovernanceCheck
+from .core.engine import GovernancePolicyEngine
+from .domain.models import (
     GovernanceAuditEvent,
     GovernanceContext,
     GovernancePolicyConfig,
@@ -17,7 +17,7 @@ from app.domain.models import (
     HumanReviewDecision,
     HumanReviewInput,
 )
-from app.repositories import (
+from .repositories import (
     AuditRepository,
     HumanReviewRepository,
     InMemoryAuditRepository,
