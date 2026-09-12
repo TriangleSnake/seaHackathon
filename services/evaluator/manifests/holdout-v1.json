@@ -56,19 +56,9 @@
       "split": "holdout"
     },
     {
-      "case_id": "MSG-0916",
+      "case_id": "MSG-0912",
       "subject_type": "message",
-      "subject_id": "MSG-0916",
-      "simulation_time": "2026-09-10T12:00:00+08:00",
-      "scenario_name": "taiwan-marketplace-20260912",
-      "is_fraud": true,
-      "label_provenance": "synthetic-scenario/manual-adjudication",
-      "split": "holdout"
-    },
-    {
-      "case_id": "MSG-0009",
-      "subject_type": "message",
-      "subject_id": "MSG-0009",
+      "subject_id": "MSG-0912",
       "simulation_time": "2026-09-10T12:00:00+08:00",
       "scenario_name": "taiwan-marketplace-20260912",
       "is_fraud": false,

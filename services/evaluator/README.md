@@ -112,6 +112,13 @@ Environment database, Detection requests, or builder-facing APIs. A manifest cas
 becomes a `DetectionInput` containing only its case and subject identity; the
 Detection runtime is responsible for resolving observable facts from Environment.
 
+The validation split intentionally includes `MSG-0916`, `MSG-0002`, and
+`MSG-0009`. Candidate v1's broad `付款` phrase can therefore expose one new fraud
+hit and both additional false positives during validation, fail the current
+maximum-one-additional-false-positive gate, and drive revision without consulting
+holdout. Holdout retains separate fraud and clean controls that are not needed to
+discover or tune the v1-to-v2 change.
+
 ## Environment snapshot guard
 
 A manifest-backed evaluation requires an injected `EnvironmentSnapshotGuard`.

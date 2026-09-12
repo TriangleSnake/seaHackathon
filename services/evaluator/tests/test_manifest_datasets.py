@@ -28,10 +28,12 @@ MANIFEST_ROOT = EVALUATOR_ROOT / "manifests"
 EXPECTED_PROVENANCE = "synthetic-scenario/manual-adjudication"
 EXPECTED_TIME = datetime.fromisoformat("2026-09-10T12:00:00+08:00")
 
-VALIDATION_FRAUD = {"MSG-0901", "MSG-0907", "MSG-0911"}
-VALIDATION_CLEAN = {"MSG-0002", "MSG-0902", "MSG-0908", "MSG-0912"}
-HOLDOUT_FRAUD = {"MSG-0903", "MSG-0909", "MSG-0916"}
-HOLDOUT_CLEAN = {"MSG-0009", "MSG-0904", "MSG-0906", "MSG-0910"}
+VALIDATION_FRAUD = {"MSG-0901", "MSG-0907", "MSG-0911", "MSG-0916"}
+VALIDATION_CLEAN = {"MSG-0002", "MSG-0009", "MSG-0902", "MSG-0908"}
+HOLDOUT_FRAUD = {"MSG-0903", "MSG-0909"}
+HOLDOUT_CLEAN = {"MSG-0904", "MSG-0906", "MSG-0910", "MSG-0912"}
+
+V1_REVISION_SIGNALS = {"MSG-0916", "MSG-0002", "MSG-0009"}
 
 
 class ManifestDatasetTests(unittest.TestCase):
@@ -45,7 +47,7 @@ class ManifestDatasetTests(unittest.TestCase):
         dataset = EvaluationDatasetReader(self.source).load(VALIDATION_DATASET_REF)
 
         self.assertEqual(dataset.ref, VALIDATION_DATASET_REF)
-        self.assertEqual(len(dataset.records), 7)
+        self.assertEqual(len(dataset.records), 8)
         self.assertEqual(
             {record.input.subject_id for record in dataset.records if record.is_fraud},
             VALIDATION_FRAUD,
@@ -73,7 +75,7 @@ class ManifestDatasetTests(unittest.TestCase):
         dataset = EvaluationDatasetReader(self.source).load(HOLDOUT_DATASET_REF)
 
         self.assertEqual(dataset.ref, HOLDOUT_DATASET_REF)
-        self.assertEqual(len(dataset.records), 7)
+        self.assertEqual(len(dataset.records), 6)
         self.assertEqual(
             {record.input.subject_id for record in dataset.records if record.is_fraud},
             HOLDOUT_FRAUD,
@@ -112,12 +114,26 @@ class ManifestDatasetTests(unittest.TestCase):
             )
         )
 
+    def test_candidate_v1_revision_signals_are_validation_only(self) -> None:
+        validation = self.source.load(VALIDATION_DATASET_REF)
+        holdout = self.source.load(HOLDOUT_DATASET_REF)
+        validation_labels = {
+            record.input.subject_id: record.is_fraud for record in validation.records
+        }
+        holdout_ids = {record.input.subject_id for record in holdout.records}
+
+        self.assertTrue(V1_REVISION_SIGNALS <= set(validation_labels))
+        self.assertTrue(V1_REVISION_SIGNALS.isdisjoint(holdout_ids))
+        self.assertIs(validation_labels["MSG-0916"], True)
+        self.assertIs(validation_labels["MSG-0002"], False)
+        self.assertIs(validation_labels["MSG-0009"], False)
+
     def test_builder_inputs_contain_no_labels_or_label_metadata(self) -> None:
         inputs = BuilderDatasetReader(self.source).load_detection_inputs(
             VALIDATION_DATASET_REF
         )
 
-        self.assertEqual(len(inputs), 7)
+        self.assertEqual(len(inputs), 8)
         for case_input in inputs:
             self.assertEqual(dict(case_input.facts), {})
             self.assertFalse(hasattr(case_input, "is_fraud"))
