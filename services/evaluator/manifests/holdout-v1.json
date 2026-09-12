@@ -1,0 +1,69 @@
+{
+  "manifest_version": 1,
+  "dataset": {
+    "name": "holdout",
+    "ref": "manifest://evaluator/taiwan-marketplace-message-demo/holdout-v1"
+  },
+  "cases": [
+    {
+      "case_id": "MSG-0903",
+      "subject_type": "message",
+      "subject_id": "MSG-0903",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    },
+    {
+      "case_id": "MSG-0904",
+      "subject_type": "message",
+      "subject_id": "MSG-0904",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    },
+    {
+      "case_id": "MSG-0906",
+      "subject_type": "message",
+      "subject_id": "MSG-0906",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    },
+    {
+      "case_id": "MSG-0909",
+      "subject_type": "message",
+      "subject_id": "MSG-0909",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    },
+    {
+      "case_id": "MSG-0910",
+      "subject_type": "message",
+      "subject_id": "MSG-0910",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    },
+    {
+      "case_id": "MSG-0912",
+      "subject_type": "message",
+      "subject_id": "MSG-0912",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "holdout"
+    }
+  ]
+}

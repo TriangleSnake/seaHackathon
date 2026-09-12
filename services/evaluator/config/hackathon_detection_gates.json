@@ -1,0 +1,13 @@
+{
+  "temporary_hackathon_configuration": true,
+  "description": "Evaluator-owned fixture thresholds. Replace through trusted deployment configuration before production use.",
+  "detection_gates": {
+    "minimum_precision": 0.75,
+    "maximum_false_positive_rate": 0.25,
+    "maximum_additional_false_positives": 1,
+    "maximum_fraud_hits_lost": 0,
+    "maximum_trigger_volume_delta": 3,
+    "minimum_recall_delta": 0.0,
+    "require_incremental_improvement": true
+  }
+}
