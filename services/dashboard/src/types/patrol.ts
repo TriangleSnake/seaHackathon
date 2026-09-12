@@ -1,4 +1,4 @@
-export type PatrolRunStatus = "running" | "completed" | "failed";
+export type PatrolRunStatus = "queued" | "running" | "completed" | "failed";
 export type PatrolStrategy = "exploit" | "explore";
 
 export interface PatrolDiscovery {
