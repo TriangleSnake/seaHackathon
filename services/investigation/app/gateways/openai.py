@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Awaitable, Callable, Optional, Protocol
+from typing import Any, Awaitable, Callable, Optional, Protocol, TypeVar
 
 from openai import AsyncOpenAI
+from pydantic import BaseModel
 
 from app.domain.models import AgentAnalysis, AgentRun, ToolCallResult, ToolDefinition
 
 
 ToolExecutor = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
+StructuredOutput = TypeVar("StructuredOutput", bound=BaseModel)
 
 
 class AgentAnalysisError(RuntimeError):
@@ -45,6 +47,40 @@ class OpenAIAnalyzer:
 
     async def close(self) -> None:
         await self._client.close()
+
+    async def generate_structured(
+        self,
+        instructions: str,
+        context: dict[str, Any],
+        output_model: type[StructuredOutput],
+        max_output_tokens: int,
+    ) -> tuple[StructuredOutput, int, int]:
+        """Generate one schema-constrained result without exposing specialist tools."""
+        try:
+            response = await self._client.responses.parse(
+                model=self._model,
+                instructions=instructions,
+                input=[
+                    {
+                        "role": "user",
+                        "content": json.dumps(context, default=str, ensure_ascii=False),
+                    }
+                ],
+                text_format=output_model,
+                max_output_tokens=max_output_tokens,
+                store=False,
+            )
+        except Exception as exc:
+            raise AgentAnalysisError("orchestrator model request failed") from exc
+        parsed = response.output_parsed
+        if parsed is None:
+            raise AgentAnalysisError("orchestrator returned no parsed output")
+        usage = response.usage
+        return (
+            parsed,
+            getattr(usage, "input_tokens", 0) if usage else 0,
+            getattr(usage, "output_tokens", 0) if usage else 0,
+        )
 
     async def analyze(
         self,
@@ -167,6 +203,16 @@ class UnavailableAnalyzer:
 
     async def close(self) -> None:
         return None
+
+    async def generate_structured(
+        self,
+        instructions: str,
+        context: dict[str, Any],
+        output_model: type[StructuredOutput],
+        max_output_tokens: int,
+    ) -> tuple[StructuredOutput, int, int]:
+        del instructions, context, output_model, max_output_tokens
+        raise AgentAnalysisError(f"orchestrator unavailable: {self._reason}")
 
     async def analyze(
         self,

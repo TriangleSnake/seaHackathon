@@ -57,10 +57,11 @@ class AgentScoreAggregator:
             configured_total = sum(configured_weights.values())
             covered_weight = sum(item.configured_weight for item in contributions)
             aggregate = AgentScoreAggregate(
-                weighted_score=sum(
-                    item.weighted_contribution for item in contributions
-                )
-                / total_effective_weight,
+                weighted_score=round(
+                    sum(item.weighted_contribution for item in contributions)
+                    / total_effective_weight,
+                    12,
+                ),
                 confidence=sum(
                     item.configured_weight * item.confidence
                     for item in contributions
@@ -91,4 +92,7 @@ def combine_agent_scores(results: Iterable[SpecialistAgentResult]) -> float | No
     total_weight = sum(weight for _, weight in weighted)
     if total_weight == 0:
         return None
-    return sum(score * weight for score, weight in weighted) / total_weight
+    return round(
+        sum(score * weight for score, weight in weighted) / total_weight,
+        12,
+    )

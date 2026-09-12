@@ -35,4 +35,4 @@ def verdict_for(score: float, config: ScoreboardConfig, has_findings: bool) -> V
 def confidence_for(score: float, has_findings: bool) -> float:
     if not has_findings:
         return 0.0
-    return min(1.0, abs(score - 0.5) * 2)
+    return round(min(1.0, abs(score - 0.5) * 2), 12)

@@ -14,7 +14,7 @@ from fastapi import FastAPI, Request
 
 from app.api.readiness import GatewayReadinessProbe
 from app.api.routes import router
-from app.agents import ChatAgent, MarketplaceInfoAgent, OrderAgent
+from app.agents import ChatAgent, MarketplaceInfoAgent, OrchestratorAgent, OrderAgent
 from app.core.orchestrator import InvestigationOrchestrator
 from app.gateways.mcp import MCPGatewayClient
 from app.gateways.openai import OpenAIAnalyzer, UnavailableAnalyzer
@@ -63,10 +63,14 @@ def create_app(
                 ChatAgent(owned_analyzer, prompts / "chat.md"),
                 MarketplaceInfoAgent(owned_analyzer, prompts / "marketplace_info.md"),
             ]
+            orchestrator_agent = OrchestratorAgent(
+                owned_analyzer, prompts / "orchestrator.md"
+            )
             application.state.orchestrator = InvestigationOrchestrator(
                 owned_gateway,
                 FilePolicyRepository(resolved_settings.policy_path),
                 agents,
+                orchestrator_agent=orchestrator_agent,
             )
         yield
         await application.state.readiness_probe.close()

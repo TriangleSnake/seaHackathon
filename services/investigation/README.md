@@ -2,33 +2,41 @@
 
 The Investigation service implements the evidence-first multi-agent block in the
 project architecture. It accepts the shared `InvestigationRequest`, retrieves
-read-only facts through Agent Gateway, dynamically selects specialist agents, applies
-deterministic scoring and stop rules, and returns the shared `InvestigationResult`.
+read-only facts through Agent Gateway, uses an LLM Orchestrator to plan specialist
+work and synthesize the final report, applies deterministic scoring and safety
+limits, and returns the shared `InvestigationResult`.
 
 ## Runtime flow
 
 1. Validate the shared request and resolve its immutable scoreboard reference.
 2. Preserve Detection evidence in an evidence ledger.
 3. Discover the current MCP tool schemas from Agent Gateway.
-4. Build a case-type queue from subject affinity, evidence/trigger relevance, and the
-   configured System agent priority; the highest routing score runs first.
-5. Give each selected specialist only its role-scoped tool allowlist and remaining
+4. Ask the LLM Orchestrator to choose `order`, `chat`, or `marketplace_info` and
+   provide a concrete investigation focus. It can later continue the same specialist
+   with a new focus, select another specialist, or stop.
+5. Give the selected specialist only its role-scoped tool allowlist and remaining
    budget. The specialist may answer immediately or request one bounded lookup at a
    time through the OpenAI Responses function-calling loop.
 6. Preserve every specialist's raw item scores, reject uncited or unknown score items,
    and calculate an evidence-weighted specialist aggregate in application code.
-7. Combine valid specialist aggregates, validate findings, and evaluate deterministic
-   stopping conditions after each agent.
-8. Return findings, evidence, ordered agent invocations, raw and aggregated specialist
-   results, the System scoreboard state, verdict, confidence, and stop reason.
+7. Return only validated results, aggregate scores, coverage, open questions, and
+   remaining budget to the Orchestrator. Private category weights are never exposed.
+8. Repeat planning until the Orchestrator stops or Python enforces a hard budget.
+9. Calculate the final verdict deterministically, then ask the Orchestrator to
+   synthesize all Sub-agent results into the final Traditional Chinese report.
+10. Return findings, evidence, ordered Orchestrator decisions, raw and aggregated
+    specialist results, the report, System scoreboard, verdict, confidence, and stop
+    reason.
 
 Stop reasons match the shared contract: direct evidence, fraud threshold, legitimate
 counterevidence, exhausted budget, diminishing returns, or insufficient evidence.
 Tool and agent failures degrade independently without allowing unsupported scores.
 
 Environment integration uses the simulation-aware views exposed by the dummy database.
-The orchestrator does not prefetch domain data; each specialist decides whether a
-lookup is necessary. Agent Gateway remains the only execution path.
+The Orchestrator does not receive MCP tools and cannot prefetch domain data; each
+specialist decides whether a lookup is necessary. Agent Gateway remains the only
+tool execution path. A deterministic subject/relevance router is retained only as a
+fallback if the LLM Orchestrator is unavailable.
 
 | Tool group | Order | Chat | Marketplace info |
 | --- | --- | --- | --- |
@@ -50,20 +58,22 @@ evidence IDs for every category it actually investigated. Specialists receive th
 allowed category names but never their deterministic weights. Application code
 normalizes each raw score to 0–1, multiplies the private category weight by confidence,
 and calculates the weighted mean of validated items. Coverage and all weighted
-contributions are returned beside the untouched raw analysis. The orchestrator
-combines specialist scores using confidence × coverage.
+contributions are returned beside the untouched raw analysis. Application code
+combines specialist scores using confidence × coverage; the Orchestrator sees
+aggregate values and coverage but not category weights.
 
 `config/scoreboard.development.json` mirrors the System-owned scoreboard schema,
 including nested budget, stopping rules, agent policies, usage, and per-agent usage.
-The local cost is reported as `0.0` because no pricing policy is available; token,
-tool, agent, and investigation-step budgets are enforced.
+The local cost is reported as `0.0` because no pricing policy is available. Token
+usage is recorded but `max_tokens=0` disables the total-token stopping limit; tool,
+Sub-agent-call, and investigation-step budgets remain enforced.
 
 ## Package boundaries
 
 - `api`: HTTP routes and transport concerns.
 - `domain`: shared-contract mirrors and internal structured models.
-- `core`: orchestration, dynamic routing, budgets, and stop decisions.
-- `agents`: specialist definitions and common interface.
+- `core`: the guarded planning loop, evidence flow, budgets, and stop enforcement.
+- `agents`: the LLM Orchestrator and specialist definitions.
 - `gateways`: MCP and OpenAI adapters.
 - `evidence`: collection, deduplication, and citation validation.
 - `scoring`: deterministic score calculation.
@@ -93,6 +103,7 @@ curl -X POST http://localhost:10002/investigate \
     "detection_result": {
       "detection_id": "detection-demo-1",
       "subject": {"type": "account", "id": "ACC-0001"},
+      "policy_ref": {"type": "detection", "version": "baseline-v1"},
       "detected": true,
       "triggers": [{
         "type": "manual_review",
