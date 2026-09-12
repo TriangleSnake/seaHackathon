@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detection-policy.schema.json",
+  "title": "Detection Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "default_checks", "rule_based", "anomaly", "llm_classifier"],
+  "properties": {
+    "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "default_checks": {
+      "type": "array",
+      "items": {"enum": ["rule_based", "anomaly", "llm_classifier", "ml_classifier"]},
+      "uniqueItems": true
+    },
+    "rule_based": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_report_statuses", "chat_request_phrases", "chat_negations",
+        "risk_domain_suffixes", "sensitive_security_events", "access_window_minutes",
+        "reused_image_min_products", "delivery_claim_terms"
+      ],
+      "properties": {
+        "active_report_statuses": {"type": "array", "items": {"type": "string"}},
+        "chat_request_phrases": {"type": "array", "items": {"type": "string"}},
+        "chat_negations": {"type": "array", "items": {"type": "string"}},
+        "risk_domain_suffixes": {"type": "array", "items": {"type": "string"}},
+        "sensitive_security_events": {"type": "array", "items": {"type": "string"}},
+        "access_window_minutes": {"type": "integer", "exclusiveMinimum": 0},
+        "reused_image_min_products": {"type": "integer", "minimum": 2},
+        "delivery_claim_terms": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "anomaly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payment_instruments_per_hour", "login_countries_per_day",
+        "login_devices_per_day", "messages_per_hour", "listings_per_hour",
+        "disputes_per_week"
+      ],
+      "properties": {
+        "payment_instruments_per_hour": {"type": "integer", "minimum": 2},
+        "login_countries_per_day": {"type": "integer", "minimum": 2},
+        "login_devices_per_day": {"type": "integer", "minimum": 2},
+        "messages_per_hour": {"type": "integer", "exclusiveMinimum": 0},
+        "listings_per_hour": {"type": "integer", "exclusiveMinimum": 0},
+        "disputes_per_week": {"type": "integer", "exclusiveMinimum": 0}
+      }
+    },
+    "llm_classifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confidence_threshold"],
+      "properties": {
+        "confidence_threshold": {"type": "number", "minimum": 0.5, "maximum": 1}
+      }
+    }
+  }
+}

@@ -46,6 +46,12 @@
             ]
           },
           "uniqueItems": true
+        },
+        "policy_ref": {
+          "allOf": [
+            {"$ref": "common.schema.json#/$defs/PolicyRef"},
+            {"properties": {"type": {"const": "detection"}}}
+          ]
         }
       }
     },
