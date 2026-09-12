@@ -15,6 +15,7 @@ from app.domain.models import (
     InvestigationResult,
     ReadinessResponse,
 )
+from app.policies.repository import PolicyNotFoundError
 
 
 router = APIRouter()
@@ -55,6 +56,7 @@ async def ready(
 @router.post(
     "/investigate",
     response_model=InvestigationResult,
+    responses={422: {"model": ErrorResponse}},
     tags=["investigation"],
 )
 async def investigate(
@@ -62,25 +64,23 @@ async def investigate(
     request: Request,
     response: Response,
     x_request_id: Annotated[Optional[str], Header()] = None,
-) -> InvestigationResult:
-    del request, x_request_id
-    response.headers["X-Investigation-Placeholder"] = "true"
-    return InvestigationResult(
-        case_id=payload.case_id,
-        subject=payload.detection_result.subject,
-        verdict="unknown",
-        confidence=0,
-        summary=(
-            "Placeholder response: the Investigation API contract is available, "
-            "but no agents or scoring rules have run."
-        ),
-        findings=[],
-        evidence=payload.detection_result.evidence + payload.existing_evidence,
-        agents_invoked=[],
-        scoreboard={
-            "placeholder": True,
-            "status": "not_started",
-            "config_ref": payload.scoreboard_config_ref.model_dump(),
-        },
-        stop_reason="insufficient_evidence",
-    )
+) -> Union[InvestigationResult, JSONResponse]:
+    del response
+    request_id = x_request_id or request.state.request_id
+    try:
+        return await request.app.state.orchestrator.investigate(
+            payload,
+            request_id,
+            request.headers.get("traceparent"),
+        )
+    except PolicyNotFoundError as exc:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "scoreboard_config_not_found",
+                    "message": str(exc),
+                    "request_id": request_id,
+                }
+            },
+        )

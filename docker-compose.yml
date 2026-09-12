@@ -75,13 +75,14 @@ services:
       AGENTGATEWAY_TIMEOUT_SECONDS: ${AGENTGATEWAY_TIMEOUT_SECONDS:-5}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.4-mini}
+      OPENAI_TIMEOUT_SECONDS: ${OPENAI_TIMEOUT_SECONDS:-30}
+      INVESTIGATION_POLICY_PATH: ${INVESTIGATION_POLICY_PATH:-config/scoreboard.development.json}
     depends_on:
       - agentgateway
     ports:
       - "${INVESTIGATION_PORT:-10002}:8000"
     networks:
       - fraud-intelligence-network
-
   patrol:
     build:
       context: ./services/patrol

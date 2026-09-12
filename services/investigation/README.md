@@ -1,54 +1,122 @@
 # Investigation service
 
-This directory owns the fraud investigation multi-agent service.
+The Investigation service implements the evidence-first multi-agent block in the
+project architecture. It accepts the shared `InvestigationRequest`, retrieves
+read-only facts through Agent Gateway, dynamically selects specialist agents, applies
+deterministic scoring and stop rules, and returns the shared `InvestigationResult`.
 
-The service will accept the shared `InvestigationRequest`, gather evidence through
-the MCP agent gateway, coordinate specialized agents, and return the shared
-`InvestigationResult`. Business behavior is intentionally added one reviewed
-feature at a time.
+## Runtime flow
+
+1. Validate the shared request and resolve its immutable scoreboard reference.
+2. Preserve Detection evidence in an evidence ledger.
+3. Discover the current MCP tool schemas from Agent Gateway.
+4. Build a case-type queue from subject affinity, evidence/trigger relevance, and the
+   configured System agent priority; the highest routing score runs first.
+5. Give each selected specialist only its role-scoped tool allowlist and remaining
+   budget. The specialist may answer immediately or request one bounded lookup at a
+   time through the OpenAI Responses function-calling loop.
+6. Preserve every specialist's raw item scores, reject uncited or unknown score items,
+   and calculate an evidence-weighted specialist aggregate in application code.
+7. Combine valid specialist aggregates, validate findings, and evaluate deterministic
+   stopping conditions after each agent.
+8. Return findings, evidence, ordered agent invocations, raw and aggregated specialist
+   results, the System scoreboard state, verdict, confidence, and stop reason.
+
+Stop reasons match the shared contract: direct evidence, fraud threshold, legitimate
+counterevidence, exhausted budget, diminishing returns, or insufficient evidence.
+Tool and agent failures degrade independently without allowing unsupported scores.
+
+Environment integration uses the simulation-aware views exposed by the dummy database.
+The orchestrator does not prefetch domain data; each specialist decides whether a
+lookup is necessary. Agent Gateway remains the only execution path.
+
+| Tool group | Order | Chat | Marketplace info |
+| --- | --- | --- | --- |
+| Canonical records/replay | `get_evidence_records`, `get_environment_overview` | same | same |
+| Account and graph | account activity/security, shared IP/device, entity neighbors, previous cases | same | account activity, shared IP/device, entity neighbors, previous cases |
+| Commerce | commerce links, shared payment instruments | — | commerce links, shared payment instruments |
+| Conversation/indicator | — | conversation accounts, exact indicator accounts/prevalence | — |
+| Marketplace/association | — | — | association seeds, reused product images |
+
+`database_health` is reserved for readiness checks. `search_accounts` is intentionally
+not exposed to specialists because an investigation starts from known subjects and
+should not perform an unbounded population scan.
+
+Static records are also bounded by `simulation_state.simulation_time`, so an
+investigation cannot observe a future event from the seeded scenario.
+
+Each specialist returns a 0–1 fraud-risk score plus confidence and evidence IDs for
+every category it actually investigated. The deterministic category weight is
+multiplied by confidence; the specialist score is the weighted mean of the validated
+items. Coverage and all weighted contributions are returned beside the untouched raw
+analysis. The orchestrator combines specialist scores using confidence × coverage.
+
+`config/scoreboard.development.json` mirrors the System-owned scoreboard schema,
+including nested budget, stopping rules, agent policies, usage, and per-agent usage.
+The local cost is reported as `0.0` because no pricing policy is available; token,
+tool, agent, and investigation-step budgets are enforced.
 
 ## Package boundaries
 
 - `api`: HTTP routes and transport concerns.
-- `domain`: request, response, and internal domain models.
-- `core`: multi-agent orchestration.
-- `agents`: specialized investigation agents and their shared contract.
+- `domain`: shared-contract mirrors and internal structured models.
+- `core`: orchestration, dynamic routing, budgets, and stop decisions.
+- `agents`: specialist definitions and common interface.
 - `gateways`: MCP and OpenAI adapters.
-- `evidence`: evidence collection, validation, and deduplication.
+- `evidence`: collection, deduplication, and citation validation.
 - `scoring`: deterministic score calculation.
 - `policies`: immutable scoreboard configuration resolution.
-- `prompts`: version-controlled system prompts.
+- `prompts`: version-controlled, injection-resistant specialist instructions.
 - `config`: local development configuration only.
-- `tests`: unit and contract tests using fake external clients.
+- `tests`: unit and API tests using fake external clients (no API usage).
 
-The externally published port is `10002` by default; the container listens on
-`8000`.
+## API
 
-## Current API
+- `GET /health`: process liveness.
+- `GET /ready`: Agent Gateway and PostgreSQL readiness via `database_health`.
+- `POST /investigate`: execute an investigation.
+- `/docs` and `/openapi.json`: generated FastAPI/OpenAPI documentation.
 
-- `GET /health` reports process liveness.
-- `GET /ready` checks Agent Gateway and PostgreSQL through `database_health`.
-- `POST /investigate` validates the shared request contract and returns a schema-
-  compatible placeholder until the orchestrator is implemented. Placeholder
-  responses have `X-Investigation-Placeholder: true`, `verdict: unknown`, and do
-  not represent an actual fraud decision.
+Containers should use `INVESTIGATION_URL=http://investigation:8000`; host code should
+use `INVESTIGATION_URL=http://localhost:10002`.
 
-Other containers in this Compose project should use:
-
-```text
-INVESTIGATION_URL=http://investigation:8000
-```
-
-Code running directly on the host should use:
-
-```text
-INVESTIGATION_URL=http://localhost:10002
-```
-
-The investigation operation is therefore `POST ${INVESTIGATION_URL}/investigate`.
-
-Run the service with the rest of the local stack:
+Example request:
 
 ```bash
+curl -X POST http://localhost:10002/investigate \
+  -H 'Content-Type: application/json' \
+  -H 'X-Request-ID: demo-investigation-1' \
+  -d '{
+    "case_id": "case-demo-1",
+    "detection_result": {
+      "detection_id": "detection-demo-1",
+      "subject": {"type": "account", "id": "ACC-0001"},
+      "detected": true,
+      "triggers": [{
+        "type": "manual_review",
+        "detector": "rule_based",
+        "reason": "Review recent account activity",
+        "evidence_refs": ["LOG-0001"]
+      }],
+      "evidence": [{
+        "id": "LOG-0001",
+        "source": "detection",
+        "type": "login_event",
+        "data": {"device_id": "DEV-0001"}
+      }]
+    },
+    "scoreboard_config_ref": {"version": "development-v1"}
+  }'
+```
+
+## Development
+
+```bash
+python -m pytest -q
 docker compose up -d --build investigation
 ```
+
+`OPENAI_API_KEY` is read only from the untracked root `.env`. The Responses request
+uses `store=false`, disables parallel tool calls, and preserves the full response
+output plus each `function_call_output` between stateless turns. Tests never send
+network requests or consume model quota.
