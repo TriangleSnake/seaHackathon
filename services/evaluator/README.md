@@ -56,7 +56,7 @@ policy version and only these fields:
   "requested_checks": ["rule_based", "anomaly"],
   "policy_ref": {"type": "detection", "version": "baseline-v1"},
   "trigger_context": {
-    "source": "evaluation",
+    "source": "api",
     "reason": "baseline_candidate_comparison"
   }
 }
@@ -68,13 +68,9 @@ must return the requested subject, and must include an
 `X-Detection-Policy-Version` header exactly matching the requested version. This
 header is required for clean (`detected=false`) results too. HTTP, policy lookup,
 transport, timeout, malformed response, subject mismatch, and policy trace failures
-raise execution errors rather than becoming clean decisions.
-
-The evaluator wire contract uses `trigger_context.source` value `evaluation`, which
-the shared Detection request schema and current Detection API do not yet accept;
-they currently allow only `patrol`, `manual`, `scheduled`, or `api`. Until that
-upstream contract is updated, a live call using this payload will fail with HTTP
-422. The evaluator does not silently substitute a different source value.
+raise execution errors rather than becoming clean decisions. Evaluator-originated
+calls use trigger source `api`; the reason retains the evaluation-specific baseline
+and candidate comparison semantics.
 
 Evaluator metric tests still use the clearly named `FixtureRuleDetectionRunner` so
 they remain deterministic and do not require a live Detection service. HTTP runner

@@ -77,7 +77,7 @@ class HttpDetectionRunnerTests(unittest.TestCase):
                             "version": "baseline-v1",
                         },
                         "trigger_context": {
-                            "source": "evaluation",
+                            "source": "api",
                             "reason": "baseline_candidate_comparison",
                         },
                     },
@@ -323,6 +323,13 @@ class HttpDetectionRunnerTests(unittest.TestCase):
             set(payload),
             {"subject", "requested_checks", "policy_ref", "trigger_context"},
         )
+        self.assertEqual(
+            payload["trigger_context"],
+            {
+                "source": "api",
+                "reason": "baseline_candidate_comparison",
+            },
+        )
         serialized = json.dumps(payload)
         for private_key in (
             "case_id",
@@ -357,7 +364,7 @@ class HttpDetectionRunnerTests(unittest.TestCase):
             "requested_checks": ["rule_based"],
             "policy_ref": {"type": "detection", "version": "baseline-v1"},
             "trigger_context": {
-                "source": "evaluation",
+                "source": "api",
                 "reason": "baseline_candidate_comparison",
             },
         }

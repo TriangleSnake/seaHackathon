@@ -173,7 +173,7 @@ class HttpDetectionRunner:
             "requested_checks": list(self._requested_checks),
             "policy_ref": {"type": "detection", "version": policy_ref},
             "trigger_context": {
-                "source": "evaluation",
+                "source": "api",
                 "reason": "baseline_candidate_comparison",
             },
         }
