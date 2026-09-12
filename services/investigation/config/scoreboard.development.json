@@ -1,3 +1,45 @@
 {
-  "configs": {}
+  "aliases": {
+    "default": "development-v1",
+    "hackathon-v1": "development-v1"
+  },
+  "configs": {
+    "development-v1": {
+      "config_id": "investigation-development",
+      "version": "development-v1",
+      "status": "active",
+      "scoring_policy_version": "specialist-weighted-v1",
+      "fraud_threshold": 0.8,
+      "normal_threshold": 0.2,
+      "budget": {
+        "max_agent_calls": 3,
+        "max_tool_calls": 8,
+        "max_investigation_steps": 12,
+        "max_tokens": 12000,
+        "max_cost_usd": 1.0
+      },
+      "stopping_rules": [
+        {
+          "rule_id": "direct_evidence",
+          "enabled": true,
+          "priority": 10,
+          "parameters": {"minimum_confidence": 0.95}
+        },
+        {
+          "rule_id": "diminishing_returns",
+          "enabled": true,
+          "priority": 20,
+          "parameters": {"minimum_score_delta": 0.02, "rounds": 2}
+        }
+      ],
+      "agents": [
+        {"agent_id": "order", "enabled": true, "priority": 10, "cost_weight": 1.0},
+        {"agent_id": "chat", "enabled": true, "priority": 20, "cost_weight": 1.0},
+        {"agent_id": "marketplace_info", "enabled": true, "priority": 30, "cost_weight": 1.0}
+      ],
+      "created_at": "2026-09-12T00:00:00Z",
+      "created_by": "investigation-team",
+      "note": "Local development mirror of the System-owned scoreboard contract."
+    }
+  }
 }
