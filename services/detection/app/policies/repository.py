@@ -44,3 +44,32 @@ class FilePolicyRepository:
                 f"{version!r}"
             )
         return document
+
+
+class LayeredFilePolicyRepository:
+    """Resolve immutable policies across non-overlapping read-only directories."""
+
+    def __init__(self, policy_dirs: tuple[str | Path, ...] | list[str | Path]) -> None:
+        if not policy_dirs:
+            raise ValueError("At least one policy directory is required")
+        self._repositories = tuple(FilePolicyRepository(path) for path in policy_dirs)
+        self._cache: dict[str, DetectionPolicy] = {}
+
+    def resolve(self, version: str) -> DetectionPolicy:
+        if version in self._cache:
+            return self._cache[version]
+        matches: list[dict[str, Any]] = []
+        for repository in self._repositories:
+            try:
+                matches.append(repository.read_document(version))
+            except PolicyNotFoundError:
+                continue
+        if not matches:
+            raise PolicyNotFoundError(version)
+        if len(matches) != 1:
+            raise ValueError(
+                f"Policy version {version!r} exists in multiple policy directories"
+            )
+        policy = DetectionPolicy.model_validate(matches[0])
+        self._cache[version] = policy
+        return policy

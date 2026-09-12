@@ -273,6 +273,13 @@ class EvolutionOrchestrator:
         *,
         feedback: RevisionFeedback | None,
     ) -> EvolutionExecution:
+        self._states.transition(
+            run,
+            RunState.RESOLVING,
+            "Resolving capability for policy proposal",
+            proposal_id=proposal.proposal_id,
+            iteration=run.iteration,
+        )
         try:
             base = self._versions.read_base(context.current_defense_version)
         except LookupError:
@@ -333,13 +340,6 @@ class EvolutionOrchestrator:
         current_attempt = run.attempts[-1]
         run.attempts[-1] = replace(current_attempt, proposal=proposal)
 
-        self._states.transition(
-            run,
-            RunState.RESOLVING,
-            "Resolving capability for policy proposal",
-            proposal_id=proposal.proposal_id,
-            iteration=run.iteration,
-        )
         directive = self._resolver.resolve(proposal)
         if directive.kind is CapabilityKind.UNSUPPORTED:
             self._states.transition(run, RunState.ABORTED, directive.reason)

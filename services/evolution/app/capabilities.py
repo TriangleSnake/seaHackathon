@@ -57,6 +57,18 @@ class DetectionPolicyCapabilityAdapter:
                 reason="Only chat request phrase-list mutations are currently configurable",
                 base_policy_version=proposal.base_policy_version,
             )
+        if any(signal != "message.text" for signal in proposal.required_signals):
+            return ImplementationDirective(
+                directive_id=f"code:{proposal.proposal_id}",
+                kind=CapabilityKind.CODE,
+                target_policy=proposal.target_policy,
+                summary="Detection behavior requires signals outside phrase CONFIG",
+                reason=(
+                    "Role-aware, account-aware, compound, or other multi-signal "
+                    "behavior requires the deferred CODE path"
+                ),
+                base_policy_version=proposal.base_policy_version,
+            )
         return ImplementationDirective(
             directive_id=f"config:{proposal.proposal_id}",
             kind=CapabilityKind.CONFIG,

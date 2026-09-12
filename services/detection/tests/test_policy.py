@@ -5,7 +5,11 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from app.policies.repository import FilePolicyRepository, PolicyNotFoundError
+from app.policies.repository import (
+    FilePolicyRepository,
+    LayeredFilePolicyRepository,
+    PolicyNotFoundError,
+)
 
 
 def test_file_policy_repository_loads_versioned_config(tmp_path) -> None:
@@ -61,3 +65,37 @@ def test_bundled_baseline_and_candidate_are_valid_and_immutable() -> None:
     assert candidate.anomaly.listings_per_hour == 4
     with pytest.raises(ValidationError):
         candidate.version = "mutated"
+
+
+def test_layered_repository_reads_baseline_and_runtime_candidate(tmp_path) -> None:
+    baseline_dir = tmp_path / "baseline"
+    candidate_dir = tmp_path / "candidate"
+    baseline_dir.mkdir()
+    candidate_dir.mkdir()
+    baseline = json.loads(
+        open("config/policies/baseline-v1.json", encoding="utf-8").read()
+    )
+    candidate = dict(baseline)
+    candidate["version"] = "DP-CAND-001"
+    (baseline_dir / "baseline-v1.json").write_text(json.dumps(baseline))
+    (candidate_dir / "DP-CAND-001.json").write_text(json.dumps(candidate))
+
+    repository = LayeredFilePolicyRepository((baseline_dir, candidate_dir))
+
+    assert repository.resolve("baseline-v1").version == "baseline-v1"
+    assert repository.resolve("DP-CAND-001").version == "DP-CAND-001"
+
+
+def test_layered_repository_rejects_duplicate_policy_versions(tmp_path) -> None:
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    baseline = json.loads(
+        open("config/policies/baseline-v1.json", encoding="utf-8").read()
+    )
+    for root in (first, second):
+        (root / "baseline-v1.json").write_text(json.dumps(baseline))
+
+    with pytest.raises(ValueError, match="multiple policy directories"):
+        LayeredFilePolicyRepository((first, second)).resolve("baseline-v1")

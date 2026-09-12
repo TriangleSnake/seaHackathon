@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 
 from app.api.routes import router
 from app.gateways.openai import OpenAIMessageClassifier
-from app.policies.repository import FilePolicyRepository
+from app.policies.repository import FilePolicyRepository, LayeredFilePolicyRepository
 from app.repository import PostgresDetectionRepository
 from app.service import DetectionService
 from app.settings import Settings
@@ -43,10 +43,17 @@ def create_app(
     )
     application.state.settings = resolved_settings
     application.state.repository = resolved_repository
+    policy_repository = (
+        LayeredFilePolicyRepository(
+            (resolved_settings.policy_dir, resolved_settings.candidate_policy_dir)
+        )
+        if resolved_settings.candidate_policy_dir
+        else FilePolicyRepository(resolved_settings.policy_dir)
+    )
     application.state.detection_service = DetectionService(
         resolved_repository,
         resolved_classifier,
-        policy_repository=FilePolicyRepository(resolved_settings.policy_dir),
+        policy_repository=policy_repository,
         default_policy_version=resolved_settings.default_policy_version,
     )
 

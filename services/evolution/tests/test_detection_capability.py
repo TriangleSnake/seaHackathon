@@ -99,6 +99,20 @@ class DetectionPolicyCapabilityAdapterTests(unittest.TestCase):
         self.assertIs(directive.kind, CapabilityKind.CODE)
         self.assertIn("Only chat request phrase-list", directive.reason)
 
+    def test_role_aware_conjunctive_request_resolves_to_code(self) -> None:
+        candidate_proposal = proposal(add_phrase())
+        candidate_proposal = PolicyChangeProposal(
+            **{
+                **candidate_proposal.__dict__,
+                "required_signals": ("message.text", "sender.account_role"),
+            }
+        )
+
+        directive = self.adapter.resolve(candidate_proposal)
+
+        self.assertIs(directive.kind, CapabilityKind.CODE)
+        self.assertIn("Role-aware", directive.reason)
+
     def test_missing_baseline_and_wrong_policy_are_unsupported(self) -> None:
         missing = self.adapter.resolve(proposal(add_phrase(), base_policy_version=None))
         wrong_policy = self.adapter.resolve(

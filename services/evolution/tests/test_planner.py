@@ -19,6 +19,7 @@ from app.planner import (
     PlannerBackendError,
     PlannerConfigurationError,
     PlannerResponseError,
+    detection_config_capability_summary,
 )
 
 
@@ -212,6 +213,36 @@ class OpenAIEvolutionPlannerTests(unittest.TestCase):
 
         self.assertEqual(seen_versions, ["DV-001", "DV-001"])
         self.assertIn("existing wording", client.responses.calls[1]["input"])
+
+    def test_default_capability_advertises_only_real_config_builder_surface(self) -> None:
+        summary = detection_config_capability_summary()["detection"]
+
+        self.assertEqual(
+            [field["path"] for field in summary["configurable_fields"]],
+            ["rule_based.chat_request_phrases"],
+        )
+        self.assertEqual(
+            summary["configurable_fields"][0]["operations"],
+            ["append_unique", "remove"],
+        )
+        self.assertFalse(
+            summary["config_builder_scope"]["supports_role_or_account_conditions"]
+        )
+
+    def test_planner_can_route_role_aware_behavior_to_code_without_config_intent(self) -> None:
+        output = proposal_output()
+        output["requested_behavior"] = (
+            "Match only when the sender has a privileged account role and text matches."
+        )
+        output["required_signals"] = ["message.text", "sender.account_role"]
+        output["mutation_intent"] = None
+        planner = OpenAIEvolutionPlanner(FakeClient([output]), "test-model")
+
+        proposal = planner.propose(
+            EvolutionRun("run-role", "fixture"), self.context, _diagnosis()
+        )
+
+        self.assertIsNone(proposal.mutation_intent)
 
     def test_revision_contains_only_aggregate_feedback_and_prior_proposals(
         self,
