@@ -33,6 +33,9 @@ class Settings:
     worker_poll_seconds: int = _integer("SYSTEM_WORKER_POLL_SECONDS", 2, 1, 60)
     remote_poll_seconds: int = _integer("SYSTEM_REMOTE_POLL_SECONDS", 5, 1, 300)
     request_timeout_seconds: int = _integer("SYSTEM_REQUEST_TIMEOUT_SECONDS", 30, 1, 300)
+    investigation_timeout_seconds: int = _integer(
+        "SYSTEM_INVESTIGATION_TIMEOUT_SECONDS", 180, 1, 600
+    )
     max_concurrency: int = _integer("SYSTEM_MAX_CONCURRENCY", 4, 1, 32)
 
 

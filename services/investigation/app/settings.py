@@ -13,7 +13,7 @@ class Settings:
     gateway_timeout_seconds: float
     openai_api_key: str = ""
     openai_model: str = "gpt-5.4-mini"
-    openai_timeout_seconds: float = 30
+    openai_timeout_seconds: float = 90
     policy_path: str = "config/scoreboard.development.json"
 
     @classmethod
@@ -31,7 +31,7 @@ class Settings:
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
             openai_model=os.environ.get("OPENAI_MODEL", "gpt-5.4-mini"),
             openai_timeout_seconds=float(
-                os.environ.get("OPENAI_TIMEOUT_SECONDS", "30")
+                os.environ.get("OPENAI_TIMEOUT_SECONDS", "90")
             ),
             policy_path=os.environ.get(
                 "INVESTIGATION_POLICY_PATH", "config/scoreboard.development.json"

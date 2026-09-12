@@ -76,7 +76,7 @@ async def run_investigation(job: dict[str, Any]) -> dict[str, Any]:
             )
         },
     }
-    async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
+    async with httpx.AsyncClient(timeout=settings.investigation_timeout_seconds) as client:
         response = await client.post(f"{settings.investigation_url}/investigate", json=payload, headers=_runtime_headers(job))
         response.raise_for_status()
         return response.json()
