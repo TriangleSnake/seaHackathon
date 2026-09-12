@@ -42,17 +42,17 @@ async def get_patrol_overview(lookback_hours: int = 24) -> dict[str, Any]:
         """
         SELECT
           (SELECT COUNT(*) FROM accounts
-           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS new_account_count,
-          (SELECT COUNT(*) FROM login_events
-           WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')) AS login_count,
-          (SELECT COUNT(DISTINCT ip_address) FROM login_events
-           WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')) AS distinct_ip_count,
+           WHERE created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS new_account_count,
+          (SELECT COUNT(*) FROM visible_login_events
+           WHERE occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS login_count,
+          (SELECT COUNT(DISTINCT ip_address) FROM visible_login_events
+           WHERE occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS distinct_ip_count,
           (SELECT COUNT(*) FROM products
-           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS product_count,
-          (SELECT COUNT(*) FROM messages
-           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS message_count,
-          (SELECT COUNT(*) FROM report_records
-           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS report_count,
+           WHERE created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS product_count,
+          (SELECT COUNT(*) FROM visible_messages
+           WHERE created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS message_count,
+          (SELECT COUNT(*) FROM visible_report_records
+           WHERE created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')) AS report_count,
           (SELECT COUNT(*) FROM cases
            WHERE status IN ('pending', 'investigating', 'manual_review')) AS open_case_count
         """,
@@ -82,8 +82,8 @@ async def find_high_density_ips(
                ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs,
                MIN(occurred_at) AS first_seen_at,
                MAX(occurred_at) AS last_seen_at
-        FROM login_events
-        WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')
+        FROM visible_login_events
+        WHERE occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')
         GROUP BY ip_address
         HAVING COUNT(DISTINCT account_id) >= %s
         ORDER BY account_count DESC, last_seen_at DESC
@@ -121,13 +121,13 @@ async def find_new_account_bursts(
                  ARRAY_REMOVE(ARRAY_AGG(DISTINCT p.id), NULL) ||
                  ARRAY_REMOVE(ARRAY_AGG(DISTINCT m.id), NULL) AS evidence_refs
           FROM accounts a
-          LEFT JOIN login_events l ON l.account_id = a.id
-            AND l.occurred_at >= NOW() - (%s * INTERVAL '1 hour')
+          LEFT JOIN visible_login_events l ON l.account_id = a.id
+            AND l.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')
           LEFT JOIN products p ON p.seller_account_id = a.id
-            AND p.created_at >= NOW() - (%s * INTERVAL '1 hour')
-          LEFT JOIN messages m ON m.sender_account_id = a.id
-            AND m.created_at >= NOW() - (%s * INTERVAL '1 hour')
-          WHERE a.created_at >= NOW() - (%s * INTERVAL '1 day')
+            AND p.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')
+          LEFT JOIN visible_messages m ON m.sender_account_id = a.id
+            AND m.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 hour')
+          WHERE a.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
           GROUP BY a.id
         )
         SELECT *, (login_count + product_count + message_count) AS total_event_count
@@ -183,7 +183,7 @@ async def sample_accounts(
         """
         SELECT id, created_at, status, activity_score, kyc_status, bot_check_score, attributes
         FROM accounts
-        WHERE created_at >= NOW() - (%s * INTERVAL '1 day')
+        WHERE created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
           AND (%s::text IS NULL OR status = %s)
         ORDER BY RANDOM()
         LIMIT %s
@@ -207,11 +207,11 @@ async def get_account_activity(account_id: str, limit_per_type: int = 20) -> dic
 
     logins = await fetch_all(
         "SELECT id, ip_address::text AS ip_address, device_id, occurred_at, attributes "
-        "FROM login_events WHERE account_id = %s ORDER BY occurred_at DESC LIMIT %s",
+        "FROM visible_login_events WHERE account_id = %s ORDER BY occurred_at DESC LIMIT %s",
         (account_id, limit),
     )
     reports = await fetch_all(
-        "SELECT id, type, reason, status, created_at, attributes FROM report_records "
+        "SELECT id, type, reason, status, created_at, attributes FROM visible_report_records "
         "WHERE target_account_id = %s ORDER BY created_at DESC LIMIT %s",
         (account_id, limit),
     )
@@ -228,7 +228,7 @@ async def get_account_activity(account_id: str, limit_per_type: int = 20) -> dic
     )
     messages = await fetch_all(
         "SELECT id, conversation_id, sender_account_id, recipient_account_id, text, image_urls, "
-        "urls, created_at, attributes FROM messages WHERE sender_account_id = %s OR "
+        "urls, created_at, attributes FROM visible_messages WHERE sender_account_id = %s OR "
         "recipient_account_id = %s ORDER BY created_at DESC LIMIT %s",
         (account_id, account_id, limit),
     )
@@ -257,12 +257,12 @@ async def find_shared_ip_accounts(
                ARRAY_AGG(DISTINCT peer.id) AS evidence_refs,
                MAX(peer.occurred_at) AS last_seen_at,
                COUNT(*) AS occurrence_count
-        FROM login_events subject
-        JOIN login_events peer ON peer.ip_address = subject.ip_address
+        FROM visible_login_events subject
+        JOIN visible_login_events peer ON peer.ip_address = subject.ip_address
         WHERE subject.account_id = %s
           AND peer.account_id <> %s
-          AND subject.occurred_at >= NOW() - (%s * INTERVAL '1 day')
-          AND peer.occurred_at >= NOW() - (%s * INTERVAL '1 day')
+          AND subject.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+          AND peer.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
         GROUP BY subject.ip_address, peer.account_id
         ORDER BY last_seen_at DESC
         LIMIT %s
@@ -286,13 +286,13 @@ async def find_shared_device_accounts(
                ARRAY_AGG(DISTINCT peer.id) AS evidence_refs,
                MAX(peer.occurred_at) AS last_seen_at,
                COUNT(*) AS occurrence_count
-        FROM login_events subject
-        JOIN login_events peer ON peer.device_id = subject.device_id
+        FROM visible_login_events subject
+        JOIN visible_login_events peer ON peer.device_id = subject.device_id
         WHERE subject.account_id = %s
           AND peer.account_id <> %s
           AND subject.device_id IS NOT NULL
-          AND subject.occurred_at >= NOW() - (%s * INTERVAL '1 day')
-          AND peer.occurred_at >= NOW() - (%s * INTERVAL '1 day')
+          AND subject.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+          AND peer.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
         GROUP BY subject.device_id, peer.account_id
         ORDER BY last_seen_at DESC
         LIMIT %s
@@ -324,16 +324,16 @@ async def get_subject_association_seeds(
                    COUNT(*) AS occurrence_count, MIN(occurred_at) AS first_seen_at,
                    MAX(occurred_at) AS last_seen_at,
                    ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
-            FROM login_events
-            WHERE account_id = %s AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+            FROM visible_login_events
+            WHERE account_id = %s AND occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY ip_address
             UNION ALL
             SELECT 'device', device_id, 'device:' || device_id,
                    COUNT(*), MIN(occurred_at), MAX(occurred_at),
                    ARRAY_AGG(DISTINCT id ORDER BY id)
-            FROM login_events
+            FROM visible_login_events
             WHERE account_id = %s AND device_id IS NOT NULL
-              AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+              AND occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY device_id
             ORDER BY last_seen_at DESC
             LIMIT %s
@@ -354,7 +354,7 @@ async def get_subject_association_seeds(
                    ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
             FROM transactions
             WHERE (buyer_account_id = %s OR seller_account_id = %s)
-              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+              AND created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
             """,
             (subject_id, subject_id, subject_id, days, limit),
@@ -409,8 +409,8 @@ async def _find_accounts_by_indicator(
             SELECT account_id, COUNT(*) AS occurrence_count,
                    MIN(occurred_at) AS first_seen_at, MAX(occurred_at) AS last_seen_at,
                    ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
-            FROM login_events WHERE {predicate}
-              AND occurred_at >= NOW() - (%s * INTERVAL '1 day')
+            FROM visible_login_events WHERE {predicate}
+              AND occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY account_id ORDER BY occurrence_count DESC LIMIT %s
             """,
             (indicator_value, days, bounded),
@@ -447,8 +447,8 @@ async def _find_accounts_by_indicator(
             SELECT sender_account_id AS account_id, COUNT(*) AS occurrence_count,
                    MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at,
                    ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
-            FROM messages WHERE urls ? %s
-              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+            FROM visible_messages WHERE urls ? %s
+              AND created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY sender_account_id ORDER BY occurrence_count DESC LIMIT %s
             """,
             (indicator_value, days, bounded),
@@ -459,9 +459,9 @@ async def _find_accounts_by_indicator(
             SELECT sender_account_id AS account_id, COUNT(*) AS occurrence_count,
                    MIN(created_at) AS first_seen_at, MAX(created_at) AS last_seen_at,
                    ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs
-            FROM messages, LATERAL jsonb_array_elements_text(urls) AS url(value)
+            FROM visible_messages, LATERAL jsonb_array_elements_text(urls) AS url(value)
             WHERE lower(split_part(regexp_replace(value, '^https?://', '', 'i'), '/', 1)) = lower(%s)
-              AND created_at >= NOW() - (%s * INTERVAL '1 day')
+              AND created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
             GROUP BY sender_account_id ORDER BY occurrence_count DESC LIMIT %s
             """,
             (indicator_value, days, bounded),
@@ -556,6 +556,208 @@ async def expand_association_graph(
 
 
 @mcp.tool()
+async def get_environment_overview() -> dict[str, Any]:
+    """Return simulation time and bounded marketplace table counts from Environment."""
+    state = await fetch_one(
+        "SELECT simulation_time, initial_time, scenario_name, updated_at "
+        "FROM simulation_state WHERE singleton_id = 1"
+    )
+    counts = await fetch_one(
+        """
+        SELECT
+          (SELECT COUNT(*) FROM accounts) AS accounts,
+          (SELECT COUNT(*) FROM shops) AS shops,
+          (SELECT COUNT(*) FROM products) AS products,
+          (SELECT COUNT(*) FROM transactions) AS transactions,
+          (SELECT COUNT(*) FROM visible_messages) AS messages,
+          (SELECT COUNT(*) FROM visible_payment_attempts) AS payment_attempts,
+          (SELECT COUNT(*) FROM visible_refunds) AS refunds,
+          (SELECT COUNT(*) FROM visible_disputes) AS disputes
+        """
+    )
+    return {"simulation": state, "counts": counts or {}}
+
+
+@mcp.tool()
+async def find_shared_payment_instrument_accounts(
+    account_id: str,
+    lookback_days: int = 90,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Find accounts using the same hashed payment instrument as a seed account."""
+    days = max(1, min(lookback_days, 365))
+    rows = await fetch_all(
+        """
+        SELECT seed.payment_instrument_hash, peer.payer_account_id AS account_id,
+               COUNT(*) AS occurrence_count,
+               MIN(peer.occurred_at) AS first_seen_at,
+               MAX(peer.occurred_at) AS last_seen_at,
+               ARRAY_AGG(DISTINCT peer.id ORDER BY peer.id) AS evidence_refs
+        FROM visible_payment_attempts seed
+        JOIN visible_payment_attempts peer
+          ON peer.payment_instrument_hash = seed.payment_instrument_hash
+        WHERE seed.payer_account_id = %s
+          AND peer.payer_account_id <> %s
+          AND seed.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+          AND peer.occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        GROUP BY seed.payment_instrument_hash, peer.payer_account_id
+        ORDER BY occurrence_count DESC, last_seen_at DESC LIMIT %s
+        """,
+        (account_id, account_id, days, days, bounded_limit(limit)),
+    )
+    return {"subject_account_id": account_id, "matches": rows, "count": len(rows)}
+
+
+@mcp.tool()
+async def find_reused_product_image_accounts(
+    account_id: str,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Find other sellers whose products reuse an exact image hash from the seed seller."""
+    rows = await fetch_all(
+        """
+        SELECT seed_image.image_hash, peer_product.seller_account_id AS account_id,
+               ARRAY_AGG(DISTINCT peer_image.id ORDER BY peer_image.id) AS evidence_refs,
+               ARRAY_AGG(DISTINCT peer_product.id ORDER BY peer_product.id) AS product_ids,
+               MIN(peer_image.created_at) AS first_seen_at,
+               MAX(peer_image.created_at) AS last_seen_at
+        FROM products seed_product
+        JOIN product_images seed_image ON seed_image.product_id = seed_product.id
+        JOIN product_images peer_image ON peer_image.image_hash = seed_image.image_hash
+        JOIN products peer_product ON peer_product.id = peer_image.product_id
+        WHERE seed_product.seller_account_id = %s
+          AND peer_product.seller_account_id <> %s
+          AND seed_image.created_at <= (SELECT simulation_time FROM simulation_state)
+          AND peer_image.created_at <= (SELECT simulation_time FROM simulation_state)
+        GROUP BY seed_image.image_hash, peer_product.seller_account_id
+        ORDER BY last_seen_at DESC LIMIT %s
+        """,
+        (account_id, account_id, bounded_limit(limit)),
+    )
+    return {"subject_account_id": account_id, "matches": rows, "count": len(rows)}
+
+
+@mcp.tool()
+async def get_account_commerce_links(
+    account_id: str,
+    lookback_days: int = 90,
+    limit_per_type: int = 50,
+) -> dict[str, Any]:
+    """Return evidence-bearing transaction, refund, dispute, and review links for an account."""
+    days = max(1, min(lookback_days, 365))
+    limit = bounded_limit(limit_per_type)
+    transactions = await fetch_all(
+        """
+        SELECT id, buyer_account_id, seller_account_id, product_id, amount, currency,
+               status, created_at, attributes
+        FROM transactions
+        WHERE (buyer_account_id = %s OR seller_account_id = %s)
+          AND created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        ORDER BY created_at DESC LIMIT %s
+        """,
+        (account_id, account_id, days, limit),
+    )
+    refunds = await fetch_all(
+        """
+        SELECT r.id, r.transaction_id, r.requester_account_id, r.reason, r.amount,
+               r.status, r.requested_at, t.buyer_account_id, t.seller_account_id
+        FROM visible_refunds r JOIN transactions t ON t.id = r.transaction_id
+        WHERE (r.requester_account_id = %s OR t.seller_account_id = %s)
+          AND r.requested_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        ORDER BY r.requested_at DESC LIMIT %s
+        """,
+        (account_id, account_id, days, limit),
+    )
+    disputes = await fetch_all(
+        """
+        SELECT d.id, d.transaction_id, d.opened_by_account_id, d.reason, d.status,
+               d.created_at, t.buyer_account_id, t.seller_account_id
+        FROM visible_disputes d JOIN transactions t ON t.id = d.transaction_id
+        WHERE (d.opened_by_account_id = %s OR t.seller_account_id = %s)
+          AND d.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        ORDER BY d.created_at DESC LIMIT %s
+        """,
+        (account_id, account_id, days, limit),
+    )
+    reviews = await fetch_all(
+        """
+        SELECT r.id, r.product_id, r.transaction_id, r.reviewer_account_id,
+               r.rating, r.created_at, p.seller_account_id
+        FROM reviews r JOIN products p ON p.id = r.product_id
+        WHERE (r.reviewer_account_id = %s OR p.seller_account_id = %s)
+          AND r.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        ORDER BY r.created_at DESC LIMIT %s
+        """,
+        (account_id, account_id, days, limit),
+    )
+    return {
+        "account_id": account_id,
+        "lookback_days": days,
+        "transactions": transactions,
+        "refunds": refunds,
+        "disputes": disputes,
+        "reviews": reviews,
+    }
+
+
+@mcp.tool()
+async def find_conversation_accounts(
+    account_id: str,
+    lookback_days: int = 90,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Find accounts sharing conversations with the seed and return message evidence IDs."""
+    days = max(1, min(lookback_days, 365))
+    rows = await fetch_all(
+        """
+        SELECT peer.account_id, peer.participant_role,
+               COUNT(DISTINCT peer.conversation_id) AS conversation_count,
+               ARRAY_REMOVE(ARRAY_AGG(DISTINCT m.id ORDER BY m.id), NULL) AS evidence_refs,
+               MIN(m.created_at) AS first_seen_at, MAX(m.created_at) AS last_seen_at
+        FROM conversation_participants seed
+        JOIN conversation_participants peer
+          ON peer.conversation_id = seed.conversation_id AND peer.account_id <> seed.account_id
+        LEFT JOIN visible_messages m ON m.conversation_id = seed.conversation_id
+          AND m.created_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day')
+        WHERE seed.account_id = %s
+        GROUP BY peer.account_id, peer.participant_role
+        ORDER BY conversation_count DESC, last_seen_at DESC LIMIT %s
+        """,
+        (days, account_id, bounded_limit(limit)),
+    )
+    return {"subject_account_id": account_id, "matches": rows, "count": len(rows)}
+
+
+@mcp.tool()
+async def get_account_security_timeline(
+    account_id: str,
+    lookback_days: int = 90,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Return login and account-security events useful for takeover and coordination analysis."""
+    days = max(1, min(lookback_days, 365))
+    bounded = bounded_limit(limit)
+    security_events = await fetch_all(
+        "SELECT id, event_type, occurred_at, attributes FROM visible_account_security_events "
+        "WHERE account_id = %s AND occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day') "
+        "ORDER BY occurred_at DESC LIMIT %s",
+        (account_id, days, bounded),
+    )
+    status_events = await fetch_all(
+        "SELECT id, status, reason, occurred_at FROM visible_account_status_events "
+        "WHERE account_id = %s AND occurred_at >= (SELECT simulation_time FROM simulation_state) - (%s * INTERVAL '1 day') "
+        "ORDER BY occurred_at DESC LIMIT %s",
+        (account_id, days, bounded),
+    )
+    return {
+        "account_id": account_id,
+        "lookback_days": days,
+        "security_events": security_events,
+        "status_events": status_events,
+    }
+
+
+@mcp.tool()
 async def get_entity_neighbors(entity_id: str, limit: int = 50) -> dict[str, Any]:
     """Return one-hop association graph nodes and evidence-bearing edges for an entity."""
     nodes = await fetch_all(
@@ -613,13 +815,13 @@ async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
                                   'ip_address', ip_address::text,
                                   'device_id', device_id,
                                   'attributes', attributes) AS data
-        FROM login_events WHERE id = ANY(%s)
+        FROM visible_login_events WHERE id = ANY(%s)
         UNION ALL
         SELECT id, 'environment', type, target_account_id, created_at,
                jsonb_build_object('target_account_id', target_account_id,
                                   'reason', reason, 'status', status,
                                   'attributes', attributes)
-        FROM report_records WHERE id = ANY(%s)
+        FROM visible_report_records WHERE id = ANY(%s)
         UNION ALL
         SELECT id, 'investigation', 'previous_case', subject_id, created_at,
                jsonb_build_object('case_id', id, 'source', source,
@@ -646,14 +848,46 @@ async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
                                   'sender_account_id', sender_account_id,
                                   'recipient_account_id', recipient_account_id,
                                   'urls', urls, 'attributes', attributes)
-        FROM messages WHERE id = ANY(%s)
+        FROM visible_messages WHERE id = ANY(%s)
         UNION ALL
         SELECT id, 'environment', 'shop', owner_account_id, NULL,
                jsonb_build_object('owner_account_id', owner_account_id,
                                   'name', name, 'status', status, 'attributes', attributes)
         FROM shops WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'payment_attempt', payer_account_id, occurred_at,
+               jsonb_build_object('transaction_id', transaction_id,
+                                  'payer_account_id', payer_account_id,
+                                  'payment_method', payment_method,
+                                  'payment_instrument_hash', payment_instrument_hash,
+                                  'status', status, 'failure_code', failure_code,
+                                  'device_id', device_id, 'ip_address', ip_address::text)
+        FROM visible_payment_attempts WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'product_image', product_id, created_at,
+               jsonb_build_object('product_id', product_id, 'image_url', image_url,
+                                  'image_hash', image_hash)
+        FROM product_images WHERE id = ANY(%s)
+          AND created_at <= (SELECT simulation_time FROM simulation_state)
+        UNION ALL
+        SELECT id, 'environment', 'refund', requester_account_id, requested_at,
+               jsonb_build_object('transaction_id', transaction_id,
+                                  'requester_account_id', requester_account_id,
+                                  'reason', reason, 'amount', amount, 'status', status)
+        FROM visible_refunds WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'dispute', opened_by_account_id, created_at,
+               jsonb_build_object('transaction_id', transaction_id,
+                                  'opened_by_account_id', opened_by_account_id,
+                                  'reason', reason, 'status', status)
+        FROM visible_disputes WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', 'account_security_event', account_id, occurred_at,
+               jsonb_build_object('account_id', account_id, 'event_type', event_type,
+                                  'attributes', attributes)
+        FROM visible_account_security_events WHERE id = ANY(%s)
         """,
-        (ids, ids, ids, ids, ids, ids, ids),
+        (ids, ids, ids, ids, ids, ids, ids, ids, ids, ids, ids, ids),
     )
     found_ids = {row["id"] for row in rows}
     return {
