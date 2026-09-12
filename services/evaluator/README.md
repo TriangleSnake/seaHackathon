@@ -42,12 +42,43 @@ The final adapter is where compatibility with today's detection-oriented shared
 
 `DetectionPolicyEvaluator` receives a `DetectionRunner` capability. Its runner sees
 only immutable, label-free `DetectionInput`; ground truth remains inside the
-evaluator. The included `ContractDetectionRunner` adapts the existing shared
-`DetectionRequest`/`DetectionResult` shape to this capability without adding a
-second detection engine.
+evaluator. `HttpDetectionRunner` executes the requested policy version through the
+Detection service's `POST /detect` endpoint. Configure `DETECTION_URL` and optional
+`DETECTION_TIMEOUT_SECONDS`; neither host nor port is embedded in the adapter.
 
-The repository has no Detection runtime yet. Tests therefore use the clearly named
-`FixtureRuleDetectionRunner`, not production detection logic.
+Requested checks are fixed when the runner is constructed, so baseline and
+candidate runs use identical checks. Each request includes the exact resolved
+policy version and only these fields:
+
+```json
+{
+  "subject": {"type": "account", "id": "ACC-0001"},
+  "requested_checks": ["rule_based", "anomaly"],
+  "policy_ref": {"type": "detection", "version": "baseline-v1"},
+  "trigger_context": {
+    "source": "evaluation",
+    "reason": "baseline_candidate_comparison"
+  }
+}
+```
+
+Case facts, labels, expected outcomes, dataset phase metadata, and gates never cross
+this boundary. Successful responses must be valid shared `DetectionResult` objects,
+must return the requested subject, and must include an
+`X-Detection-Policy-Version` header exactly matching the requested version. This
+header is required for clean (`detected=false`) results too. HTTP, policy lookup,
+transport, timeout, malformed response, subject mismatch, and policy trace failures
+raise execution errors rather than becoming clean decisions.
+
+The evaluator wire contract uses `trigger_context.source` value `evaluation`, which
+the shared Detection request schema and current Detection API do not yet accept;
+they currently allow only `patrol`, `manual`, `scheduled`, or `api`. Until that
+upstream contract is updated, a live call using this payload will fail with HTTP
+422. The evaluator does not silently substitute a different source value.
+
+Evaluator metric tests still use the clearly named `FixtureRuleDetectionRunner` so
+they remain deterministic and do not require a live Detection service. HTTP runner
+tests inject a mock transport.
 
 The evaluator calculates:
 
