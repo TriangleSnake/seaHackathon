@@ -67,7 +67,7 @@ async def handoff_to_investigation(result: PatrolResult) -> None:
     if not result.discoveries:
         return
     base_url = os.environ.get("INVESTIGATION_URL", "http://investigation:8000").rstrip("/")
-    timeout = float(os.environ.get("INVESTIGATION_TIMEOUT_SECONDS", "10"))
+    timeout = float(os.environ.get("INVESTIGATION_TIMEOUT_SECONDS", "180"))
     max_attempts = max(1, min(int(os.environ.get("INVESTIGATION_MAX_ATTEMPTS", "3")), 10))
     async with httpx.AsyncClient(timeout=timeout) as client:
         for attempt in range(max_attempts):
