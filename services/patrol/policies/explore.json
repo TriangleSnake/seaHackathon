@@ -1,0 +1,35 @@
+{
+  "policy_id": "patrol-explore",
+  "version": "0.1.0",
+  "strategy": "explore",
+  "objective": "Discover evidence-backed anomalies and hypotheses that are not adequately covered by approved fraud patterns.",
+  "allowed_tools": [
+    "get_patrol_overview",
+    "sample_accounts",
+    "search_accounts",
+    "get_account_activity",
+    "find_high_density_ips",
+    "find_new_account_bursts",
+    "find_shared_ip_accounts",
+    "find_shared_device_accounts",
+    "get_entity_neighbors",
+    "get_previous_cases",
+    "get_evidence_records"
+  ],
+  "exploration_guidance": [
+    "Start with a bounded random sample instead of only top-risk subjects.",
+    "Generate falsifiable hypotheses, test them, and actively seek counterexamples.",
+    "Vary populations and time windows across runs to improve discovery coverage."
+  ],
+  "evidence_requirements": {
+    "minimum_evidence_refs": 1,
+    "prefer_independent_signals": 2,
+    "skip_duplicate_open_cases": true
+  },
+  "budget": { "max_turns": 16, "max_discoveries": 3 },
+  "stopping_conditions": [
+    "No sampled anomaly supports an evidence-backed lead.",
+    "The maximum turn budget is reached.",
+    "The maximum discovery count is reached."
+  ]
+}
