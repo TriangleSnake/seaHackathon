@@ -15,6 +15,7 @@ from app.domain import (
     ImplementationDirective,
     PolicyChangeProposal,
     PolicyReference,
+    RevisionFeedback,
 )
 from app.repositories import InMemoryVersionRepository
 
@@ -25,6 +26,7 @@ class FakeEvolutionPlanner:
     def __init__(self, diagnosis: DiagnosisResult) -> None:
         self.diagnosis = diagnosis
         self.proposal_calls = 0
+        self.feedback_calls: list[RevisionFeedback | None] = []
 
     def diagnose(self, context: EvolutionContext) -> DiagnosisResult:
         return self.diagnosis
@@ -34,17 +36,23 @@ class FakeEvolutionPlanner:
         run: EvolutionRun,
         context: EvolutionContext,
         diagnosis: DiagnosisResult,
+        feedback: RevisionFeedback | None = None,
     ) -> PolicyChangeProposal:
         self.proposal_calls += 1
+        self.feedback_calls.append(feedback)
         gap = diagnosis.primary_gap
         if gap is None:
             raise ValueError("Fake planner cannot propose without a primary gap")
         return PolicyChangeProposal(
-            proposal_id=f"proposal-{run.run_id}",
+            proposal_id=f"proposal-{run.run_id}-{self.proposal_calls}",
             target_policy=gap.policy_type,
             base_defense_version=context.current_defense_version,
             objective=f"Address: {gap.symptom}",
-            requested_behavior="Apply the requested test behavior",
+            requested_behavior=(
+                "Revise the requested test behavior from aggregate evaluation feedback"
+                if feedback is not None
+                else "Apply the requested test behavior"
+            ),
             required_signals=("account.activity_score",),
             expected_impact="Improve detection coverage",
             known_risks=("False positives",),
@@ -140,4 +148,4 @@ class FakeCandidateVersionFactory:
         candidate_policy: CandidatePolicy,
         candidate_id: str,
     ) -> str:
-        return f"test-candidate-for-{base.version}"
+        return f"test-candidate-{run.iteration}-for-{candidate_id}"

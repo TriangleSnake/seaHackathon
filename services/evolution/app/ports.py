@@ -14,6 +14,7 @@ from .domain import (
     FormalPolicyVersion,
     PolicyChangeProposal,
     PolicyType,
+    RevisionFeedback,
 )
 
 
@@ -27,6 +28,7 @@ class EvolutionPlanner(Protocol):
         run: EvolutionRun,
         context: EvolutionContext,
         diagnosis: DiagnosisResult,
+        feedback: RevisionFeedback | None = None,
     ) -> PolicyChangeProposal: ...
 
 
