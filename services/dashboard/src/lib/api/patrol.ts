@@ -43,4 +43,34 @@ export const patrolRuns: PatrolRun[] = [
 export const patrolApi = {
   async listRuns(): Promise<PatrolRun[]> { return structuredClone(patrolRuns); },
   async getRun(id: string): Promise<PatrolRun | undefined> { return structuredClone(patrolRuns.find((run) => run.id === id)); },
+  async listLiveJobs(): Promise<PatrolJobState[]> { return liveJson<PatrolJobState[]>("patrol/jobs?limit=50"); },
+  async getLiveJob(id: string): Promise<PatrolJobState> { return liveJson<PatrolJobState>(`patrol/jobs/${encodeURIComponent(id)}`); },
 };
+
+async function liveJson<T>(path: string): Promise<T> {
+  const response = await fetch(`/api/patrol/${path}`, { cache: "no-store" });
+  const body = await response.json().catch(() => ({})) as T & { detail?: string; error?: { message?: string } };
+  if (!response.ok) throw new Error(body.error?.message ?? body.detail ?? `Patrol API failed (${response.status})`);
+  return body;
+}
+
+export interface PatrolEvidence { id: string; source: string; type: string; ref_id?: string | null; observed_at?: string | null; data: Record<string, unknown> }
+export interface PatrolJobState {
+  job_id: string;
+  status: "queued" | "running" | "completed" | "failed";
+  run_id: string;
+  strategy: "exploit" | "explore";
+  policy_ref: { id: string; version: string };
+  created_at: string;
+  updated_at: string;
+  result: null | {
+    run_id: string;
+    strategy: "exploit" | "explore";
+    policy_ref: { id: string; version: string };
+    discoveries: Array<{ subject: { type: string; id: string }; hypothesis: string; reason: string; observed_signals: Array<{ name: string; description: string; evidence_refs: string[] }>; counter_signals: string[]; priority: number; evidence_refs: string[] }>;
+    evidence: PatrolEvidence[];
+  };
+  error: string | null;
+  handoff_status: "pending" | "not_required" | "delivered" | "failed";
+  handoff_attempts: number;
+}

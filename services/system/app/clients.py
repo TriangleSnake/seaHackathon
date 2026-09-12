@@ -7,6 +7,16 @@ import httpx
 from .settings import settings
 
 
+def _runtime_headers(job: dict[str, Any]) -> dict[str, str]:
+    runtime = job.get("payload", {}).get("_runtime", {})
+    headers = {}
+    if runtime.get("model"):
+        headers["X-Agent-Model"] = runtime["model"]
+    if runtime.get("reasoning_effort"):
+        headers["X-Agent-Reasoning-Effort"] = runtime["reasoning_effort"]
+    return headers
+
+
 async def run_detection(job: dict[str, Any]) -> dict[str, Any]:
     payload = {
         "subject": job["subject"],
@@ -19,7 +29,7 @@ async def run_detection(job: dict[str, Any]) -> dict[str, Any]:
     if requested_checks:
         payload["requested_checks"] = requested_checks
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
-        response = await client.post(f"{settings.detection_url}/detect", json=payload)
+        response = await client.post(f"{settings.detection_url}/detect", json=payload, headers=_runtime_headers(job))
         response.raise_for_status()
         return response.json()
 
@@ -32,7 +42,7 @@ async def start_patrol(job: dict[str, Any]) -> dict[str, Any]:
         "scope": job["payload"].get("scope", {"subject_types": []}),
     }
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
-        response = await client.post(f"{settings.patrol_url}/patrol/jobs", json=payload)
+        response = await client.post(f"{settings.patrol_url}/patrol/jobs", json=payload, headers=_runtime_headers(job))
         response.raise_for_status()
         return response.json()
 
@@ -59,7 +69,7 @@ async def run_investigation(job: dict[str, Any]) -> dict[str, Any]:
         },
     }
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
-        response = await client.post(f"{settings.investigation_url}/investigate", json=payload)
+        response = await client.post(f"{settings.investigation_url}/investigate", json=payload, headers=_runtime_headers(job))
         response.raise_for_status()
         return response.json()
 
@@ -73,7 +83,7 @@ async def start_association(job: dict[str, Any]) -> dict[str, Any]:
     }
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
         response = await client.post(
-            f"{settings.association_url}/association/jobs", json=payload
+            f"{settings.association_url}/association/jobs", json=payload, headers=_runtime_headers(job)
         )
         response.raise_for_status()
         return response.json()

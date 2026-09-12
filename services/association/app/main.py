@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from typing import Any, Literal
 
-from fastapi import Body, FastAPI, HTTPException, status
+from fastapi import Body, FastAPI, HTTPException, Request, status
 
 from .agent import run_association
 from .jobs import job_manager
@@ -17,6 +17,7 @@ from .models import (
 )
 from .policy import load_active_policy
 from .prompt import ASSOCIATION_PROMPT_VERSION
+from .runtime import model_override, reasoning_override
 from .storage import initialize_storage
 from .policy_store import activate, initialize_policy_storage, list_policies, publish, save_draft
 
@@ -33,6 +34,17 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Association Service", version="0.2.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def runtime_model_middleware(request: Request, call_next):
+    token = model_override.set(request.headers.get("X-Agent-Model"))
+    reasoning_token = reasoning_override.set(request.headers.get("X-Agent-Reasoning-Effort"))
+    try:
+        return await call_next(request)
+    finally:
+        model_override.reset(token)
+        reasoning_override.reset(reasoning_token)
 
 
 @app.get("/health")

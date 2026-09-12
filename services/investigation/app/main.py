@@ -19,6 +19,7 @@ from app.core.orchestrator import InvestigationOrchestrator
 from app.gateways.mcp import MCPGatewayClient
 from app.gateways.openai import OpenAIAnalyzer, UnavailableAnalyzer
 from app.policies.repository import FilePolicyRepository
+from app.runtime import model_override, reasoning_override
 from app.settings import Settings
 
 
@@ -87,6 +88,8 @@ def create_app(
 
     @application.middleware("http")
     async def request_id_middleware(request: Request, call_next):
+        token = model_override.set(request.headers.get("X-Agent-Model"))
+        reasoning_token = reasoning_override.set(request.headers.get("X-Agent-Reasoning-Effort"))
         request_id = request.headers.get("X-Request-ID") or str(uuid4())
         request.state.request_id = request_id
         started = perf_counter()
@@ -104,6 +107,9 @@ def create_app(
                 )
             )
             raise
+        finally:
+            model_override.reset(token)
+            reasoning_override.reset(reasoning_token)
         response.headers["X-Request-ID"] = request_id
         logger.info(
             json.dumps(

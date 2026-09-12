@@ -3,7 +3,8 @@ import unittest
 
 from pydantic import ValidationError
 
-from app.models import SystemSchedule
+from app.models import AgentModelConfig, SystemSchedule
+from app.clients import _runtime_headers
 from app.routing import choose_patrol_strategy, event_idempotency_key
 
 
@@ -33,6 +34,29 @@ class ControlPlaneTests(unittest.TestCase):
             event_idempotency_key("p", "v1", "message:1", "message", "1", at, 0),
             event_idempotency_key("p", "v1", "message:2", "message", "2", at, 0),
         )
+
+    def test_agent_model_config_rejects_unknown_component(self) -> None:
+        with self.assertRaises(ValidationError):
+            AgentModelConfig(
+                component="unknown",
+                model="gpt-5-mini",
+                allowed_models=["gpt-5-mini"],
+            )
+
+    def test_runtime_headers_are_scoped_to_dispatched_job(self) -> None:
+        self.assertEqual(
+            _runtime_headers({"payload": {"_runtime": {
+                "model": "gpt-5-mini", "reasoning_effort": "medium"
+            }}}),
+            {
+                "X-Agent-Model": "gpt-5-mini",
+                "X-Agent-Reasoning-Effort": "medium",
+            },
+        )
+
+    def test_agent_model_config_enforces_server_allowlist(self) -> None:
+        with self.assertRaises(ValidationError):
+            AgentModelConfig(component="patrol", model="untrusted-model")
 
 
 if __name__ == "__main__":

@@ -204,8 +204,14 @@ services:
       DASHBOARD_DATA_MODE: live
       DASHBOARD_SYSTEM_URL: ${DASHBOARD_SYSTEM_URL:-http://system:10005}
       DASHBOARD_DETECTION_URL: ${DASHBOARD_DETECTION_URL:-http://detection:8000}
+      DASHBOARD_PATROL_URL: ${DASHBOARD_PATROL_URL:-http://patrol:10003}
+      DASHBOARD_ASSOCIATION_URL: ${DASHBOARD_ASSOCIATION_URL:-http://association:10004}
     depends_on:
       system:
+        condition: service_started
+      patrol:
+        condition: service_started
+      association:
         condition: service_started
     ports:
       - "${DASHBOARD_PORT:-3001}:3000"

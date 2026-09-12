@@ -5,6 +5,16 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+AgentComponent = Literal["detection", "investigation", "patrol", "association", "codex-builder"]
+ReasoningEffort = Literal["none", "minimal", "low", "medium", "high", "xhigh"]
+ALLOWED_MODELS = {
+    "detection": ["gpt-4.1-mini", "gpt-5-mini", "gpt-5.4-mini"],
+    "investigation": ["gpt-5-mini", "gpt-5.4-mini", "gpt-5.4"],
+    "patrol": ["gpt-5-mini", "gpt-5.4-mini", "gpt-5.4"],
+    "association": ["gpt-5-mini", "gpt-5.4-mini", "gpt-5.4"],
+    "codex-builder": ["gpt-5.4-mini", "gpt-5.4"],
+}
+
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -69,6 +79,24 @@ class ManualJobRequest(StrictModel):
     payload: dict[str, Any] = Field(default_factory=dict)
     idempotency_key: str | None = None
     max_attempts: int = Field(default=3, ge=1, le=10)
+
+
+class AgentModelConfig(StrictModel):
+    component: AgentComponent
+    provider: Literal["openai"] = "openai"
+    model: str = Field(min_length=1, max_length=100)
+    reasoning_effort: ReasoningEffort = "medium"
+    enabled: bool = True
+    allowed_models: list[str] = Field(default_factory=list)
+    updated_at: datetime | None = None
+
+    @model_validator(mode="after")
+    def validate_model_allowlist(self) -> "AgentModelConfig":
+        allowed = ALLOWED_MODELS[self.component]
+        if self.model not in allowed:
+            raise ValueError(f"model is not allowed for {self.component}")
+        self.allowed_models = allowed
+        return self
 
 
 class JobState(StrictModel):

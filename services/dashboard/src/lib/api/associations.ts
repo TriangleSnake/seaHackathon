@@ -27,4 +27,36 @@ export const associationsApi = {
   async getGraph(): Promise<AssociationGraphResponse> {
     return structuredClone(associationGraph);
   },
+  async listLiveJobs(): Promise<AssociationJobState[]> { return liveJson<AssociationJobState[]>("association/jobs?limit=50"); },
+  async getLiveJob(id: string): Promise<AssociationJobState> { return liveJson<AssociationJobState>(`association/jobs/${encodeURIComponent(id)}`); },
 };
+
+async function liveJson<T>(path: string): Promise<T> {
+  const response = await fetch(`/api/association/${path}`, { cache: "no-store" });
+  const body = await response.json().catch(() => ({})) as T & { detail?: string; error?: { message?: string } };
+  if (!response.ok) throw new Error(body.error?.message ?? body.detail ?? `Association API failed (${response.status})`);
+  return body;
+}
+
+export interface AssociationJobState {
+  job_id: string;
+  status: "queued" | "running" | "completed" | "failed";
+  case_id: string;
+  strategy: "focused" | "discovery";
+  policy_ref: { id: string; version: string };
+  created_at: string;
+  updated_at: string;
+  result: null | {
+    case_id: string;
+    strategy: "focused" | "discovery";
+    policy_ref: { id: string; version: string };
+    nodes: Array<{ id: string; type: string; label?: string | null; attributes: Record<string, unknown> }>;
+    edges: Array<{ source: string; target: string; type: string; relationship: "observed" | "inferred"; value?: string | null; confidence: number; occurrence_count?: number | null; first_seen_at?: string | null; last_seen_at?: string | null; evidence_refs: string[] }>;
+    related_subjects: Array<{ subject: { type: string; id: string }; association_score: number; reason: string; relation_paths: Array<{ nodes: string[]; edge_types: string[]; evidence_refs: string[] }>; evidence_refs: string[] }>;
+    evidence: Array<{ id: string; source: string; type: string; ref_id?: string | null; observed_at?: string | null; data: Record<string, unknown> }>;
+  };
+  error: string | null;
+  callback_status: "not_configured" | "pending" | "delivered" | "failed";
+  callback_attempts: number;
+  callback_error: string | null;
+}

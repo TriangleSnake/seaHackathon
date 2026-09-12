@@ -587,3 +587,21 @@ CREATE TABLE system_event_cursors (
     source TEXT PRIMARY KEY, occurred_at TIMESTAMPTZ NOT NULL,
     event_id TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE system_agent_models (
+    component TEXT PRIMARY KEY CHECK (component IN ('detection','investigation','patrol','association','codex-builder')),
+    provider TEXT NOT NULL DEFAULT 'openai' CHECK (provider = 'openai'),
+    model TEXT NOT NULL,
+    reasoning_effort TEXT NOT NULL DEFAULT 'medium'
+      CHECK (reasoning_effort IN ('none','minimal','low','medium','high','xhigh')),
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    allowed_models JSONB NOT NULL DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO system_agent_models(component,model,reasoning_effort,allowed_models) VALUES
+    ('detection','gpt-4.1-mini','none','["gpt-4.1-mini","gpt-5-mini","gpt-5.4-mini"]'),
+    ('investigation','gpt-5.4-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'),
+    ('patrol','gpt-5-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'),
+    ('association','gpt-5-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'),
+    ('codex-builder','gpt-5.4','high','["gpt-5.4-mini","gpt-5.4"]');
