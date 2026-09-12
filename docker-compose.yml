@@ -61,6 +61,60 @@ services:
       - agentgateway
     ports:
       - "${INVESTIGATION_PORT:-10002}:8000"
+    networks:
+      - fraud-intelligence-network
+
+  patrol:
+    build:
+      context: ./services/patrol
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      PATROL_MAX_CONCURRENCY: ${PATROL_MAX_CONCURRENCY:-2}
+      PATROL_SCHEDULER_POLL_SECONDS: ${PATROL_SCHEDULER_POLL_SECONDS:-15}
+      INVESTIGATION_URL: ${INVESTIGATION_URL:-http://investigation:8000}
+      INVESTIGATION_TIMEOUT_SECONDS: ${INVESTIGATION_TIMEOUT_SECONDS:-10}
+      INVESTIGATION_MAX_ATTEMPTS: ${INVESTIGATION_MAX_ATTEMPTS:-3}
+      SCOREBOARD_CONFIG_VERSION: ${SCOREBOARD_CONFIG_VERSION:-development-v1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agentgateway:
+        condition: service_started
+      investigation:
+        condition: service_started
+    ports:
+      - "${PATROL_PORT:-10003}:10003"
+    volumes:
+      - ./services/patrol/policies:/app/policies:ro
+    networks:
+      - fraud-intelligence-network
+
+  association:
+    build:
+      context: ./services/association
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      ASSOCIATION_MAX_CONCURRENCY: ${ASSOCIATION_MAX_CONCURRENCY:-2}
+      ASSOCIATION_RESULT_URL: ${ASSOCIATION_RESULT_URL:-}
+      ASSOCIATION_CALLBACK_TIMEOUT_SECONDS: ${ASSOCIATION_CALLBACK_TIMEOUT_SECONDS:-10}
+      ASSOCIATION_CALLBACK_MAX_ATTEMPTS: ${ASSOCIATION_CALLBACK_MAX_ATTEMPTS:-3}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agentgateway:
+        condition: service_started
+    ports:
+      - "${ASSOCIATION_PORT:-10004}:10004"
+    volumes:
+      - ./services/association/policies:/app/policies:ro
+    networks:
+      - fraud-intelligence-network
 
 volumes:
   postgres-data:

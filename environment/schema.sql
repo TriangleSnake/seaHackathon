@@ -494,3 +494,42 @@ SELECT r.*
   FROM report_records r
  CROSS JOIN simulation_state s
  WHERE s.singleton_id = 1 AND r.created_at <= s.simulation_time;
+
+-- Runtime control-plane state shared by Patrol, Association, and Dashboard.
+CREATE TABLE agent_jobs (
+    job_id TEXT PRIMARY KEY,
+    agent TEXT NOT NULL CHECK (agent IN ('patrol', 'association')),
+    status TEXT NOT NULL CHECK (status IN ('queued', 'running', 'completed', 'failed')),
+    request JSONB NOT NULL,
+    state JSONB NOT NULL,
+    callback_attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX agent_jobs_agent_updated_idx ON agent_jobs(agent, updated_at DESC);
+
+CREATE TABLE agent_policies (
+    agent TEXT NOT NULL CHECK (agent IN ('patrol', 'association')),
+    strategy TEXT NOT NULL,
+    version TEXT NOT NULL,
+    document JSONB NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT false,
+    source TEXT NOT NULL DEFAULT 'human' CHECK (source IN ('human', 'evolution')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (agent, strategy, version)
+);
+CREATE UNIQUE INDEX agent_policies_one_active_idx
+    ON agent_policies(agent, strategy) WHERE active;
+
+CREATE TABLE patrol_schedules (
+    strategy TEXT PRIMARY KEY CHECK (strategy IN ('exploit', 'explore')),
+    enabled BOOLEAN NOT NULL DEFAULT false,
+    interval_seconds INTEGER NOT NULL CHECK (interval_seconds >= 60),
+    scope JSONB NOT NULL DEFAULT '{"subject_types": []}'::jsonb,
+    next_run_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO patrol_schedules(strategy, enabled, interval_seconds) VALUES
+    ('exploit', false, 900),
+    ('explore', false, 86400);
