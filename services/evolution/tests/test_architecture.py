@@ -90,7 +90,7 @@ def orchestrator(
 ) -> tuple[EvolutionOrchestrator, FakeEvolutionPlanner, FakeCandidateBuilder]:
     planner = FakeEvolutionPlanner(diagnosis)
     builder = FakeCandidateBuilder(
-        succeeds=builder_succeeds, policy_version="detection-v2"
+        succeeds=builder_succeeds, policy_version="DP-CAND-TEST"
     )
     resolver = CapabilityResolver(
         {policy: FakePolicyCapabilityAdapter(capability) for policy in PolicyType}
@@ -236,7 +236,7 @@ class EvolutionArchitectureTests(unittest.TestCase):
         self.assertEqual(candidate["candidate_id"], "candidate-build-1")
         self.assertEqual(candidate["created_at"], "2026-09-12T01:00:00+00:00")
         policies = {item["type"]: item["version"] for item in candidate["policies"]}
-        self.assertEqual(policies["detection"], "detection-v2")
+        self.assertEqual(policies["detection"], "DP-CAND-TEST")
         self.assertEqual(policies["scoring"], "scoring-v1")
         self.assertIsNone(candidate["evaluation_id"])
 

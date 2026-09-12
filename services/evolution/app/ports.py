@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Mapping, Protocol, Any
 
 from .domain import (
@@ -47,6 +48,13 @@ class CandidateBuilder(Protocol):
     ) -> BuildOutcome: ...
 
 
+class ArtifactPublisher(Protocol):
+    @property
+    def root(self) -> Path: ...
+
+    def publish(self, version: str, artifact: Mapping[str, Any]) -> str: ...
+
+
 class DefenseVersionRepository(Protocol):
     def get(self, version: str) -> DefenseVersionSnapshot: ...
 
@@ -72,6 +80,10 @@ class DefenseVersionRepository(Protocol):
 
 
 class CandidatePolicyRegistry(Protocol):
+    def allocate_candidate_policy_version(self, policy_type: PolicyType) -> str: ...
+
+    def has_build(self, build_id: str) -> bool: ...
+
     def register(
         self,
         candidate_result: Mapping[str, Any],

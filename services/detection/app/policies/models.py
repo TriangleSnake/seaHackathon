@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.domain.models import DetectorType
+from ..domain.models import DetectorType
 
 
 class StrictPolicyModel(BaseModel):

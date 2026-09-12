@@ -164,6 +164,110 @@ class VersionLifecycleTests(unittest.TestCase):
 
         self.assertEqual(self.repository.next_defense_version(), "DV-002")
 
+    def test_candidate_policy_allocation_is_deterministic_and_reserved(self) -> None:
+        expected_first = {
+            PolicyType.DETECTION: "DP-CAND-001",
+            PolicyType.SCORING: "SP-CAND-001",
+            PolicyType.EXPLORATION: "EP-CAND-001",
+            PolicyType.INVESTIGATION: "IP-CAND-001",
+            PolicyType.ASSOCIATION: "AP-CAND-001",
+        }
+
+        self.assertEqual(
+            {
+                policy_type: self.registry.allocate_candidate_policy_version(
+                    policy_type
+                )
+                for policy_type in PolicyType
+            },
+            expected_first,
+        )
+        self.assertEqual(
+            self.registry.allocate_candidate_policy_version(PolicyType.DETECTION),
+            "DP-CAND-002",
+        )
+
+    def test_manual_candidate_registration_advances_allocation(self) -> None:
+        policy = CandidatePolicy(
+            target_policy=PolicyType.DETECTION,
+            policy_ref=PolicyReference(PolicyType.DETECTION, "DP-CAND-007"),
+        )
+        self.manager.register_build(
+            candidate_result("candidate-manual"),
+            PolicyType.DETECTION,
+            self.base,
+            policy,
+        )
+
+        self.assertEqual(
+            self.registry.allocate_candidate_policy_version(PolicyType.DETECTION),
+            "DP-CAND-008",
+        )
+
+    def test_candidate_policy_version_cannot_be_registered_twice(self) -> None:
+        version = self.registry.allocate_candidate_policy_version(PolicyType.DETECTION)
+        first = CandidatePolicy(
+            target_policy=PolicyType.DETECTION,
+            policy_ref=PolicyReference(PolicyType.DETECTION, version),
+        )
+        second = CandidatePolicy(
+            target_policy=PolicyType.DETECTION,
+            policy_ref=PolicyReference(PolicyType.DETECTION, version),
+        )
+        self.manager.register_build(
+            candidate_result("candidate-first"),
+            PolicyType.DETECTION,
+            self.base,
+            first,
+        )
+
+        with self.assertRaisesRegex(
+            VersionRepositoryError, "Candidate policy version already registered"
+        ):
+            self.manager.register_build(
+                candidate_result("candidate-second"),
+                PolicyType.DETECTION,
+                self.base,
+                second,
+            )
+
+    def test_candidate_policy_identity_must_use_target_candidate_namespace(
+        self,
+    ) -> None:
+        for invalid_version in ("SP-CAND-001", "SP-002", "candidate-policy"):
+            with self.subTest(invalid_version=invalid_version):
+                policy = CandidatePolicy(
+                    target_policy=PolicyType.DETECTION,
+                    policy_ref=PolicyReference(PolicyType.DETECTION, invalid_version),
+                )
+                with self.assertRaisesRegex(
+                    VersionRepositoryError, "candidate namespace"
+                ):
+                    self.manager.register_build(
+                        candidate_result(f"candidate-{invalid_version}"),
+                        PolicyType.DETECTION,
+                        self.base,
+                        policy,
+                    )
+
+    def test_candidate_policy_allocation_does_not_consume_production_numbers(
+        self,
+    ) -> None:
+        version = self.registry.allocate_candidate_policy_version(PolicyType.DETECTION)
+        self.manager.register_build(
+            candidate_result("candidate-numbering"),
+            PolicyType.DETECTION,
+            self.base,
+            CandidatePolicy(
+                target_policy=PolicyType.DETECTION,
+                policy_ref=PolicyReference(PolicyType.DETECTION, version),
+            ),
+        )
+
+        self.assertEqual(
+            self.repository.next_policy_version(PolicyType.DETECTION), "DP-002"
+        )
+
     def test_failed_evaluation_rejects_candidate_without_consuming_numbers(
         self,
     ) -> None:
