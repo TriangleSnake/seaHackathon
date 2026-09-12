@@ -12,6 +12,21 @@ from .prompt import build_system_prompt
 from .runtime import model_override, reasoning_override
 
 
+def _entity_aliases(subject_type: str, subject_id: str) -> set[str]:
+    """Return the raw API ID and the canonical graph ID for one subject."""
+    prefix = f"{subject_type}:"
+    raw_id = subject_id[len(prefix):] if subject_id.startswith(prefix) else subject_id
+    return {raw_id, f"{prefix}{raw_id}"}
+
+
+def _same_entity(
+    left_type: str, left_id: str, right_type: str, right_id: str
+) -> bool:
+    return left_type == right_type and bool(
+        _entity_aliases(left_type, left_id) & _entity_aliases(right_type, right_id)
+    )
+
+
 def _evidence_values(association: AssociationResult, evidence_refs: list[str], key: str) -> set[str]:
     evidence_by_id = {item.id: item for item in association.evidence}
     return {
@@ -66,7 +81,12 @@ def validate_association_result(
         if not set(edge.evidence_refs).issubset(evidence_ids):
             raise ValueError("Association edge references missing evidence")
     for related in association.related_subjects:
-        if related.subject.type == request.subject.type and related.subject.id == request.subject.id:
+        if _same_entity(
+            related.subject.type,
+            related.subject.id,
+            request.subject.type,
+            request.subject.id,
+        ):
             raise ValueError("Association result cannot relate the case subject to itself")
         if not set(related.evidence_refs).issubset(evidence_ids):
             raise ValueError("Related subject references missing evidence")
@@ -77,9 +97,13 @@ def validate_association_result(
                 raise ValueError("Relation path exceeded policy max_hops")
             if len(path.nodes) != len(set(path.nodes)):
                 raise ValueError("Relation path contains a cycle")
-            if path.nodes[0] != request.subject.id:
+            if path.nodes[0] not in _entity_aliases(
+                request.subject.type, request.subject.id
+            ):
                 raise ValueError("Relation path must start at the case subject")
-            if path.nodes[-1] != related.subject.id:
+            if path.nodes[-1] not in _entity_aliases(
+                related.subject.type, related.subject.id
+            ):
                 raise ValueError("Relation path must end at the related subject")
             if not set(path.nodes).issubset(node_ids):
                 raise ValueError("Relation path references a missing node")

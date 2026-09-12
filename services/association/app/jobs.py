@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -19,6 +20,9 @@ from .models import (
 from .storage import get_job as load_job
 from .storage import list_jobs as load_jobs
 from .storage import put_job, record_callback_attempt
+
+
+logger = logging.getLogger(__name__)
 
 
 def _now() -> datetime:
@@ -121,10 +125,11 @@ class AssociationJobManager:
                 await self._update(job_id, status="completed", result=result)
                 await self._deliver_callback(job_id)
             except Exception as exc:
+                logger.exception("Association job %s failed", job_id)
                 await self._update(
                     job_id,
                     status="failed",
-                    error=f"Association run failed: {type(exc).__name__}",
+                    error=f"Association run failed: {type(exc).__name__}: {exc}",
                 )
 
     async def _update(self, job_id: str, **changes: object) -> None:

@@ -57,6 +57,23 @@ class GraphSafetyTests(unittest.TestCase):
     def test_accepts_bounded_path(self):
         validate_association_result(self.result(), self.request, self.policy)
 
+    def test_accepts_canonical_graph_ids_for_raw_subject_ids(self):
+        result = self.result(
+            related_id="B",
+            path_nodes=["account:A", "account:B"],
+            edge_source="account:A",
+            edge_target="account:B",
+        )
+        validate_association_result(result, self.request, self.policy)
+
+    def test_rejects_canonical_self_related_subject(self):
+        with self.assertRaisesRegex(ValueError, "case subject to itself"):
+            validate_association_result(
+                self.result(related_id="account:A", path_nodes=["A", "B"]),
+                self.request,
+                self.policy,
+            )
+
     def test_rejects_self_related_subject(self):
         with self.assertRaisesRegex(ValueError, "case subject to itself"):
             validate_association_result(self.result(related_id="A", path_nodes=["A", "B"]), self.request, self.policy)
