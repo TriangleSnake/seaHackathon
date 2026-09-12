@@ -20,12 +20,14 @@ health_response="$(curl -fsS "$gateway_url" \
   -H "$accept" \
   --data '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"database_health","arguments":{}}}')"
 
-printf '%s\n' "$initialize_response" | grep -q 'fraud-intelligence-system-tools'
+printf '%s\n' "$initialize_response" | grep -q 'agentgateway'
 printf '%s\n' "$tools_response" | grep -q 'find_shared_ip_accounts'
 printf '%s\n' "$tools_response" | grep -q 'get_patrol_overview'
 printf '%s\n' "$tools_response" | grep -q 'find_high_density_ips'
 printf '%s\n' "$tools_response" | grep -q 'find_new_account_bursts'
 printf '%s\n' "$tools_response" | grep -q 'get_evidence_records'
+printf '%s\n' "$tools_response" | grep -q 'database_health'
+printf '%s\n' "$tools_response" | grep -q 'get_virustotal_reputation'
 printf '%s\n' "$health_response" | grep -q '"ok":true'
 
 printf 'MCP gateway smoke test passed: %s\n' "$gateway_url"

@@ -35,7 +35,7 @@ lookup is necessary. Agent Gateway remains the only execution path.
 | Canonical records/replay | `get_evidence_records`, `get_environment_overview` | same | same |
 | Account and graph | account activity/security, shared IP/device, entity neighbors, previous cases | same | account activity, shared IP/device, entity neighbors, previous cases |
 | Commerce | commerce links, shared payment instruments | — | commerce links, shared payment instruments |
-| Conversation/indicator | — | conversation accounts, exact indicator accounts/prevalence | — |
+| Conversation/indicator | — | conversation accounts, exact indicator accounts/prevalence, existing VirusTotal URL/domain reports | — |
 | Marketplace/association | — | — | association seeds, reused product images |
 
 `database_health` is reserved for readiness checks. `search_accounts` is intentionally
@@ -45,11 +45,13 @@ should not perform an unbounded population scan.
 Static records are also bounded by `simulation_state.simulation_time`, so an
 investigation cannot observe a future event from the seeded scenario.
 
-Each specialist returns a 0–1 fraud-risk score plus confidence and evidence IDs for
-every category it actually investigated. The deterministic category weight is
-multiplied by confidence; the specialist score is the weighted mean of the validated
-items. Coverage and all weighted contributions are returned beside the untouched raw
-analysis. The orchestrator combines specialist scores using confidence × coverage.
+Each specialist returns a whole-number 0–5 fraud-risk score plus confidence and
+evidence IDs for every category it actually investigated. Specialists receive the
+allowed category names but never their deterministic weights. Application code
+normalizes each raw score to 0–1, multiplies the private category weight by confidence,
+and calculates the weighted mean of validated items. Coverage and all weighted
+contributions are returned beside the untouched raw analysis. The orchestrator
+combines specialist scores using confidence × coverage.
 
 `config/scoreboard.development.json` mirrors the System-owned scoreboard schema,
 including nested budget, stopping rules, agent policies, usage, and per-agent usage.

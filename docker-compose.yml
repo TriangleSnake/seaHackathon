@@ -37,13 +37,27 @@ services:
     networks:
       - fraud-intelligence-network
 
+  virustotal-tools:
+    build:
+      context: ./services/virustotal-tools
+    environment:
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      VIRUSTOTAL_TIMEOUT_SECONDS: ${VIRUSTOTAL_TIMEOUT_SECONDS:-4}
+    expose:
+      - "8000"
+    networks:
+      - fraud-intelligence-network
+
   agentgateway:
     image: cr.agentgateway.dev/agentgateway:v1.5.0
     command: ["-f", "/config/config.yaml"]
     depends_on:
       - system-tools
+      - virustotal-tools
     ports:
-      - "${AGENTGATEWAY_PORT:-3000}:3000"
+      - "127.0.0.1:${AGENTGATEWAY_PORT:-3000}:3000"
     volumes:
       - ./agentgateway/config.yaml:/config/config.yaml:ro
     networks:

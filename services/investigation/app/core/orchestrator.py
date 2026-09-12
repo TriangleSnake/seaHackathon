@@ -105,9 +105,9 @@ class InvestigationOrchestrator:
             if routing_score == 0:
                 continue
             reason = (
-                f"case_type={agent.name}, "
-                f"priority={config.agent_priorities.get(agent.name, 100)}, "
-                f"routing_score={routing_score}"
+                f"案件類型={agent.name}，"
+                f"優先序={config.agent_priorities.get(agent.name, 100)}，"
+                f"路由分數={routing_score}"
             )
             invoked.append(
                 AgentInvocation(
@@ -204,6 +204,19 @@ class InvestigationOrchestrator:
                 if finding.impact == "supports_fraud"
                 and config.stopping_rule_enabled("direct_evidence")
                 and finding.confidence >= config.direct_evidence_confidence
+                and any(
+                    contribution.score == 5
+                    and contribution.is_direct_evidence
+                    and bool(
+                        set(contribution.evidence_refs)
+                        & set(finding.evidence_refs)
+                    )
+                    for contribution in (
+                        processed.score_aggregate.contributions
+                        if processed.score_aggregate is not None
+                        else []
+                    )
+                )
             ]
             direct_evidence = direct_evidence or (
                 run.analysis.direct_evidence_found and bool(direct_confidences)
@@ -250,16 +263,14 @@ class InvestigationOrchestrator:
                 stop_reason = "insufficient_evidence"
 
         verdict = verdict_for(score, config, has_assessment)
-        summaries = [
-            f"{finding.type}: {finding.description}" for finding in findings[:3]
-        ]
+        summaries = [finding.description for finding in findings[:3]]
         summary = (
             "; ".join(summaries)
             if summaries
             else (
                 "; ".join(result.raw_analysis.summary for result in agent_results[:3])
                 if agent_results
-                else "Investigation completed without sufficiently supported findings."
+                else "調查已完成，但沒有足夠證據形成受支持的發現。"
             )
         )
         scoreboard = ScoreboardState(
