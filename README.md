@@ -80,6 +80,10 @@ The sample database is initialized only when the PostgreSQL volume is first
 created. To apply schema changes to an existing development database, use a
 migration or recreate the development volume intentionally.
 
+Marketplace dummy data, simulation-time replay, connection details, and
+integrity-test instructions are documented in
+[`environment/README.md`](environment/README.md).
+
 
 ## v0.2 corrections
 
