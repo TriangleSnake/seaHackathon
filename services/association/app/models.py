@@ -86,6 +86,25 @@ class AssociationResult(StrictModel):
     evidence: list[Evidence]
 
 
+class AssociationJobAccepted(StrictModel):
+    job_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    status_url: str
+
+
+class AssociationJobState(StrictModel):
+    job_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    case_id: str
+    strategy: Literal["focused", "discovery"]
+    policy_ref: PolicyRef
+    created_at: datetime
+    updated_at: datetime
+    result: AssociationResult | None = None
+    error: str | None = None
+    callback_status: Literal["not_configured", "pending", "delivered", "failed"]
+
+
 class SearchPolicy(StrictModel):
     max_hops: int = Field(default=2, ge=1, le=2)
     max_nodes: int = Field(default=100, ge=1, le=100)

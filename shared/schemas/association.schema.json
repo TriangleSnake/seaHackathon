@@ -83,6 +83,33 @@
         "evidence_refs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
       }
     },
+    "AssociationJobAccepted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id", "status", "status_url"],
+      "properties": {
+        "job_id": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
+        "status_url": {"type": "string", "minLength": 1}
+      }
+    },
+    "AssociationJobState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id", "status", "case_id", "strategy", "policy_ref", "created_at", "updated_at", "result", "error", "callback_status"],
+      "properties": {
+        "job_id": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["queued", "running", "completed", "failed"]},
+        "case_id": {"type": "string", "minLength": 1},
+        "strategy": {"type": "string", "enum": ["focused", "discovery"]},
+        "policy_ref": {"$ref": "#/$defs/PolicyRef"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"},
+        "result": {"oneOf": [{"$ref": "#/$defs/AssociationResult"}, {"type": "null"}]},
+        "error": {"type": ["string", "null"]},
+        "callback_status": {"type": "string", "enum": ["not_configured", "pending", "delivered", "failed"]}
+      }
+    },
     "AssociationResult": {
       "type": "object",
       "additionalProperties": false,
