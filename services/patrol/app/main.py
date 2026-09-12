@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 
 from .agent import run_patrol
+from .handoff import handoff_to_investigation
 from .models import PatrolRequest, PatrolResult
 from .policy import load_active_policy
 from .prompt import PATROL_PROMPT_VERSION
@@ -27,6 +28,8 @@ async def health() -> dict[str, str]:
 async def patrol_run(request: PatrolRequest) -> PatrolResult:
     policy = load_active_policy(request.strategy)
     try:
-        return await run_patrol(request, policy)
+        result = await run_patrol(request, policy)
+        await handoff_to_investigation(result)
+        return result
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Patrol run failed: {exc}") from exc

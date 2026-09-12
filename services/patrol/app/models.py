@@ -50,7 +50,7 @@ class PatrolDiscovery(StrictModel):
     subject: Subject
     hypothesis: str = Field(min_length=1)
     reason: str = Field(min_length=1)
-    observed_signals: list[ObservedSignal]
+    observed_signals: list[ObservedSignal] = Field(min_length=1)
     counter_signals: list[str] = Field(default_factory=list)
     priority: float = Field(ge=0, le=1)
     evidence_refs: list[str]

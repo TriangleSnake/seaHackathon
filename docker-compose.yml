@@ -40,6 +40,19 @@ services:
     volumes:
       - ./agentgateway/config.yaml:/config/config.yaml:ro
 
+  investigation:
+    build:
+      context: ./services/investigation
+    environment:
+      AGENTGATEWAY_URL: http://agentgateway:3000/mcp
+      AGENTGATEWAY_TIMEOUT_SECONDS: ${AGENTGATEWAY_TIMEOUT_SECONDS:-5}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+    depends_on:
+      - agentgateway
+    ports:
+      - "${INVESTIGATION_PORT:-10002}:8000"
+
   patrol:
     build:
       context: ./services/patrol
@@ -48,8 +61,12 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
       AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
       PATROL_POLICY_PATH: /app/policies/active.json
+      INVESTIGATION_URL: ${INVESTIGATION_URL:-http://investigation:8000}
+      INVESTIGATION_TIMEOUT_SECONDS: ${INVESTIGATION_TIMEOUT_SECONDS:-10}
+      SCOREBOARD_CONFIG_VERSION: ${SCOREBOARD_CONFIG_VERSION:-development-v1}
     depends_on:
       - agentgateway
+      - investigation
     ports:
       - "${PATROL_PORT:-10003}:10003"
     volumes:
