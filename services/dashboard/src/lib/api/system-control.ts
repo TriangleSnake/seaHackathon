@@ -68,6 +68,16 @@ export type SystemCase = {
   updated_at: string;
 };
 
+export type AgentModelConfig = {
+  component: "detection" | "investigation" | "patrol" | "association" | "codex-builder";
+  provider: "openai";
+  model: string;
+  reasoning_effort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  enabled: boolean;
+  allowed_models: string[];
+  updated_at?: string | null;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api/system/${path}`, { cache: "no-store", ...init });
   if (!response.ok) {
@@ -83,6 +93,10 @@ export const systemControlApi = {
   case: (caseId: string) => request<SystemCase>(`cases/${encodeURIComponent(caseId)}`),
   triggers: () => request<TriggerPolicy[]>("control/triggers"),
   schedules: () => request<PatrolSchedule[]>("control/schedules"),
+  models: () => request<AgentModelConfig[]>("control/models"),
+  saveModel: (config: AgentModelConfig) => request<AgentModelConfig>(`control/models/${config.component}`, {
+    method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(config),
+  }),
   saveTrigger: (policy: TriggerPolicy) => request<TriggerPolicy>(`control/triggers/${policy.policy_id}`, {
     method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(policy),
   }),
