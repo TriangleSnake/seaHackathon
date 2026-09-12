@@ -1,112 +1,97 @@
-# Environment Database Design
+# Environment Dummy Database Design
 
 ## Goal
 
-Build a deterministic PostgreSQL marketplace environment that contains realistic normal activity, hard negatives, and injected suspicious journeys. The database is the observable world for other agents; it does not implement Detection, Investigation, Dashboard, an Environment API, or an Environment Agent.
+Deliver a self-contained PostgreSQL dummy database for a fictional marketplace. It contains a large normal baseline, hard negatives, and a small number of suspicious multi-event journeys. The deliverable is SQL and database documentation, not an application.
 
-The current repository is authoritative when it conflicts with the original standalone Environment brief. Existing `system-tools` source code and its database-facing column names remain compatible, but no new `system-tools` behavior is added.
+The current repository is authoritative. Existing database columns used by `system-tools` remain compatible, but this task does not modify or add any `system-tools`, API, MCP, Detection, Investigation, or Dashboard code.
 
-## Scope
+## Deliverables
 
-This change owns only the root Docker configuration, root Environment documentation links, shared Environment schema when required, and files under `environment/`. It does not modify source files under `services/` or `agentgateway/`, and it does not push or merge the branch.
+Only these project artifacts are created or updated:
 
-The implementation will:
+- `environment/schema.sql`: tables, constraints, indexes, replay views, and time-control functions.
+- `environment/seed.sql`: complete deterministic dummy dataset.
+- `environment/tests/integrity.sql`: database integrity assertions.
+- `environment/README.md`: startup, connection, replay, reset, rebuild, testing, and data-source notes.
+- `docker-compose.yml`: only the changes needed to initialize and test the database while preserving existing services.
+- `.env.example`, `.gitignore`, and root `README.md`: minimal supporting changes.
 
-- expand the existing PostgreSQL schema into a normalized marketplace model;
-- generate a repeatable normal baseline with seed `20260912`;
-- derive a small, sanitized ecommerce-scam language pool from the local Cofacts snapshot;
-- inject five categories of suspicious journeys and realistic hard negatives;
-- provide simulation-time views and integrity tests;
-- keep evaluator-only labels outside PostgreSQL.
+No Python generator, importer, filter, application container, ground-truth file, or runtime service is committed. Temporary local tooling may be used to inspect Cofacts and mechanically produce SQL, but it is not part of the repository deliverable.
+
+Tracked `.DS_Store` files are removed; no other team files are deleted.
 
 ## Repository Compatibility
 
-The repository currently exposes `system-tools` queries against `accounts`, `login_events`, `report_records`, `cases`, `entities`, and `relationships`. Those tables and the columns used by the existing queries remain available. In particular:
+The existing `accounts`, `login_events`, `report_records`, `cases`, `entities`, `relationships`, and `case_entities` tables and the columns currently queried by `services/system-tools` remain available. Existing Compose services are retained.
 
-- `accounts.id`, `accounts.status`, `accounts.activity_score`, `accounts.kyc_status`, `accounts.bot_check_score`, and `accounts.attributes` remain;
-- `login_events.id`, `account_id`, `ip_address`, `device_id`, `occurred_at`, and `attributes` remain;
-- `report_records`, `cases`, `entities`, `relationships`, and `case_entities` remain present;
-- the existing Compose services are retained rather than replaced with a new application service.
-
-New event tables become the authoritative time history for replay. Compatibility status columns remain current snapshots for existing tools. Injected journey ground truth is never written to compatibility tables such as `cases` and is only stored in the evaluator file.
+New normalized event tables provide historical data for replay. Existing snapshot-style fields remain for backward compatibility. Suspicious journeys do not populate `cases.risk_score` or add fraud-answer fields to marketplace tables.
 
 ## Database Model
 
-All identifiers are readable `TEXT` values, timestamps are `TIMESTAMPTZ`, money is `NUMERIC(14,2)`, currencies are constrained three-character strings, and mutable categorical state uses `CHECK` constraints rather than PostgreSQL enums.
+Identifiers are readable `TEXT` values. Times are `TIMESTAMPTZ`, money is `NUMERIC(14,2)`, currency is a constrained three-character string, and categorical values use `CHECK` constraints.
 
-### Account and access
+### Accounts and access
 
-- `accounts`: existing compatible columns plus account type and country code.
-- `account_status_events`: append-only active, restricted, and banned history.
-- `devices`: normalized device fingerprint, type, OS family, and creation time.
-- `login_events`: existing compatible columns plus country, region, success, and authentication method.
-- `account_security_events`: password, identity, KYC, and MFA changes.
+- `accounts`
+- `account_status_events`
+- `devices`
+- `login_events`
+- `account_security_events`
 
 ### Marketplace chat
 
-- `conversations`: optional shop and transaction context.
-- `conversation_participants`: account membership and buyer, seller, or support role.
-- `messages`: existing compatible columns plus message type and reply relationship.
-- `message_attachments`: normalized image, URL, and file resources.
-
-Existing JSON URL/image columns stay for compatibility but normalized attachments are the queryable source for new data.
+- `conversations`
+- `conversation_participants`
+- `messages`
+- `message_attachments`
 
 ### Shops and products
 
-- `shops`: existing compatible shop identity and owner.
-- `products`: existing compatible product identity, seller, and descriptive fields.
-- `product_images`: normalized images and hashes.
-- `product_price_events`: append-only price history.
-- `product_status_events`: draft, active, sold-out, and removed history.
-- `reviews`: rating and text tied to a real product and transaction.
+- `shops`
+- `products`
+- `product_images`
+- `product_price_events`
+- `product_status_events`
+- `reviews`
 
 ### Transactions and post-transaction activity
 
-The repository term `transactions` is canonical rather than adding a parallel `orders` table.
+The repository term `transactions` remains canonical.
 
-- `transactions`: buyer, seller, product, quantity, amount, currency, and creation time.
-- `transaction_status_events`: created, paid, shipped, delivered, cancelled, and refunded history.
-- `payment_attempts`: instrument hash, device, IP, amount, currency, result, and optional failure code.
-- `delivery_events`: shipment progress.
-- `refunds`: request and optional completion.
-- `disputes`: open and optional resolution history.
-- `report_records`: retained and extended with reporter and generic target information while preserving existing query columns.
+- `transactions`
+- `transaction_status_events`
+- `payment_attempts`
+- `delivery_events`
+- `refunds`
+- `disputes`
+- `report_records`
 
-No complete card number, CVV, bank account, real identity, or real malicious destination is stored.
+### Simulation and compatibility tables
 
-### Simulation and compatibility control-plane tables
+- `simulation_state`
+- `cases`
+- `entities`
+- `relationships`
+- `case_entities`
 
-- `simulation_state`: a single row containing current simulation time, initial time, scenario name, and update time.
-- `cases`, `entities`, `relationships`, and `case_entities`: retained unchanged in purpose for repository compatibility; they are not used as labels for generated suspicious journeys.
-
-Foreign-key, occurred-time, account, conversation, product, and transaction lookup indexes cover expected query paths.
+All relations use foreign keys. Common account, conversation, product, transaction, IP, device, and event-time query paths receive indexes. No real identity, complete card number, CVV, bank account, or live malicious URL is stored.
 
 ## Time Replay
 
-The seed contains the complete timeline, including events later than the initial simulation time. Consumers use `visible_*` views so future events remain hidden.
+The database stores the full event timeline, including events later than the initial simulation time. Consumers should query `visible_*` views, including visible login, security, message, price, product-status, transaction-status, payment, delivery, refund, dispute, and report events.
 
-Views include:
+Each view filters its event timestamp against the singleton `simulation_state.simulation_time`. SQL functions provide:
 
-- `visible_account_status_events`
-- `visible_login_events`
-- `visible_account_security_events`
-- `visible_messages`
-- `visible_product_price_events`
-- `visible_product_status_events`
-- `visible_transaction_status_events`
-- `visible_payment_attempts`
-- `visible_delivery_events`
-- `visible_refunds`
-- `visible_disputes`
-- `visible_report_records`
+- `set_simulation_time(TIMESTAMPTZ)`
+- `advance_simulation_time(INTERVAL)`
+- `reset_simulation()`
 
-Each view joins the singleton simulation row and filters on the relevant event timestamp. The database provides `set_simulation_time(TIMESTAMPTZ)`, `advance_simulation_time(INTERVAL)`, and `reset_simulation()` functions. Reset restores the initial timestamp recorded in `simulation_state`; time cannot advance outside the seeded timeline without an explicit set operation.
+Reset restores the initial seed timestamp.
 
-## Synthetic Data Generation
+## Dummy Dataset
 
-`environment/generate_seed.py` uses only the Python standard library and `random.Random(20260912)`. It writes deterministic SQL and evaluator-only JSON with stable ordering.
-
-The baseline contains at least:
+`environment/seed.sql` uses fixed IDs, values, and timestamps so a clean-volume rebuild always produces the same data. It contains at least:
 
 - 120 accounts;
 - 18 shops;
@@ -114,97 +99,58 @@ The baseline contains at least:
 - 40 conversations;
 - 420 messages;
 - 100 transactions;
-- associated devices, logins, security events, prices, statuses, payments, deliveries, refunds, disputes, reports, and reviews.
+- corresponding devices, logins, security events, price changes, product statuses, payments, deliveries, refunds, disputes, reports, and reviews.
 
-Most records form ordinary marketplace activity. At least 20 deliberately difficult normal cases cover legitimate external links, bank-transfer discussion without off-platform payment, travel-related country changes, legitimate order spikes, failed payments followed by success, and reasonable refunds.
+The normal baseline is generated first. At least 20 hard negatives include legitimate external links, ordinary bank-transfer discussion, travel-related login-country changes, legitimate seller order spikes, payment retries, and reasonable refunds.
 
-Ten suspicious journeys are injected, two per category:
+Ten suspicious journeys are injected afterward, two for each pattern:
 
-1. social engineering and chat phishing;
+1. chat phishing and social engineering;
 2. account takeover;
 3. payment fraud;
 4. seller fraud;
 5. buyer and refund abuse.
 
-Each journey spans multiple related tables and times rather than relying on a single keyword. Suspicious text does not use one repeated template.
+Each suspicious journey is observable through several related records and times. The database does not label rows as fraud, store expected detections, or expose a risk score for these injected journeys.
 
-## Cofacts Selection and Sanitization
+## Cofacts Use
 
-The source snapshot is read from an explicit command-line path and is never copied wholesale into the repository. The inspected snapshot contains 294,085 articles, including 230,324 text articles. There are 19,584 active links to the Cofacts fraud category, 15,206 corresponding active text articles, and 2,011 articles that also contain ecommerce-context terms. Of those candidates, 1,154 have an active fact-check reply link.
+The downloaded Cofacts snapshot is an offline source for realistic Taiwanese scam language. It is not copied into the project or loaded as a database table.
 
-`environment/filter_cofacts.py` streams the zipped CSV files with the Python standard library. A high-confidence candidate must satisfy all of these conditions:
+The inspected snapshot contains 294,085 articles, including 230,324 text articles. There are 19,584 active fraud-category links, 15,206 corresponding active text articles, 2,011 articles that also contain ecommerce-context terms, and 1,154 such candidates with active fact-check replies.
 
-1. `articles.articleType = TEXT`;
-2. `articles.status = NORMAL`;
-3. an active `article_categories` row links it to category `nD2n7nEBrIRcahlYwQoW` (`詐騙`);
-4. its text contains at least one ecommerce-context term such as ordering, marketplace, payment, logistics, customer service, buyer, seller, or refund language;
-5. it has an active `article_replies` link whose `replyType = RUMOR`.
+Candidate selection requires:
 
-`RUMOR` alone is insufficient because misinformation is broader than fraud. The filter emits only the bounded deterministic candidate sample needed by the generator.
+1. active text article;
+2. active Cofacts `詐騙` category link;
+3. ecommerce context such as marketplace, order, payment, logistics, customer service, buyer, seller, or refund language;
+4. an active linked reply with `replyType = RUMOR`.
 
-Before any text is stored, the pipeline removes or replaces phone numbers, account-like digit sequences, email addresses, user identifiers, URLs, tracking identifiers, and named external destinations. URLs in generated messages use reserved `.test` or `.invalid` domains. Selected language is adapted into fictional buyer-seller conversations rather than presented as a verbatim LINE transcript.
+`RUMOR` alone is not treated as fraud. Selected language is manually bounded, redacted, and adapted into fictional marketplace conversations. Phone numbers, account-like digit sequences, emails, user IDs, tracking IDs, original URLs, and named destinations are removed or replaced. Generated URLs use `.test` or `.invalid`.
 
-The Environment README contains the Cofacts attribution required by its CC BY-SA 4.0 dataset card and documents the local-source command. The generated seed remains reproducible after the source-derived, sanitized candidate fixture is committed.
+The Environment README includes Cofacts attribution and CC BY-SA 4.0 source information. No raw Cofacts archive or identifying source field is shipped in the database.
 
-## Ground Truth Isolation
+## Integrity Tests
 
-`environment/datasets/ground_truth.json` contains evaluator-only journey IDs, subject references, fraud category, involved roles, event IDs, and expected observation window. PostgreSQL initialization does not load or mount this file, and Compose does not expose it to other services.
+`environment/tests/integrity.sql` exits nonzero if any invariant fails. It checks:
 
-Database tables do not add `is_fraud`, `fraud_type`, `fraud_role`, `expected_detection`, or new journey `risk_score` fields. The existing compatibility `cases.risk_score` column remains because repository tools already depend on that control-plane contract, but generated Environment journeys do not populate it.
-
-The ground-truth file contains more explicitly normal and hard-negative cases than suspicious journeys.
-
-## Files
-
-- `docker-compose.yml`: retain the existing stack while making Environment initialization and test execution reproducible.
-- `.env.example`: retain development-only sample values and document Environment defaults without adding secrets.
-- `.gitignore`: retain current ignores and ensure generated caches are excluded.
-- `README.md`: add only a concise link to the Environment instructions.
-- `environment/schema.sql`: normalized schema, compatibility tables, constraints, indexes, views, and time-control functions.
-- `environment/seed.sql`: deterministic generated dataset loaded after the schema.
-- `environment/generate_seed.py`: normal baseline and journey injection generator.
-- `environment/filter_cofacts.py`: streaming Cofacts candidate selection and sanitization.
-- `environment/datasets/cofacts_ecommerce_scam.jsonl`: bounded sanitized source fixture with attribution metadata and no raw identifiers.
-- `environment/datasets/ground_truth.json`: evaluator-only labels, never loaded into PostgreSQL.
-- `environment/README.md`: setup, connections, replay, rebuild, tests, attribution, and isolation rules.
-- `environment/tests/integrity.sql`: executable assertions that terminate with an error when invariants fail.
-- `shared/schemas/environment.schema.json`: changed only where necessary to describe the repository-compatible normalized exchange model; Draft 2020-12 and common subject IDs remain intact.
-
-Tracked `.DS_Store` files are removed; no other team files are deleted.
-
-## Validation
-
-The implementation follows test-first development. Static fixture and generator tests fail before generator implementation. Database integrity tests fail against the incomplete schema before the schema is extended.
-
-Validation covers:
-
-- deterministic generator output across repeated runs;
-- Cofacts filter selection and redaction on small fixtures;
-- JSON validity and absence of forbidden ground-truth fields in SQL;
-- Compose configuration parsing;
-- clean-volume PostgreSQL initialization;
 - primary-key uniqueness and foreign-key integrity;
-- event timestamps after parent creation times;
-- message sender membership in its conversation;
-- review-to-product and review-to-transaction consistency;
-- simulation views hiding future rows;
-- minimum row counts and all five evaluator journey types;
-- normal and hard-negative ground truth outnumbering suspicious journeys;
-- PostgreSQL health after restart and data persistence across restart;
-- clean rebuild after removing the development volume.
+- account creation before account events;
+- transaction creation before payments, delivery, refunds, and disputes;
+- refund completion not earlier than request;
+- message senders are conversation participants;
+- reviews match existing products and transactions;
+- visible views hide future events;
+- forbidden fraud-answer columns are absent from marketplace tables;
+- minimum seed counts are met;
+- normal and hard-negative activity outnumbers injected suspicious journeys by construction.
 
-When Docker is unavailable, all generator, static SQL, JSON, and Compose checks still run, and Docker-only checks are reported as unexecuted rather than passed.
-
-## Error Handling and Reproducibility
-
-Both Python scripts fail with a nonzero status and a concise error when required archives, headers, category links, or output invariants are missing. They never mutate the Hugging Face cache. Seed output is generated into repository files only after all in-memory referential and count checks pass.
-
-SQL initialization uses `ON_ERROR_STOP` during tests, constraints reject invalid data, and integrity assertions raise exceptions with specific invariant names. Re-running the generator produces byte-identical output for the same source fixture and seed.
+Static validation checks SQL formatting, deterministic literal timestamps, absence of real secrets, Compose parsing, and removal of tracked `.DS_Store` files. Docker validation covers clean initialization, PostgreSQL health, integrity SQL, restart persistence, and clean-volume rebuild. Docker-only checks are reported as unexecuted if Docker is unavailable.
 
 ## Non-goals
 
-- No FastAPI or other Environment application service.
-- No new MCP server or `system-tools` feature.
-- No Detection feature extraction or scoring.
-- No Investigation, Dashboard, patrol, evaluator runtime, or model training.
-- No push, merge, or changes to unrelated service implementations.
+- No Python or application code in the final project changes.
+- No API, MCP server, or `system-tools` feature.
+- No model, classifier, feature extractor, or fraud-scoring logic.
+- No Detection, Investigation, Dashboard, evaluator runtime, or agent implementation.
+- No push, merge, or unrelated service changes.
