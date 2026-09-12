@@ -88,9 +88,21 @@ class LLMDetector:
             context = [item for item in background or [] if item.data.get("text")]
             classifier_input = json.dumps(
                 {
-                    "target_message": {"id": target.id, "text": target.data["text"], "urls": target.data.get("urls", [])},
+                    "target_message": {
+                        "id": target.id,
+                        "sender_account_id": target.data.get("sender_account_id"),
+                        "recipient_account_id": target.data.get("recipient_account_id"),
+                        "text": target.data["text"],
+                        "urls": target.data.get("urls", []),
+                    },
                     "background_messages": [
-                        {"id": item.id, "text": item.data["text"], "urls": item.data.get("urls", [])}
+                        {
+                            "id": item.id,
+                            "sender_account_id": item.data.get("sender_account_id"),
+                            "recipient_account_id": item.data.get("recipient_account_id"),
+                            "text": item.data["text"],
+                            "urls": item.data.get("urls", []),
+                        }
                         for item in context
                     ],
                 },

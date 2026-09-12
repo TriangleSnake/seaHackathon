@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from inspect import signature
 from time import perf_counter
 from typing import Protocol
 from uuid import uuid4
@@ -137,7 +138,11 @@ class DetectionService:
             registered = self.registry.resolve(component.type, component.version)
             if registered:
                 required_evidence.update(registered.required_evidence)
-        context = await self.repository.load_context(request.subject, required_evidence)
+        load_context = self.repository.load_context
+        if len(signature(load_context).parameters) == 1:
+            context = await load_context(request.subject)
+        else:
+            context = await load_context(request.subject, required_evidence)
         if context is None:
             raise SubjectNotFoundError(request.subject.id)
 
@@ -206,7 +211,11 @@ class DetectionService:
         ]
 
         referenced = {ref for trigger in triggers for ref in trigger.evidence_refs}
-        evidence = [item for item in context.evidence if item.id in referenced]
+        evidence = [
+            item
+            for item in context.evidence + context.conversation_context
+            if item.id in referenced
+        ]
         return DetectionResult(
             detection_id=f"DET-{uuid4()}",
             subject=request.subject,

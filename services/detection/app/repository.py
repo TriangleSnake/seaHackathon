@@ -130,9 +130,14 @@ class PostgresDetectionRepository:
     async def _load_context(
         self,
         subject: Subject,
-        required_evidence: set[str] | None,
-        as_of: datetime,
+        required_evidence: set[str] | datetime | None = None,
+        as_of: datetime | None = None,
     ) -> DetectionContext | None:
+        if isinstance(required_evidence, datetime) and as_of is None:
+            as_of = required_evidence
+            required_evidence = None
+        if as_of is None:
+            raise RuntimeError("Detection context requires a simulation timestamp")
         account_ids = await self._resolve_accounts(subject)
         if account_ids is None:
             return None
@@ -205,7 +210,7 @@ class PostgresDetectionRepository:
             """,
             (message_id,),
         )
-        return [self._evidence("message", row, "created_at") for row in rows]
+        return [self._evidence("message", row, "created_at") for row in reversed(rows)]
 
     async def _load_reports(
         self, subject: Subject, account_ids: list[str]
@@ -275,9 +280,8 @@ class PostgresDetectionRepository:
             f"""
             SELECT p.id, p.shop_id, p.seller_account_id, p.title, p.price,
                    p.currency, p.created_at
-              FROM products p CROSS JOIN simulation_state s
-             WHERE s.singleton_id = 1 AND p.created_at <= s.simulation_time
-               AND {where}
+              FROM visible_products p CROSS JOIN simulation_state s
+             WHERE s.singleton_id = 1 AND {where}
              ORDER BY p.created_at DESC LIMIT 100
             """,
             params,
