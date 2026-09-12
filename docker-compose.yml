@@ -196,6 +196,31 @@ services:
     networks:
       - fraud-intelligence-network
 
+  dashboard:
+    build:
+      context: ./services/dashboard
+    environment:
+      DASHBOARD_DATA_MODE: live
+      DASHBOARD_SYSTEM_URL: ${DASHBOARD_SYSTEM_URL:-http://system:10005}
+      DASHBOARD_DETECTION_URL: ${DASHBOARD_DETECTION_URL:-http://detection:8000}
+    depends_on:
+      system:
+        condition: service_started
+    ports:
+      - "${DASHBOARD_PORT:-3001}:3000"
+    networks:
+      - fraud-intelligence-network
+
+  dashboard-demo:
+    build:
+      context: ./services/dashboard
+    environment:
+      DASHBOARD_DATA_MODE: demo
+    ports:
+      - "${DASHBOARD_DEMO_PORT:-3002}:3000"
+    networks:
+      - fraud-intelligence-network
+
 volumes:
   postgres-data:
 

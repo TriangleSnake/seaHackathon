@@ -59,6 +59,13 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+Dashboard 使用同一份程式碼提供兩種資料模式：
+
+- `http://localhost:3001`：Live，只顯示已接入 backend 的資料；缺少 read API 時明確顯示 unavailable。
+- `http://localhost:3002`：Demo，使用固定 seed/mock 資料展示完整流程。
+
+也可以在 `services/dashboard` 分別執行 `npm run dev:live` 與 `npm run dev:demo`。
+
 Run the end-to-end smoke test:
 
 ```bash
