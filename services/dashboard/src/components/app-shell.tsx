@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useDashboardMode } from "@/lib/dashboard-mode";
-import { DefenseContent } from "@/features/defense/defense-page";
-import { LiveEvolutionWorkspace } from "@/features/evolution/live-evolution-workspace";
 
 const nav = [
   ["Overview", "/overview", CircleGauge], ["Cases", "/cases", ShieldAlert], ["Association", "/association", Boxes], ["Patrol", "/patrol", Radar],
@@ -37,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="search"><Search size={17}/><input aria-label="搜尋案件、帳號或政策" placeholder="搜尋案件、帳號或政策"/><kbd>⌘ K</kbd></div>
         <div className="top-actions"><span className={`environment ${mode}`} title={mode === "demo" ? "固定展示資料，不代表目前系統狀態" : "只顯示已接入後端的即時資料"}><span/>{mode === "demo" ? "DEMO DATA" : "LIVE"}</span><button className="icon-button" aria-label="通知"><Bell size={19}/><i/></button><button className="avatar" aria-label="開啟使用者選單">YL</button></div>
       </header>
-      <main id="main">{pathname === "/evolution" && mode === "live" ? <LiveEvolutionWorkspace/> : mode === "live" && !hasLiveReadModel ? <section className="live-source-boundary panel"><DatabaseZap size={28}/><span>LIVE DATA BOUNDARY</span><h1>這個頁面的後端資料源尚未接入</h1><p>Live 版不會以 Demo 資料補值。請切到 3002 查看完整展示內容；此頁會在對應的 read API 完成後開放。</p><code>{pathname}</code></section> : children}{pathname === "/evolution" && mode === "demo" && <section id="defense-versions" className="evolution-defense-section"><DefenseContent/></section>}</main>
+      <main id="main">{mode === "live" && !hasLiveReadModel ? <section className="live-source-boundary panel"><DatabaseZap size={28}/><span>LIVE DATA BOUNDARY</span><h1>這個頁面的後端資料源尚未接入</h1><p>Live 版不會以 Demo 資料補值。請切到 3002 查看完整展示內容；此頁會在對應的 read API 完成後開放。</p><code>{pathname}</code></section> : children}</main>
     </div>
   </div>;
 }

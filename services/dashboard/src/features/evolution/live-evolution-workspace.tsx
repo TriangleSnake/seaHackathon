@@ -22,15 +22,28 @@ async function get<T>(path:string):Promise<T> { const response=await fetch(`/api
 function formatTime(value:string) { return new Intl.DateTimeFormat("zh-TW",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(value)); }
 function displayValue(value:unknown) { if(value==null||value==="") return "—"; if(typeof value==="object") return JSON.stringify(value); return String(value); }
 
-export function LiveEvolutionWorkspace() {
+const demoData:{runs:Run[];versions:Version[]}={
+  runs:[{run_id:"EVO-0912-17",state:"VALIDATING",trigger_type:"pattern_discovered",target_policy:"detection",candidate_id:"CAND-044",evaluation_id:"EVAL-0912-18",current_stage:"validating",progress:64,error:null,details:{pattern_ref:"PAT-2026-044",reason:"偵測到新的詐欺模式"},created_at:"2026-09-12T08:42:00Z",updated_at:"2026-09-12T09:48:00Z",events:[
+    {event_id:"EVT-DEMO-01",stage:"received",component:"evolution",status:"completed",summary:"Pattern Spec accepted.",details:{},started_at:"2026-09-12T08:42:00Z",completed_at:"2026-09-12T08:42:02Z"},
+    {event_id:"EVT-DEMO-02",stage:"diagnosing",component:"planner",status:"completed",summary:"Defense gap and affected policy identified.",details:{},started_at:"2026-09-12T08:42:03Z",completed_at:"2026-09-12T08:44:31Z"},
+    {event_id:"EVT-DEMO-03",stage:"building",component:"candidate_builder",status:"completed",summary:"Candidate CAND-044 built from Detection Policy v8.",details:{},started_at:"2026-09-12T08:44:32Z",completed_at:"2026-09-12T08:51:10Z"},
+    {event_id:"EVT-DEMO-04",stage:"validating",component:"evaluator",status:"running",summary:"8,420 / 10,000 evaluation cases completed.",details:{},started_at:"2026-09-12T08:51:11Z",completed_at:null},
+  ]}],
+  versions:[
+    {version:"v13",status:"candidate",base_version:"v12",candidate_id:"CAND-044",evaluation_id:"EVAL-0912-18",policies:[{agent:"detection",version:"v9"},{agent:"investigation",version:"v8"},{agent:"association",version:"v5"}],metrics:{precision:"94.1%",recall:"89.3%",false_positive:"3.2%"},created_at:"2026-09-12T09:48:00Z"},
+    {version:"v12",status:"active",base_version:"v11",candidate_id:"CAND-041",evaluation_id:"EVAL-0912-14",policies:[{agent:"detection",version:"v8"},{agent:"investigation",version:"v7"},{agent:"association",version:"v4"}],metrics:{precision:"92.0%",recall:"84.0%",false_positive:"4.2%"},created_at:"2026-09-08T16:20:00Z"},
+  ],
+};
+
+export function LiveEvolutionWorkspace({mode="live"}:{mode?:"live"|"demo"}) {
   const [selectedRunId,setSelectedRunId]=useState<string|null>(null);
-  const query=useQuery({queryKey:["evolution-live"],queryFn:async()=>{const[runs,versions]=await Promise.all([get<Run[]>("evolution/runs"),get<Version[]>("defense-versions")]);return{runs,versions}},refetchInterval:5000,retry:false});
+  const query=useQuery({queryKey:["evolution-workspace",mode],queryFn:async()=>{if(mode==="demo")return demoData;const[runs,versions]=await Promise.all([get<Run[]>("evolution/runs"),get<Version[]>("defense-versions")]);return{runs,versions}},refetchInterval:mode==="live"?5000:false,retry:false});
   useEffect(()=>{if(!selectedRunId&&query.data?.runs[0])setSelectedRunId(query.data.runs[0].run_id)},[query.data?.runs,selectedRunId]);
   const selectedRun=useMemo(()=>query.data?.runs.find(run=>run.run_id===selectedRunId)??query.data?.runs[0],[query.data?.runs,selectedRunId]);
   const activeVersion=query.data?.versions.find(version=>version.status.toLowerCase()==="active");
 
   return <div className="evolution-live">
-    <div className="page-head"><div><div className="breadcrumb">AUTONOMOUS DEFENSE / LIVE</div><h1>Evolution</h1></div></div>
+    <div className="page-head"><div><div className="breadcrumb">AUTONOMOUS DEFENSE / {mode.toUpperCase()}</div><h1>Evolution</h1></div></div>
     {query.isError?<section className="panel empty-table"><AlertCircle/><h2>Evolution API 無法連線</h2><p>{query.error instanceof Error?query.error.message:"Unavailable"}</p></section>:<>
       <section className="evo-summary" aria-label="Evolution 摘要"><div><span>RUNS</span><strong>{query.data?.runs.length??0}</strong></div><div><span>ACTIVE VERSION</span><strong>{activeVersion?.version??"—"}</strong></div><div><span>CURRENT STAGE</span><strong>{selectedRun?.current_stage??"—"}</strong></div></section>
       <div className="evo-workspace">
