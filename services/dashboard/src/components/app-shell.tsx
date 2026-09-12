@@ -9,8 +9,8 @@ import { DefenseContent } from "@/features/defense/defense-page";
 import { LiveEvolutionWorkspace } from "@/features/evolution/live-evolution-workspace";
 
 const nav = [
-  ["總覽", "/overview", CircleGauge], ["案件", "/cases", ShieldAlert], ["關聯分析", "/association", Boxes], ["自主巡查", "/patrol", Radar],
-  ["策略演化與防禦版本", "/evolution", ChevronsUp], ["Agent Policy", "/policies", BookOpenCheck], ["系統狀態", "/system", Activity]
+  ["Overview", "/overview", CircleGauge], ["Cases", "/cases", ShieldAlert], ["Association", "/association", Boxes], ["Patrol", "/patrol", Radar],
+  ["Evolution", "/evolution", ChevronsUp], ["Agent Policy", "/policies", BookOpenCheck], ["System", "/system", Activity]
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -23,12 +23,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <aside className={open ? "sidebar open" : "sidebar"} aria-label="主要導覽">
       <div className="brand"><div className="brand-mark"><ChartNoAxesCombined size={18}/></div><div><strong>SENTINEL</strong><span>Fraud Intelligence</span></div></div>
       <button className="mobile-close icon-button" onClick={() => setOpen(false)} aria-label="關閉選單"><X size={20}/></button>
-      <div className="workspace"><span>作業空間</span><strong>SEA Commerce</strong></div>
+      <div className="workspace"><span>WORKSPACE</span><strong>SEA Commerce</strong></div>
       <nav>{nav.map(([label, href, Icon]) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
-        return <Link key={href} href={href} onClick={() => setOpen(false)} className={active ? "active" : ""} aria-current={active ? "page" : undefined}><Icon size={18}/><span>{label}</span>{mode === "demo" && label === "案件" && <small>12</small>}</Link>;
+        return <Link key={href} href={href} onClick={() => setOpen(false)} className={active ? "active" : ""} aria-current={active ? "page" : undefined}><Icon size={18}/><span>{label}</span>{mode === "demo" && label === "Cases" && <small>12</small>}</Link>;
       })}</nav>
-      <div className="sidebar-foot"><span className="health-dot"/> {mode === "demo" ? "Demo 服務狀態" : "Live 資料模式"} <span>{mode === "demo" ? "12 / 12" : "API"}</span></div>
+      <div className="sidebar-foot"><span className="health-dot"/> {mode === "demo" ? "Demo Status" : "Live Data"} <span>{mode === "demo" ? "12 / 12" : "API"}</span></div>
     </aside>
     {open && <button className="scrim" onClick={() => setOpen(false)} aria-label="關閉選單"/>}
     <div className="main-column">
