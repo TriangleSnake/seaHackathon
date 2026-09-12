@@ -161,6 +161,23 @@ def test_item_scores_are_evidence_bound_and_weighted_deterministically() -> None
     assert combine_agent_scores([result]) == pytest.approx(0.68)
 
 
+def test_case_score_uses_highest_specialist_score() -> None:
+    aggregator = AgentScoreAggregator()
+    low = aggregator.aggregate(
+        "chat",
+        AgentAnalysis(summary="low", item_scores=[AgentItemScore(item_type="signal", score=1, is_direct_evidence=False, confidence=1.0, rationale="low", evidence_refs=["E-1"])]),
+        {"signal": 1.0},
+        {"E-1"},
+    )
+    high = aggregator.aggregate(
+        "order",
+        AgentAnalysis(summary="high", item_scores=[AgentItemScore(item_type="signal", score=4, is_direct_evidence=False, confidence=1.0, rationale="high", evidence_refs=["E-2"])]),
+        {"signal": 1.0},
+        {"E-2"},
+    )
+    assert combine_agent_scores([low, high]) == pytest.approx(0.8)
+
+
 def test_direct_evidence_flag_is_valid_only_for_score_five() -> None:
     analysis = AgentAnalysis(
         summary="An invalid direct-evidence flag was returned.",

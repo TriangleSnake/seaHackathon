@@ -8,7 +8,7 @@
       "config_id": "investigation-development",
       "version": "development-v1",
       "status": "active",
-      "scoring_policy_version": "specialist-weighted-v1",
+      "scoring_policy_version": "specialist-max-v1",
       "fraud_threshold": 0.8,
       "normal_threshold": 0.2,
       "budget": {

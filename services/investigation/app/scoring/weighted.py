@@ -80,19 +80,15 @@ class AgentScoreAggregator:
 
 
 def combine_agent_scores(results: Iterable[SpecialistAgentResult]) -> float | None:
-    """Combine specialist aggregates using confidence and category coverage."""
-    weighted: list[tuple[float, float]] = []
+    """Use the strongest evidence-backed specialist aggregate as the case score."""
+    scores: list[float] = []
     for result in results:
         aggregate = result.score_aggregate
         if aggregate is None:
             continue
         weight = aggregate.confidence * aggregate.coverage
         if weight > 0:
-            weighted.append((aggregate.weighted_score, weight))
-    total_weight = sum(weight for _, weight in weighted)
-    if total_weight == 0:
+            scores.append(aggregate.weighted_score)
+    if not scores:
         return None
-    return round(
-        sum(score * weight for score, weight in weighted) / total_weight,
-        12,
-    )
+    return round(max(scores), 12)

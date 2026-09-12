@@ -308,7 +308,7 @@ def test_investigate_runs_agents_and_returns_scoreboard() -> None:
     assert body["findings"][0]["evidence_refs"] == ["PAY-0001"]
     assert body["scoreboard"]["fraud_score"] == 0.6
     assert body["scoreboard"]["usage"]["tool_calls"] == 1
-    assert body["scoreboard"]["scoring_policy_version"] == "specialist-weighted-v1"
+    assert body["scoreboard"]["scoring_policy_version"] == "specialist-max-v1"
     assert body["agents_invoked"][0]["agent"] == "order"
     assert body["agents_invoked"][0]["case_type"] == "order"
     assert body["agent_results"][0]["raw_analysis"]["item_scores"][0]["score"] == 3
