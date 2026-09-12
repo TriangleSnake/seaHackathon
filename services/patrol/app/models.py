@@ -40,15 +40,31 @@ class Evidence(StrictModel):
     data: dict[str, Any]
 
 
+class ObservedSignal(StrictModel):
+    name: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    evidence_refs: list[str]
+
+
 class PatrolDiscovery(StrictModel):
     subject: Subject
+    hypothesis: str = Field(min_length=1)
     reason: str = Field(min_length=1)
+    observed_signals: list[ObservedSignal]
+    counter_signals: list[str] = Field(default_factory=list)
     priority: float = Field(ge=0, le=1)
     evidence_refs: list[str]
 
 
+class PatrolPolicyRef(StrictModel):
+    id: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+
+
 class PatrolResult(StrictModel):
     run_id: str
+    strategy: Literal["exploit", "explore"]
+    policy_ref: PatrolPolicyRef
     discoveries: list[PatrolDiscovery]
     evidence: list[Evidence]
 

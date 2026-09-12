@@ -65,8 +65,13 @@ Return only an object conforming to `PatrolResult` in
 `shared/schemas/patrol.schema.json`:
 
 - Preserve the input `run_id`.
-- Put each candidate in `discoveries` with `subject`, `reason`, `priority`, and
-  unique `evidence_refs`.
+- Preserve the requested `strategy` and copy the active policy's ID and version
+  into `policy_ref`.
+- Put each candidate in `discoveries` with a falsifiable `hypothesis`, concise
+  `reason`, structured `observed_signals`, any meaningful `counter_signals`,
+  investigation `priority`, and unique `evidence_refs`.
+- Every observed signal must cite evidence contained in that discovery's
+  `evidence_refs`. Do not use brainstorming or policy text as a signal.
 - Put the referenced evidence records in `evidence`.
 - Return empty arrays when no candidate meets the evidence standard.
 

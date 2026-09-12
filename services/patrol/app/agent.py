@@ -55,6 +55,13 @@ async def run_patrol(request: PatrolRequest, policy: PatrolPolicy) -> PatrolResu
     )
     if patrol_result.run_id != request.run_id:
         raise ValueError("Patrol result run_id does not match the request")
+    if patrol_result.strategy != request.strategy:
+        raise ValueError("Patrol result strategy does not match the request")
+    if (
+        patrol_result.policy_ref.id != policy.policy_id
+        or patrol_result.policy_ref.version != policy.version
+    ):
+        raise ValueError("Patrol result policy_ref does not match the active policy")
     if len(patrol_result.discoveries) > policy.budget.max_discoveries:
         raise ValueError("Patrol result exceeded max_discoveries")
     evidence_ids = {item.id for item in patrol_result.evidence}
@@ -64,4 +71,11 @@ async def run_patrol(request: PatrolRequest, policy: PatrolPolicy) -> PatrolResu
         missing = set(discovery.evidence_refs) - evidence_ids
         if missing:
             raise ValueError(f"Patrol discovery references missing evidence: {sorted(missing)}")
+        signal_refs = {
+            evidence_ref
+            for signal in discovery.observed_signals
+            for evidence_ref in signal.evidence_refs
+        }
+        if not signal_refs.issubset(set(discovery.evidence_refs)):
+            raise ValueError("Observed signal references evidence absent from its discovery")
     return patrol_result
