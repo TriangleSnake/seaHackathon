@@ -13,6 +13,7 @@ import "./patrol.css";
 import "./runtime-graph.css";
 import "./data-mode.css";
 import "./model-control.css";
+import "./evolution-live.css";
 import { Providers } from "./providers";
 import type { DashboardMode } from "@/lib/dashboard-mode";
 
