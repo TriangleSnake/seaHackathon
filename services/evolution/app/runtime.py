@@ -25,9 +25,11 @@ class DetectionConfigCapabilityProvider:
         self,
         policy_repository: PolicyDocumentRepository,
         versions: BaseVersionReader,
+        *, code_builder_available: bool = False,
     ) -> None:
         self._policies = policy_repository
         self._versions = versions
+        self._code_builder_available = code_builder_available
 
     def __call__(self, context: EvolutionContext) -> Mapping[str, Any]:
         defense = self._versions.read_base(context.current_defense_version)
@@ -68,7 +70,7 @@ class DetectionConfigCapabilityProvider:
                 "supports_generic_allowlists": False,
                 "supports_custom_trigger_generation": False,
                 "unsupported_behavior_resolution": "CODE",
-                "code_builder_available": True,
+                "code_builder_available": self._code_builder_available,
             },
             "configurable_fields": [
                 {

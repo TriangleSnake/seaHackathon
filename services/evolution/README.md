@@ -5,8 +5,9 @@ OpenAI-backed planner. The runtime keeps state transitions, retry accounting,
 IDs, versioning, evaluator decisions, and governance outside the model. The
 model diagnoses policy gaps and proposes what behavior should change and why.
 
-It does not implement ConfigBuilder/Codex execution, Detection HTTP execution,
-publishing, deployment, governance, persistent storage, or rollback.
+It includes ConfigBuilder and a thin adapter to the real isolated Codex runtime.
+The Evolution core itself does not deploy services or activate CODE engines;
+engine-version evaluation remains an explicit integration gap.
 
 ## Layers
 
@@ -145,6 +146,11 @@ Detection's Python logic.
 `DetectionPolicyCapabilityAdapter` routes supported typed changes to
 `ConfigBuilder`. Unstructured, role-aware, and compound Detection behavior
 routes to the CODE builder, while missing capabilities remain unsupported.
+Successful CODE builds register a distinct internal `CodeCandidate` in the same
+candidate registry and attempt lineage, without any policy-version substitute.
+The orchestrator stops at `VALIDATING` until an engine-aware evaluator exists.
+`DetectionConfigCapabilityProvider(code_builder_available=True)` should be used
+only when a real CODE builder is actually wired; availability defaults to false.
 `ConfigBuilder` loads the
 named baseline through Detection's existing repository, validates the baseline
 and candidate with both Detection's Pydantic runtime model and the shared JSON

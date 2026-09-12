@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import signal
 from typing import Any
 
 from .models import (
@@ -140,10 +141,9 @@ class CodeBuilderSettings:
 class RealCodexCodeBuilder:
     """Build a code candidate in a detached worktree and fail closed.
 
-    The Codex process receives a writable root at Detection's ``app`` directory.
-    Authoritative acceptance tests remain outside the candidate worktree.  Git
-    path validation is still mandatory because the app directory contains files
-    beyond the two paths approved for this capability.
+    Base lifecycle and git/metadata checks. A concrete isolated transport must
+    implement the sandbox verification and invocation hooks. Native macOS exec
+    is deliberately disabled: its :minimal profile grants broad /tmp writes.
     """
 
     def __init__(
@@ -190,6 +190,7 @@ class RealCodexCodeBuilder:
             self._validate_base_commit()
             protected_before = self._protected_test_digests()
             workspace = self._create_worktree(candidate_id)
+            self._verify_sandbox(executable, workspace)
             prompt = self._implementation_prompt(
                 objective=objective,
                 requested_behavior=requested_behavior,
@@ -343,16 +344,14 @@ class RealCodexCodeBuilder:
             "--json",
             "--color",
             "never",
-            "--sandbox",
-            "workspace-write",
             "-C",
-            str(writable_root),
+            str(workspace),
             "-",
         )
         try:
             result = self._run(
                 argv,
-                cwd=writable_root,
+                cwd=workspace,
                 timeout=self.settings.codex_timeout_seconds,
                 input_text=prompt,
             )
@@ -404,6 +403,8 @@ You may modify ONLY these repository-relative paths:
 {chr(10).join(f'- {path}' for path in allowed_paths)}
 
 Do not create, delete, rename, stage, or commit files. Do not modify tests. Do not inspect evaluator, governance, evolution, validation/holdout manifests, ground truth, shared schemas, or environment seed data. Those are the exam and governance boundary.
+The existing Environment conversation_participants relation has conversation_id, account_id, participant_role (buyer/seller/support), and joined_at. Only roles established by message time may be used.
+Use this installed Python runtime for tests: {sys.executable}. Set PYTHONDONTWRITEBYTECODE=1, PYTHONPATH to this candidate's services/detection, and DETECTION_CANDIDATE_ROOT to this candidate's services/detection. Run pytest with -p no:cacheprovider. Run regressions from services/detection.
 
 You may read and run these protected behavioral tests, which are outside your writable root:
 {protected_tests}
@@ -420,6 +421,7 @@ Work only inside the current candidate. Keep the change localized and determinis
                 key: _expand(value, workspace, self.settings.artifact_root)
                 for key, value in command.environment
             }
+            argv, cwd, overrides = self._validation_invocation(workspace, command.name, argv, cwd, overrides)
             try:
                 result = self._run(
                     argv,
@@ -452,16 +454,25 @@ Work only inside the current candidate. Keep the change localized and determinis
 
     def _changed_paths(self, workspace: Path) -> tuple[str, ...]:
         tracked = self._git(
-            workspace, "diff", "--name-only", "--diff-filter=ACDMRTUXB", "HEAD"
-        ).stdout.splitlines()
+            workspace, "diff", "--name-only", "-z", "--diff-filter=ACDMRTUXB", "HEAD"
+        ).stdout.split("\0")
         untracked = self._git(
-            workspace, "ls-files", "--others", "--exclude-standard"
-        ).stdout.splitlines()
+            workspace, "ls-files", "--others", "-z"
+        ).stdout.split("\0")
         paths = tuple(sorted(set(filter(None, tracked + untracked))))
         for path in paths:
             if Path(path).is_absolute() or ".." in Path(path).parts:
                 raise CodeBuilderError(f"Git reported an unsafe changed path: {path!r}")
+            target = workspace / path
+            if target.is_symlink() or not target.is_file():
+                raise CodeBuilderError(f"Candidate cannot delete or replace files with symlinks: {path}")
         return paths
+
+    def _verify_sandbox(self, executable: str, workspace: Path) -> None:
+        raise CodeBuilderError("Native CLI filesystem isolation is unverified; use DockerCodexCodeBuilder")
+
+    def _validation_invocation(self, workspace, name, argv, cwd, environment):
+        return argv, cwd, environment
 
     def _working_patch_digest(self, workspace: Path) -> str:
         patch = self._git(workspace, "diff", "--binary", "HEAD").stdout.encode("utf-8")
@@ -501,12 +512,8 @@ Work only inside the current candidate. Keep the change localized and determinis
         target = self.settings.artifact_root / f"{_slug(metadata.candidate_id)}.json"
         if target.exists():
             raise CodeBuilderError(f"Candidate metadata is immutable and already exists: {target}")
-        temporary = target.with_suffix(".json.tmp")
-        temporary.write_text(
-            json.dumps(metadata.as_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temporary, target)
+        with target.open("x", encoding="utf-8") as stream:
+            stream.write(json.dumps(metadata.as_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n")
         return target
 
     def _git(
@@ -536,16 +543,21 @@ Work only inside the current candidate. Keep the change localized and determinis
         env.update({"PYTHONUNBUFFERED": "1"})
         if environment:
             env.update(environment)
-        return subprocess.run(
+        process = subprocess.Popen(
             tuple(argv),
             cwd=cwd,
             env=env,
-            input=input_text,
+            stdin=subprocess.PIPE,
             text=True,
-            capture_output=True,
-            timeout=timeout,
-            check=False,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
         )
+        try:
+            stdout, stderr = process.communicate(input_text, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.communicate()
+            raise
+        return subprocess.CompletedProcess(tuple(argv), process.returncode, stdout, stderr)
 
 
 def _slug(value: str) -> str:

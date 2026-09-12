@@ -382,6 +382,7 @@ class EvolutionOrchestrator:
             proposal.target_policy,
             base,
             build.candidate_policy,
+            build.code_candidate,
         )
         candidate_id = str(candidate_result["candidate_id"])
 
@@ -404,6 +405,20 @@ class EvolutionOrchestrator:
                 candidate_result=candidate_result,
                 context=context,
                 revision_feedback=feedback,
+            )
+
+        if build.code_candidate is not None:
+            run.record_candidate(candidate_id, None)
+            self._states.transition(
+                run, RunState.VALIDATING,
+                "CODE candidate built; engine-version evaluation adapter required",
+                candidate_id=candidate_id,
+                engine_commit=build.code_candidate.candidate_commit,
+            )
+            return EvolutionExecution(
+                run=run, diagnosis=diagnosis, proposal=proposal, directive=directive,
+                evolution_result=evolution_result, candidate_result=candidate_result,
+                context=context, revision_feedback=feedback,
             )
 
         candidate_policy = self._versions.candidate_registry.resolve(candidate_id)

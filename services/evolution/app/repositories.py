@@ -9,6 +9,7 @@ from typing import Any, Iterable, Mapping
 
 from .domain import (
     CandidatePolicy,
+    CodeCandidate,
     CandidatePolicyRecord,
     DefenseVersionSnapshot,
     FormalPolicyVersion,
@@ -62,6 +63,7 @@ class InMemoryCandidatePolicyRegistry:
         target_policy: PolicyType,
         base: DefenseVersionSnapshot,
         candidate_policy: CandidatePolicy | None,
+        code_candidate: CodeCandidate | None = None,
     ) -> CandidatePolicyRecord:
         candidate_id = _required_string(candidate_result, "candidate_id")
         build_id = _required_string(candidate_result, "build_id")
@@ -87,11 +89,11 @@ class InMemoryCandidatePolicyRegistry:
                 "Base defense must contain exactly one reference for the target policy"
             )
 
-        if status == "built" and candidate_policy is None:
+        if status == "built" and (candidate_policy is None) == (code_candidate is None):
             raise VersionRepositoryError(
                 "A built candidate requires an internal CandidatePolicy"
             )
-        if status == "failed" and candidate_policy is not None:
+        if status == "failed" and (candidate_policy is not None or code_candidate is not None):
             raise VersionRepositoryError(
                 "A failed candidate cannot register a CandidatePolicy"
             )
@@ -133,6 +135,8 @@ class InMemoryCandidatePolicyRegistry:
                 )
 
         frozen_result = _deep_freeze(deepcopy(dict(candidate_result)))
+        if code_candidate and code_candidate.candidate_id != candidate_id:
+            raise VersionRepositoryError("Code candidate identity mismatch")
         record = CandidatePolicyRecord(
             candidate_id=candidate_id,
             build_id=build_id,
@@ -147,6 +151,7 @@ class InMemoryCandidatePolicyRegistry:
             build_log_ref=_optional_string(candidate_result.get("build_log_ref")),
             build_status=status,
             candidate_result=frozen_result,
+            code_candidate=code_candidate,
         )
         with self._lock:
             self._assert_registration_available(candidate_id, candidate_policy)

@@ -5,6 +5,7 @@ from typing import Any
 
 from .domain import (
     CandidatePolicy,
+    CodeCandidate,
     CandidatePolicyRecord,
     DefenseVersionSnapshot,
     FormalPolicyVersion,
@@ -47,9 +48,10 @@ class VersionManager:
         target_policy: PolicyType,
         base: DefenseVersionSnapshot,
         candidate_policy: CandidatePolicy | None,
+        code_candidate: CodeCandidate | None = None,
     ) -> CandidatePolicyRecord:
         return self._candidates.register(
-            candidate_result, target_policy, base, candidate_policy
+            candidate_result, target_policy, base, candidate_policy, code_candidate
         )
 
     def compose_candidate(

@@ -64,7 +64,7 @@ def _fake_codex(tmp_path: Path, body: str) -> Path:
         "if '--version' in sys.argv:\n"
         "    print('codex-cli test')\n"
         "    raise SystemExit(0)\n"
-        "root = pathlib.Path(sys.argv[sys.argv.index('-C') + 1])\n"
+        "root = pathlib.Path(sys.argv[sys.argv.index('-C') + 1]) / 'services/detection/app'\n"
         "_prompt = sys.stdin.read()\n"
         + body
     )
@@ -103,7 +103,12 @@ def _settings(
 
 
 def _build(settings: CodeBuilderSettings, candidate: str = "code-candidate-test"):
-    return RealCodexCodeBuilder(
+    # Lifecycle fault injection only, not an OS isolation proof.
+    class FixtureBuilder(RealCodexCodeBuilder):
+        def _verify_sandbox(self, executable, workspace):
+            pass
+
+    return FixtureBuilder(
         settings,
         process_environment={
             "PATH": os.environ.get("PATH", ""),

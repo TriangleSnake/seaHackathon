@@ -9,12 +9,11 @@ from typing import Any, Protocol
 from .adapters import SharedContractAdapter
 from .domain import (
     BuildOutcome,
-    CandidatePolicy,
+    CodeCandidate,
     CapabilityKind,
     DETECTION_CODE_ALLOWED_PATHS,
     ImplementationDirective,
     PolicyChangeProposal,
-    PolicyReference,
     PolicyType,
 )
 
@@ -44,9 +43,9 @@ class CodexCandidateBuilder:
         service_root = _REPOSITORY_ROOT / "services" / "codex-builder"
         if str(service_root) not in sys.path:
             sys.path.insert(0, str(service_root))
-        from codex_builder.runtime import RealCodexCodeBuilder
+        from codex_builder.container_runtime import DockerCodexCodeBuilder
 
-        return cls(RealCodexCodeBuilder(settings))
+        return cls(DockerCodexCodeBuilder(settings))
 
     def build(
         self,
@@ -101,13 +100,11 @@ class CodexCandidateBuilder:
             return BuildOutcome(
                 True,
                 result,
-                CandidatePolicy(
-                    target_policy=PolicyType.DETECTION,
-                    policy_ref=PolicyReference(
-                        PolicyType.DETECTION,
-                        f"DP-CAND-CODE-{_slug(build_id)}",
-                    ),
-                    artifact_ref=artifact_ref,
+                code_candidate=CodeCandidate(
+                    candidate_id=candidate_id,
+                    base_commit=metadata.base_commit,
+                    candidate_commit=metadata.candidate_commit,
+                    metadata_ref=built.metadata_path,
                 ),
             )
         except Exception as exc:
@@ -163,6 +160,8 @@ class CodexCandidateBuilder:
             raise ValueError("CodexCandidateBuilder requires a CODE directive")
         if directive.target_policy is not proposal.target_policy:
             raise ValueError("CODE directive target does not match the proposal")
+        if not proposal.base_policy_version or directive.base_policy_version != proposal.base_policy_version:
+            raise ValueError("CODE directive base policy does not match proposal")
         if directive.boundary.allowed_paths != DETECTION_CODE_ALLOWED_PATHS:
             raise ValueError("CODE directive does not carry the exact Detection write boundary")
         if list(build_request.get("target_policies", ())) != [PolicyType.DETECTION.value]:

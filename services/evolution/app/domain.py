@@ -356,6 +356,17 @@ class CandidatePolicyRecord:
     build_log_ref: str | None
     build_status: str
     candidate_result: Mapping[str, Any]
+    code_candidate: CodeCandidate | None = None
+
+
+@dataclass(frozen=True)
+class CodeCandidate:
+    """Engine identity; deliberately has no policy version."""
+
+    candidate_id: str
+    base_commit: str
+    candidate_commit: str
+    metadata_ref: str
 
 
 @dataclass(frozen=True)
@@ -376,11 +387,12 @@ class BuildOutcome:
     candidate_result: Mapping[str, Any]
     candidate_policy: CandidatePolicy | None = None
     error: str | None = None
+    code_candidate: CodeCandidate | None = None
 
     def __post_init__(self) -> None:
-        if self.success and self.candidate_policy is None:
-            raise ValueError("Successful build requires a CandidatePolicy")
-        if not self.success and self.candidate_policy is not None:
+        if self.success and (self.candidate_policy is None) == (self.code_candidate is None):
+            raise ValueError("Successful build requires exactly one policy or code candidate")
+        if not self.success and (self.candidate_policy is not None or self.code_candidate is not None):
             raise ValueError("Failed build cannot expose a CandidatePolicy")
 
 

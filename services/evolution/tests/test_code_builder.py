@@ -22,6 +22,7 @@ from app.versioning import VersionManager
 
 @dataclass(frozen=True)
 class Metadata:
+    base_commit: str = "b" * 40
     candidate_workspace: str = "/tmp/code-candidate"
     candidate_commit: str | None = "a" * 40
     changed_paths: tuple[str, ...] = (
@@ -94,9 +95,8 @@ def test_code_builder_reuses_candidate_result_and_internal_candidate_namespace()
     assert outcome.candidate_result["candidate_id"] == "code-candidate-build-hero-code"
     assert outcome.candidate_result["status"] == "built"
     assert outcome.candidate_result["build_log_ref"] == "/tmp/code-candidate.json"
-    assert outcome.candidate_policy is not None
-    assert outcome.candidate_policy.policy_ref.version == "DP-CAND-CODE-build-hero-code"
-    assert outcome.candidate_policy.artifact_ref == f"git:{'a' * 40}"
+    assert outcome.candidate_policy is None
+    assert outcome.code_candidate.candidate_commit == "a" * 40
     assert engine.calls[0]["allowed_paths"] == directive.boundary.allowed_paths
 
 
@@ -149,7 +149,7 @@ class Planner:
 class CandidateVersionFactory:
     def create(self, run, base, candidate_policy, candidate_id):
         del run, base, candidate_policy, candidate_id
-        return "DV-CAND-CODE-001"
+        raise AssertionError("CODE engine must not be composed as a policy version")
 
 
 class ConfigBuilderMustNotRun:
@@ -218,4 +218,7 @@ def test_deterministic_evolution_pipeline_selects_code_builder_not_config() -> N
     assert execution.candidate_result["candidate_id"] == "code-candidate-build-hero-code"
     assert engine.calls
     record = registry.get("code-candidate-build-hero-code")
-    assert record.candidate_policy_version == "DP-CAND-CODE-build-hero-code"
+    assert record.candidate_policy_version is None
+    assert record.code_candidate.candidate_commit == "a" * 40
+    assert execution.candidate_defense_version is None
+    assert versions.next_policy_version(PolicyType.DETECTION) == "DP-001"

@@ -12,7 +12,8 @@ for path in (REPOSITORY_ROOT, SERVICE_ROOT):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from codex_builder.runtime import CodeBuilderSettings, RealCodexCodeBuilder
+from codex_builder.runtime import CodeBuilderSettings
+from codex_builder.container_runtime import DockerCodexCodeBuilder
 from services.evolution.app.capabilities import DetectionPolicyCapabilityAdapter
 from services.evolution.app.code_builder import CodexCandidateBuilder
 from services.evolution.app.domain import PolicyChangeProposal, PolicyType
@@ -34,6 +35,7 @@ def main() -> int:
         "--artifact-root", default="/private/tmp/member4-real-codex-artifacts"
     )
     parser.add_argument("--codex-executable", default="codex")
+    parser.add_argument("--image", default="member4-real-codex-builder:0.154.0")
     arguments = parser.parse_args()
 
     acceptance = (
@@ -70,7 +72,7 @@ def main() -> int:
         provenance={"source": "deterministic-code-pipeline-proof"},
     )
     directive = DetectionPolicyCapabilityAdapter().resolve(proposal)
-    builder = CodexCandidateBuilder(RealCodexCodeBuilder(settings))
+    builder = CodexCandidateBuilder(DockerCodexCodeBuilder(settings, image=arguments.image))
     outcome = builder.build(
         {
             "build_id": arguments.build_id,
