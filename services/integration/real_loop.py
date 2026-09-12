@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import asdict, is_dataclass
 from datetime import datetime
 from enum import Enum
@@ -15,6 +16,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 from types import MappingProxyType
 from typing import Any
 
@@ -50,6 +53,7 @@ from services.evolution.app.capabilities import (
     DetectionPolicyCapabilityAdapter,
 )
 from services.evolution.app.config_builder import ConfigBuilder, ConfigBuilderSettings
+from services.evolution.app.code_builder import CodexCandidateBuilder
 from services.evolution.app.domain import (
     CapabilityKind,
     ConfigListOperation,
@@ -206,7 +210,13 @@ def runtime_preflight(env_file: Path) -> bool:
     return available
 
 
-def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
+def run_real_loop(
+    env_file: Path,
+    *,
+    human_approve: bool,
+    evolution_request: Mapping[str, Any] | None = None,
+    code_builder_enabled: bool = False,
+) -> dict[str, Any]:
     if not runtime_preflight(env_file):
         raise RuntimeError("OPENAI_API_KEY is unavailable to the Evolution runtime")
 
@@ -217,8 +227,19 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
     environment = PostgresEnvironmentControl(database_url)
     verified = environment.verify_isolated(SCENARIO)
     _checkpoint("isolated_environment_verified", verified)
-    overview_before = environment.set_simulation_time_once(TARGET_TIME)
-    _checkpoint("environment_before_loop", overview_before)
+    current_time = datetime.fromisoformat(
+        verified["simulation"]["simulation_time"]
+    )
+    if current_time == TARGET_TIME:
+        overview_before = verified
+        simulation_time_advanced = False
+    else:
+        overview_before = environment.set_simulation_time_once(TARGET_TIME)
+        simulation_time_advanced = True
+    _checkpoint(
+        "environment_before_loop",
+        {"overview": overview_before, "simulation_time_advanced": simulation_time_advanced},
+    )
 
     registry = InMemoryCandidatePolicyRegistry()
     repository = InMemoryVersionRepository([_base_defense()])
@@ -235,7 +256,10 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
     resolver = CapabilityResolver(
         {PolicyType.DETECTION: DetectionPolicyCapabilityAdapter()}
     )
-    router = BuilderRouter({CapabilityKind.CONFIG: builder})
+    builders = {CapabilityKind.CONFIG: builder}
+    if code_builder_enabled:
+        builders[CapabilityKind.CODE] = _build_codex_candidate_builder()
+    router = BuilderRouter(builders)
 
     recording_runner = RecordingDetectionRunner(
         HttpDetectionRunner(
@@ -308,7 +332,9 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
     )
 
     capability_provider = DetectionConfigCapabilityProvider(
-        FilePolicyRepository(BASELINE_POLICY_DIR), versions
+        FilePolicyRepository(BASELINE_POLICY_DIR),
+        versions,
+        code_builder_available=code_builder_enabled,
     )
     planner = OpenAIEvolutionPlanner.from_env(
         capability_provider=capability_provider
@@ -321,13 +347,21 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
         CandidateDefenseVersionFactory(),
         id_factory=ids,
     )
-    request = _evolution_request(mechanical_evaluation["baseline_metrics"])
+    if evolution_request is None:
+        request = _evolution_request(mechanical_evaluation["baseline_metrics"])
+        pattern_source = "manual_member4_fixture"
+    else:
+        request = deepcopy(dict(evolution_request))
+        request["system_performance"] = deepcopy(
+            mechanical_evaluation["baseline_metrics"]
+        )
+        pattern_source = "pattern_synthesis_handoff"
     _validate_evolution_request(request)
     _checkpoint(
         "real_evolution_started",
         {
             "model": planner.model,
-            "pattern_fixture": "manual PatternSpec fixture for first real Evolution-loop demonstration",
+            "pattern_source": pattern_source,
         },
     )
     execution = real_orchestrator.execute(request, retry_budget=1)
@@ -338,8 +372,59 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
             "reason": execution.evolution_result.get("reason"),
             "openai_live_call_occurred": True,
             "detection_http_call_count": recording_runner.call_count,
+            "resolver_mode": (
+                execution.directive.kind.value if execution.directive else None
+            ),
+            "candidate_result": execution.candidate_result,
         }
         _checkpoint("real_evolution_terminal", result)
+        return _finish(environment, overview_before, result)
+
+    if execution.directive is not None and execution.directive.kind is CapabilityKind.CODE:
+        metadata = _read_code_build_metadata(execution.candidate_result)
+        code_passed = bool(
+            execution.candidate_result.get("status") == "built"
+            and metadata.get("test_status") == "passed"
+            and metadata.get("status") == "built"
+        )
+        result = {
+            "terminal_state": execution.run.current_state.value,
+            "model": planner.model,
+            "openai_live_call_occurred": True,
+            "detection_http_call_count": recording_runner.call_count,
+            "resolver_mode": "CODE",
+            "candidate_result": execution.candidate_result,
+            "code_build_validation": {
+                "status": "passed" if code_passed else "failed",
+                "candidate_commit": metadata.get("candidate_commit"),
+                "changed_paths": metadata.get("changed_paths", []),
+                "test_status": metadata.get("test_status", "not_run"),
+                "failure_reason": metadata.get("failure_reason"),
+                "metadata_ref": execution.candidate_result.get("build_log_ref"),
+            },
+            "validations": [],
+            "holdout": None,
+            "governance": None,
+            "formal_version": None,
+        }
+        _checkpoint("code_build_validation", result["code_build_validation"])
+        return _finish(environment, overview_before, result)
+
+    if execution.candidate_defense_version is None:
+        result = {
+            "terminal_state": execution.run.current_state.value,
+            "model": planner.model,
+            "openai_live_call_occurred": True,
+            "detection_http_call_count": recording_runner.call_count,
+            "resolver_mode": (
+                execution.directive.kind.value if execution.directive else None
+            ),
+            "candidate_result": execution.candidate_result,
+            "validations": [],
+            "holdout": None,
+            "governance": None,
+            "formal_version": None,
+        }
         return _finish(environment, overview_before, result)
 
     validations: list[dict[str, Any]] = []
@@ -474,12 +559,17 @@ def run_real_loop(env_file: Path, *, human_approve: bool) -> dict[str, Any]:
         "model": planner.model,
         "openai_live_call_occurred": True,
         "detection_http_call_count": recording_runner.call_count,
+        "resolver_mode": "CONFIG",
+        "candidate_result": execution.candidate_result,
         "mechanical": mechanical_evaluation,
         "validations": validations,
         "holdout": holdout,
         "governance": governance_payload,
         "formal_version": formal_version,
         "first_candidate_immutable": first_immutable,
+        "revision_outcome": (
+            "revised" if len(validations) > 1 else "not_needed"
+        ),
     }
     return _finish(environment, overview_before, summary)
 
@@ -496,6 +586,56 @@ def _finish(
         raise RuntimeError("Environment snapshot changed during the real loop")
     _checkpoint("summary", summary)
     return summary
+
+
+def _build_codex_candidate_builder() -> CodexCandidateBuilder:
+    service_root = REPOSITORY_ROOT / "services" / "codex-builder"
+    if str(service_root) not in sys.path:
+        sys.path.insert(0, str(service_root))
+    from codex_builder.container_runtime import DockerCodexCodeBuilder
+    from codex_builder.runtime import CodeBuilderSettings
+
+    head = subprocess.run(
+        ("git", "rev-parse", "HEAD"),
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    settings = CodeBuilderSettings.for_detection(
+        source_repository=REPOSITORY_ROOT,
+        base_commit=head,
+        acceptance_test=(
+            service_root
+            / "tests"
+            / "acceptance"
+            / "seller_conditional_payment_acceptance.py"
+        ),
+        candidate_root=os.environ.get(
+            "CODEX_CANDIDATE_ROOT", "/private/tmp/demo-ready-codex-candidates"
+        ),
+        artifact_root=os.environ.get(
+            "CODEX_ARTIFACT_ROOT", "/private/tmp/demo-ready-codex-artifacts"
+        ),
+    )
+    engine = DockerCodexCodeBuilder(
+        settings,
+        image=os.environ.get(
+            "CODEX_BUILDER_IMAGE", "member4-real-codex-builder:0.154.0"
+        ),
+    )
+    return CodexCandidateBuilder(engine)
+
+
+def _read_code_build_metadata(candidate_result: Mapping[str, Any]) -> dict[str, Any]:
+    ref = candidate_result.get("build_log_ref")
+    if not isinstance(ref, str) or not ref:
+        return {}
+    try:
+        payload = json.loads(Path(ref).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _base_defense() -> DefenseVersionSnapshot:

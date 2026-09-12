@@ -35,12 +35,15 @@ class _JsonServiceClient:
         request_id: str,
         traceparent: str | None = None,
         idempotency_key: str | None = None,
+        extra_headers: dict[str, str] | None = None,
     ) -> Any:
         headers = {"X-Request-ID": request_id}
         if traceparent:
             headers["traceparent"] = traceparent
         if idempotency_key:
             headers["Idempotency-Key"] = idempotency_key
+        if extra_headers:
+            headers.update(extra_headers)
         try:
             response = await self._client.post(
                 f"{self._base_url}{path}", json=payload, headers=headers
@@ -80,7 +83,14 @@ class PatrolClient(_JsonServiceClient):
             self._contracts.patrol_request(payload)
         except ContractValidationError as exc:
             raise _contract_error("Patrol request", exc) from exc
-        raw = await self._post("/patrol/run", payload, request_id, traceparent, request.run_id)
+        raw = await self._post(
+            "/patrol/run",
+            payload,
+            request_id,
+            traceparent,
+            request.run_id,
+            {"X-Upstream-Orchestration": "association-first"},
+        )
         try:
             self._contracts.patrol_result(raw)
             result = PatrolResult.model_validate(raw)

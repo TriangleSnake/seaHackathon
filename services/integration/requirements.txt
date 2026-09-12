@@ -2,3 +2,4 @@
 -r ../detection/requirements.txt
 -r ../governance/requirements.txt
 referencing>=0.35,<1
+httpx>=0.28,<1

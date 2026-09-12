@@ -5,7 +5,7 @@ import os
 from contextlib import asynccontextmanager, suppress
 from typing import Any, Literal
 
-from fastapi import Body, FastAPI, HTTPException, Request, status
+from fastapi import Body, FastAPI, Header, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from .agent import run_patrol
@@ -70,11 +70,15 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/patrol/run", response_model=PatrolResult)
-async def patrol_run(request: PatrolRequest) -> PatrolResult:
+async def patrol_run(
+    request: PatrolRequest,
+    x_upstream_orchestration: str | None = Header(default=None),
+) -> PatrolResult:
     policy = load_active_policy(request.strategy)
     try:
         result = await run_patrol(request, policy)
-        await handoff_to_investigation(result)
+        if x_upstream_orchestration != "association-first":
+            await handoff_to_investigation(result)
         return result
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Patrol run failed: {exc}") from exc

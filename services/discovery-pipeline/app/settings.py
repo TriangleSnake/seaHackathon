@@ -16,7 +16,12 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        schema_default = Path(__file__).resolve().parents[3] / "shared" / "schemas"
+        resolved = Path(__file__).resolve()
+        schema_default = (
+            resolved.parents[3] / "shared" / "schemas"
+            if len(resolved.parents) > 3
+            else Path("/app/shared/schemas")
+        )
         timeout = float(os.environ.get("DISCOVERY_PIPELINE_TIMEOUT_SECONDS", "30"))
         if timeout <= 0:
             raise ValueError("DISCOVERY_PIPELINE_TIMEOUT_SECONDS must be positive")

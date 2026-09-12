@@ -69,9 +69,8 @@ should add this service with repository-root Docker build context, route new
 upstream runs to `POST /pipeline/run`, and pass the collector output to Pattern
 Synthesis. Keep the full `UpstreamPipelineResult` as the audit record.
 
-The current Patrol `/patrol/run` implementation still performs its legacy direct
-Investigation handoff before returning. That behavior is deliberately preserved
-for backward compatibility, but it means a live pipeline invocation also causes
-the legacy Investigation call. When Full System Integration selects this pipeline
-as primary, it must explicitly gate the legacy Patrol handoff to prevent duplicate
-Investigation work; that service-level switch is outside this branch's scope.
+The pipeline marks its Patrol request with
+`X-Upstream-Orchestration: association-first`. Patrol treats that internal marker
+as a request-scoped gate for its legacy direct Investigation handoff, so this path
+performs Association and then Investigation exactly once. Calls without the marker,
+including existing job handoffs, retain the legacy behavior.

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    container_name: sea-demo-ready-postgres
+    ports: !override
+      - "127.0.0.1:${DEMO_POSTGRES_PORT:-55433}:5432"
+
+  system-tools:
+    environment:
+      DATABASE_URL: postgresql://fraud:${MEMBER4_POSTGRES_PASSWORD:-fraud_dev_password}@host.docker.internal:55432/fraud_intelligence
+
+  detection:
+    environment:
+      DATABASE_URL: postgresql://fraud:${MEMBER4_POSTGRES_PASSWORD:-fraud_dev_password}@host.docker.internal:55432/fraud_intelligence
+
+  patrol:
+    environment:
+      DATABASE_URL: postgresql://fraud:${MEMBER4_POSTGRES_PASSWORD:-fraud_dev_password}@host.docker.internal:55432/fraud_intelligence
+
+  association:
+    environment:
+      DATABASE_URL: postgresql://fraud:${MEMBER4_POSTGRES_PASSWORD:-fraud_dev_password}@host.docker.internal:55432/fraud_intelligence

@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from app.policies.models import DetectionPolicy
+from .models import DetectionPolicy
 import psycopg
 from psycopg.rows import dict_row
 
@@ -157,19 +157,26 @@ class FilePolicyRepository:
 class LayeredFilePolicyRepository:
     """Resolve immutable policies across non-overlapping read-only directories."""
 
-    def __init__(self, policy_dirs: tuple[str | Path, ...] | list[str | Path]) -> None:
+    def __init__(
+        self,
+        policy_dirs: tuple[str | Path, ...] | list[str | Path],
+        database_url: str | None = None,
+    ) -> None:
         if not policy_dirs:
             raise ValueError("At least one policy directory is required")
-        self._repositories = tuple(FilePolicyRepository(path) for path in policy_dirs)
+        self._repositories = tuple(
+            FilePolicyRepository(path, database_url if index == 0 else None)
+            for index, path in enumerate(policy_dirs)
+        )
         self._cache: dict[str, DetectionPolicy] = {}
 
     def resolve(self, version: str) -> DetectionPolicy:
         if version in self._cache:
             return self._cache[version]
-        matches: list[dict[str, Any]] = []
+        matches: list[DetectionPolicy] = []
         for repository in self._repositories:
             try:
-                matches.append(repository.read_document(version))
+                matches.append(repository.resolve(version))
             except PolicyNotFoundError:
                 continue
         if not matches:
@@ -178,6 +185,30 @@ class LayeredFilePolicyRepository:
             raise ValueError(
                 f"Policy version {version!r} exists in multiple policy directories"
             )
-        policy = DetectionPolicy.model_validate(matches[0])
+        policy = matches[0]
         self._cache[version] = policy
         return policy
+
+    def active_version(self) -> str | None:
+        return self._repositories[0].active_version()
+
+    async def initialize(self) -> None:
+        await self._repositories[0].initialize()
+
+    async def list_versions(self) -> list[dict]:
+        return await self._repositories[0].list_versions()
+
+    async def save_draft(self, policy: DetectionPolicy, source: str) -> bool:
+        return await self._repositories[0].save_draft(policy, source)
+
+    async def publish(self, policy: DetectionPolicy, source: str) -> bool:
+        published = await self._repositories[0].publish(policy, source)
+        if published:
+            self._cache.pop(policy.version, None)
+        return published
+
+    async def activate(self, version: str) -> bool:
+        activated = await self._repositories[0].activate(version)
+        if activated:
+            self._cache.pop(version, None)
+        return activated

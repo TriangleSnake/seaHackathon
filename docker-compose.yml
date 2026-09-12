@@ -199,6 +199,43 @@ services:
     networks:
       - fraud-intelligence-network
 
+  discovery-pipeline:
+    build:
+      context: .
+      dockerfile: services/discovery-pipeline/Dockerfile
+    environment:
+      PATROL_URL: http://patrol:10003
+      ASSOCIATION_URL: http://association:10004
+      INVESTIGATION_URL: http://investigation:8000
+      SCOREBOARD_CONFIG_VERSION: ${SCOREBOARD_CONFIG_VERSION:-development-v1}
+      DISCOVERY_PIPELINE_TIMEOUT_SECONDS: ${DISCOVERY_PIPELINE_TIMEOUT_SECONDS:-60}
+    depends_on:
+      patrol:
+        condition: service_started
+      association:
+        condition: service_started
+      investigation:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${DISCOVERY_PIPELINE_PORT:-10006}:10006"
+    networks:
+      - fraud-intelligence-network
+
+  pattern-synthesis:
+    build:
+      context: .
+      dockerfile: services/pattern-synthesis/Dockerfile
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.4-mini}
+      PATTERN_SYNTHESIS_OPENAI_MODEL: ${PATTERN_SYNTHESIS_OPENAI_MODEL:-gpt-5.4-mini}
+      OPENAI_TIMEOUT_SECONDS: ${OPENAI_TIMEOUT_SECONDS:-60}
+      PATTERN_SYNTHESIS_MAX_OUTPUT_TOKENS: ${PATTERN_SYNTHESIS_MAX_OUTPUT_TOKENS:-3000}
+    ports:
+      - "127.0.0.1:${PATTERN_SYNTHESIS_PORT:-10007}:8000"
+    networks:
+      - fraud-intelligence-network
+
   dashboard:
     image: seahackathon-dashboard:latest
     build:
@@ -240,4 +277,4 @@ volumes:
 
 networks:
   fraud-intelligence-network:
-    name: fraud-intelligence-network
+    name: ${COMPOSE_NETWORK_NAME:-fraud-intelligence-network}

@@ -212,10 +212,12 @@ class FakeServices:
         self.association_status = association_status
         self.investigation_status = investigation_status
         self.calls: list[tuple[str, dict[str, Any]]] = []
+        self.headers: list[tuple[str, httpx.Headers]] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content)
         self.calls.append((request.url.path, payload))
+        self.headers.append((request.url.path, request.headers))
         if request.url.path == "/patrol/run":
             return httpx.Response(200, json=self.patrol_result)
         if request.url.path == "/associate":
@@ -264,6 +266,8 @@ def test_one_discovery_calls_association_then_investigation() -> None:
     assert item.association.status == "succeeded"
     assert item.investigation.status == "succeeded"
     assert collect_investigation_results(result)[0].case_id == item.case_id
+    patrol_headers = next(headers for path, headers in fake.headers if path == "/patrol/run")
+    assert patrol_headers["X-Upstream-Orchestration"] == "association-first"
 
 
 def test_multiple_discoveries_have_independent_deterministic_lineage() -> None:

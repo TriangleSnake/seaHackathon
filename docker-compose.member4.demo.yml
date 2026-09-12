@@ -1,0 +1,3 @@
+services:
+  detection:
+    container_name: sea-demo-ready-detection

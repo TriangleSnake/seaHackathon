@@ -32,9 +32,14 @@ def create_app(
             resolved_settings.openai_model,
         )
 
-    policy_repository = FilePolicyRepository(
-        resolved_settings.policy_dir,
-        resolved_settings.database_url if repository is None else None,
+    database_url = resolved_settings.database_url if repository is None else None
+    policy_repository = (
+        LayeredFilePolicyRepository(
+            (resolved_settings.policy_dir, resolved_settings.candidate_policy_dir),
+            database_url=database_url,
+        )
+        if resolved_settings.candidate_policy_dir
+        else FilePolicyRepository(resolved_settings.policy_dir, database_url)
     )
 
     @asynccontextmanager
@@ -54,13 +59,6 @@ def create_app(
     )
     application.state.settings = resolved_settings
     application.state.repository = resolved_repository
-    policy_repository = (
-        LayeredFilePolicyRepository(
-            (resolved_settings.policy_dir, resolved_settings.candidate_policy_dir)
-        )
-        if resolved_settings.candidate_policy_dir
-        else FilePolicyRepository(resolved_settings.policy_dir)
-    )
     application.state.detection_service = DetectionService(
         resolved_repository,
         resolved_classifier,
