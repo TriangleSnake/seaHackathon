@@ -16,6 +16,7 @@ from app.domain.models import (
 )
 from app.service import SubjectNotFoundError
 from app.policies.repository import PolicyNotFoundError
+from app.errors import CheckUnavailableError, CheckInconclusiveError
 
 
 router = APIRouter()
@@ -60,6 +61,7 @@ async def ready(
     response_model=DetectionResult,
     responses={
         status.HTTP_404_NOT_FOUND: {"model": ErrorResponse},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ErrorResponse},
         status.HTTP_503_SERVICE_UNAVAILABLE: {"model": ErrorResponse},
     },
     tags=["detection"],
@@ -79,6 +81,14 @@ async def detect(
             else request.app.state.settings.default_policy_version
         )
         return result
+    except (CheckUnavailableError, CheckInconclusiveError) as error:
+        return JSONResponse(
+            status_code=422,
+            content={"error": {
+                "code": "check_unavailable" if isinstance(error, CheckUnavailableError) else "check_inconclusive",
+                "message": str(error), "request_id": request_id,
+            }},
+        )
     except SubjectNotFoundError:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,

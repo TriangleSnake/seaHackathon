@@ -4,6 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any
+from contextvars import ContextVar
 
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
@@ -26,6 +27,7 @@ class PostgresDetectionRepository:
     """Read-only, parameterized access to replay-visible Environment data."""
 
     def __init__(self, database_url: str, pool_size: int = 5) -> None:
+        self._snapshot_connection = ContextVar("detection_snapshot", default=None)
         self.pool = AsyncConnectionPool(
             conninfo=database_url,
             min_size=1,
@@ -52,6 +54,10 @@ class PostgresDetectionRepository:
     async def _fetch_all(
         self, query: str, params: tuple[Any, ...] = ()
     ) -> list[dict[str, Any]]:
+        snapshot = self._snapshot_connection.get()
+        if snapshot is not None:
+            cursor = await snapshot.execute(query, params)
+            return list(await cursor.fetchall())
         await self._open()
         async with self.pool.connection() as connection:
             async with connection.cursor() as cursor:
@@ -102,6 +108,20 @@ class PostgresDetectionRepository:
         )
 
     async def load_context(self, subject: Subject) -> DetectionContext | None:
+        await self._open()
+        async with self.pool.connection() as connection:
+            async with connection.transaction():
+                await connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+                token = self._snapshot_connection.set(connection)
+                try:
+                    rows = await self._fetch_all("SELECT simulation_time FROM simulation_state WHERE singleton_id = 1")
+                    if not rows:
+                        raise RuntimeError("Simulation state is not initialized")
+                    return await self._load_context(subject, rows[0]["simulation_time"])
+                finally:
+                    self._snapshot_connection.reset(token)
+
+    async def _load_context(self, subject: Subject, as_of: datetime) -> DetectionContext | None:
         account_ids = await self._resolve_accounts(subject)
         if account_ids is None:
             return None
@@ -119,6 +139,7 @@ class PostgresDetectionRepository:
             subject=subject,
             account_ids=account_ids,
             evidence=list(unique.values()),
+            as_of=as_of,
         )
 
     async def _load_messages(

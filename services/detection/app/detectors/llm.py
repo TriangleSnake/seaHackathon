@@ -5,6 +5,7 @@ from math import exp
 from typing import Any, Protocol
 
 from app.domain.models import DetectionTrigger, Evidence
+from app.errors import CheckInconclusiveError
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,7 @@ def binary_decision(
                 "false": false_probability,
             },
             "threshold": threshold,
-            "decision": "trigger" if suspicious else "abstain",
+            "decision": "trigger" if suspicious else "not_triggered",
         },
     )
 
@@ -72,8 +73,10 @@ class LLMDetector:
             item for item in evidence if item.type == "message" and item.data.get("text")
         ]
         if not message_evidence:
-            return []
+            raise CheckInconclusiveError("llm_classifier: no message text available")
         classification = await self.classifier.classify([str(item.data["text"]) for item in message_evidence], self.threshold)
+        if classification.raw_result.get("decision") == "abstain":
+            raise CheckInconclusiveError("llm_classifier: " + str(classification.raw_result.get("reason", "abstain")))
         if not classification.suspicious:
             return []
         return [

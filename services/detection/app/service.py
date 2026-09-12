@@ -10,6 +10,7 @@ from app.detectors.rules import RuleDetector
 from app.domain.context import DetectionContext
 from app.domain.models import DetectionRequest, DetectionResult, DetectionTrigger, Subject
 from app.policies.repository import FilePolicyRepository
+from app.errors import CheckUnavailableError
 
 
 class SubjectNotFoundError(LookupError):
@@ -50,10 +51,16 @@ class DetectionService:
             if "requested_checks" in request.model_fields_set
             else policy.default_checks
         )
+        if not checks:
+            raise CheckUnavailableError("No checks requested")
+        if "ml_classifier" in checks:
+            raise CheckUnavailableError("ml_classifier is not implemented")
+        if "llm_classifier" in checks and self.classifier is None:
+            raise CheckUnavailableError("llm_classifier is not configured")
 
         detectors = {
             "rule_based": RuleDetector(policy.rule_based),
-            "anomaly": AnomalyDetector(policy.anomaly),
+            "anomaly": AnomalyDetector(policy.anomaly, context.as_of),
         }
         llm_detector = (
             LLMDetector(self.classifier, policy.llm_classifier.confidence_threshold)
@@ -71,7 +78,7 @@ class DetectionService:
 
         triggers = [
             trigger.model_copy(
-                update={"raw_result": {**(trigger.raw_result or {}), "policy_version": policy.version}}
+                update={"raw_result": {**(trigger.raw_result or {}), "policy_version": policy.version, "as_of": context.as_of.isoformat()}}
             )
             for trigger in triggers
         ]

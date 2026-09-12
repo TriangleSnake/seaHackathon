@@ -41,11 +41,11 @@ def test_binary_decision_accepts_true_above_threshold() -> None:
     assert round(decision.raw_result["probabilities"]["true"], 3) == 0.9
 
 
-def test_binary_decision_abstains_below_threshold() -> None:
+def test_binary_decision_valid_negative_below_threshold() -> None:
     decision = binary_decision({"true": -0.5978370, "false": -0.7985077}, 0.6)
 
     assert decision.suspicious is False
-    assert decision.raw_result["decision"] == "abstain"
+    assert decision.raw_result["decision"] == "not_triggered"
 
 
 def test_binary_decision_abstains_when_candidate_is_missing() -> None:

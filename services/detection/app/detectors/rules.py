@@ -100,12 +100,14 @@ class RuleDetector:
         logins = [
             item
             for item in _by_type(evidence, "login_event")
-            if item.data.get("device_novel") is True
+            if item.data.get("device_novel") is True and item.data.get("success") is True
         ]
         refs: list[str] = []
         for change in security:
             change_time = change.observed_at or _time(change.data.get("occurred_at"))
             for login in logins:
+                if not change.data.get("account_id") or change.data["account_id"] != login.data.get("account_id"):
+                    continue
                 login_time = login.observed_at or _time(login.data.get("occurred_at"))
                 if change_time and login_time and timedelta(0) <= login_time - change_time <= timedelta(minutes=self.policy.access_window_minutes):
                     refs.extend([change.id, login.id])
