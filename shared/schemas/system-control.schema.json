@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sea-hackathon.local/schemas/system-control.schema.json",
+  "title": "System Control Plane",
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "ref"],
+      "properties": {
+        "type": { "enum": ["event", "schedule", "manual"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "event_type": { "type": ["string", "null"] }
+      }
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["job_id", "agent", "trigger", "policy_version", "status", "attempt", "max_attempts"],
+      "properties": {
+        "job_id": { "type": "string", "minLength": 1 },
+        "agent": { "enum": ["detection", "patrol", "investigation", "association"] },
+        "trigger": { "$ref": "#/$defs/trigger" },
+        "subject": { "oneOf": [{ "$ref": "#/$defs/subject" }, { "type": "null" }] },
+        "policy_version": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["queued", "running", "dispatched", "completed", "failed", "dead_letter"] },
+        "attempt": { "type": "integer", "minimum": 0 },
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "idempotency_key": { "type": "string" },
+        "parent_job_id": { "type": ["string", "null"] },
+        "payload": { "type": "object" },
+        "result": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "triggerPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "version", "enabled", "event_type", "source", "target_agent", "subject_type", "subject_id_field"],
+      "properties": {
+        "policy_id": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "enabled": { "type": "boolean" },
+        "event_type": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["messages", "login_events", "account_security_events", "payment_attempts", "products"] },
+        "target_agent": { "const": "detection" },
+        "subject_type": { "type": "string", "minLength": 1 },
+        "subject_id_field": { "type": "string", "minLength": 1 },
+        "requested_checks": {
+          "type": "array",
+          "items": { "enum": ["rule_based", "anomaly", "llm_classifier", "ml_classifier"] },
+          "uniqueItems": true
+        },
+        "cooldown_seconds": { "type": "integer", "minimum": 0 },
+        "batch_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "auto_investigate": { "type": "boolean" }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schedule_id", "agent", "enabled", "interval_seconds", "config"],
+      "properties": {
+        "schedule_id": { "type": "string", "minLength": 1 },
+        "agent": { "const": "patrol" },
+        "enabled": { "type": "boolean" },
+        "interval_seconds": { "type": "integer", "minimum": 60 },
+        "config": {
+          "type": "object",
+          "required": ["strategy_weights", "scope"],
+          "properties": {
+            "strategy_weights": {
+              "type": "object",
+              "required": ["exploit", "explore"],
+              "properties": {
+                "exploit": { "type": "integer", "minimum": 0 },
+                "explore": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "scope": { "type": "object" }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/job" },
+    { "$ref": "#/$defs/triggerPolicy" },
+    { "$ref": "#/$defs/schedule" }
+  ]
+}

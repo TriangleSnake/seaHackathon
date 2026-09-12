@@ -533,3 +533,45 @@ CREATE TABLE patrol_schedules (
 INSERT INTO patrol_schedules(strategy, enabled, interval_seconds) VALUES
     ('exploit', false, 900),
     ('explore', false, 86400);
+
+CREATE TABLE system_trigger_policies (
+    policy_id TEXT PRIMARY KEY, version TEXT NOT NULL, enabled BOOLEAN NOT NULL DEFAULT false,
+    event_type TEXT NOT NULL, source TEXT NOT NULL,
+    target_agent TEXT NOT NULL DEFAULT 'detection' CHECK (target_agent = 'detection'),
+    subject_type TEXT NOT NULL, subject_id_field TEXT NOT NULL,
+    requested_checks JSONB NOT NULL DEFAULT '[]'::jsonb,
+    cooldown_seconds INTEGER NOT NULL DEFAULT 0 CHECK (cooldown_seconds >= 0),
+    batch_size INTEGER NOT NULL DEFAULT 100 CHECK (batch_size BETWEEN 1 AND 1000),
+    auto_investigate BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE system_schedules (
+    schedule_id TEXT PRIMARY KEY, agent TEXT NOT NULL CHECK (agent = 'patrol'),
+    enabled BOOLEAN NOT NULL DEFAULT false,
+    interval_seconds INTEGER NOT NULL CHECK (interval_seconds >= 60),
+    config JSONB NOT NULL, next_run_at TIMESTAMPTZ,
+    run_count BIGINT NOT NULL DEFAULT 0, updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE system_jobs (
+    job_id TEXT PRIMARY KEY,
+    agent TEXT NOT NULL CHECK (agent IN ('detection','patrol','investigation','association')),
+    trigger_type TEXT NOT NULL CHECK (trigger_type IN ('event','schedule','manual')),
+    trigger_ref TEXT NOT NULL, event_type TEXT, subject JSONB,
+    policy_version TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','running','dispatched','completed','failed','dead_letter')),
+    attempt INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL DEFAULT 3,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    parent_job_id TEXT REFERENCES system_jobs(job_id), payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    result JSONB, remote_job_id TEXT, remote_status_url TEXT, error TEXT,
+    available_at TIMESTAMPTZ NOT NULL DEFAULT now(), created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    started_at TIMESTAMPTZ, completed_at TIMESTAMPTZ, updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX system_jobs_status_available_idx ON system_jobs(status, available_at);
+CREATE INDEX system_jobs_agent_updated_idx ON system_jobs(agent, updated_at DESC);
+
+CREATE TABLE system_event_cursors (
+    source TEXT PRIMARY KEY, occurred_at TIMESTAMPTZ NOT NULL,
+    event_id TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

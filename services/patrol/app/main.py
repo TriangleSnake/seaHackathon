@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from contextlib import asynccontextmanager, suppress
 from typing import Any, Literal
 
@@ -31,11 +32,13 @@ async def lifespan(_: FastAPI):
         if not await list_policies("patrol", strategy):
             policy = load_active_policy(strategy)
             await publish("patrol", strategy, policy.version, policy.model_dump(mode="json"), "human")
-    task = asyncio.create_task(scheduler_loop(job_manager))
+    scheduler_enabled = os.environ.get("PATROL_SCHEDULER_ENABLED", "false").lower() in {"1", "true", "yes"}
+    task = asyncio.create_task(scheduler_loop(job_manager)) if scheduler_enabled else None
     yield
-    task.cancel()
-    with suppress(asyncio.CancelledError):
-        await task
+    if task is not None:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
 
 
 app = FastAPI(title="Patrol Service", version="0.2.0", lifespan=lifespan)
@@ -47,6 +50,7 @@ async def health() -> dict[str, str]:
     explore_policy = load_active_policy("explore")
     return {
         "status": "ok",
+        "scheduler": "local" if os.environ.get("PATROL_SCHEDULER_ENABLED", "false").lower() in {"1", "true", "yes"} else "system-control-plane",
         "exploit_policy_version": exploit_policy.version,
         "explore_policy_version": explore_policy.version,
         "prompt_version": PATROL_PROMPT_VERSION,
