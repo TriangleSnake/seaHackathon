@@ -20,6 +20,7 @@ class ChatAgent(DomainAgent):
         "find_conversation_accounts",
         "find_accounts_by_indicator",
         "get_indicator_prevalence",
+        "get_virustotal_reputation",
         "get_account_security_timeline",
         "find_shared_ip_accounts",
         "find_shared_device_accounts",

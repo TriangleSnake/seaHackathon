@@ -12,8 +12,7 @@ Recommended REST contracts:
   - response: investigation.schema.json#/$defs/InvestigationResult
   - Docker Compose URL: `http://investigation:8000/investigate`
   - host URL: `http://localhost:10002/investigate`
-  - currently returns a schema-compatible placeholder marked by the
-    `X-Investigation-Placeholder: true` response header
+  - runs the evidence-first orchestrator and three specialist agents
 - POST /patrol/run
   - request: patrol.schema.json#/$defs/PatrolRequest
   - response: patrol.schema.json#/$defs/PatrolResult
@@ -42,12 +41,15 @@ use HTTP `X-Request-ID` and W3C `traceparent` headers instead of repeating trace
 ## Local agent tool gateway
 
 The local stack uses the official Linux Foundation `agentgateway` as the MCP
-proxy. Agents connect only to the gateway; the gateway forwards tool calls to
-the `system-tools` MCP server, which executes allow-listed parameterized queries
-against the system PostgreSQL database.
+proxy. Agents connect only to the gateway; it multiplexes the `system-tools` MCP
+server for allow-listed PostgreSQL queries and the isolated `virustotal-tools` MCP
+server for read-only external URL/domain reputation reports.
+The host port binds to `127.0.0.1` so unauthenticated network clients cannot consume
+the configured VirusTotal quota; containers continue to use `http://agentgateway:3000/mcp`.
 
 ```text
 Agent -> http://localhost:3000/mcp -> agentgateway -> system-tools -> PostgreSQL
+                                               `-> virustotal-tools -> VirusTotal API
 ```
 
 Start the stack:
@@ -72,6 +74,8 @@ The gateway exposes these read-only tools:
 - `find_shared_device_accounts`
 - `get_entity_neighbors`
 - `get_previous_cases`
+- `get_evidence_records`
+- `get_virustotal_reputation` (Chat Agent only)
 
 No generic SQL execution tool is exposed. Add new database capabilities as
 bounded domain tools so agents cannot bypass access controls or query limits.

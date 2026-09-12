@@ -106,11 +106,20 @@ class DomainAgent:
             "allowed_evidence_refs": [item.id for item in relevant_evidence],
             "available_tools": [tool.name for tool in specialist_tools],
             "tool_budget": max_tool_calls,
-            "score_items": self.item_score_weights,
+            "output_language": "Traditional Chinese (zh-TW)",
+            # Specialists choose evidence-based scores; deterministic weights stay
+            # private to application code so they cannot bias model judgment.
+            "score_items": list(self.item_score_weights),
             "score_scale": {
-                "0.0": "strongly legitimate",
-                "0.5": "uncertain",
-                "1.0": "strongly fraudulent",
+                "0": "strong legitimate evidence",
+                "1": "mostly legitimate with little fraud indication",
+                "2": "weak fraud indicators",
+                "3": "meaningful unresolved fraud indicators",
+                "4": "strong fraud evidence",
+                "5": (
+                    "explicit and decisive fraud evidence; requires "
+                    "is_direct_evidence=true"
+                ),
             },
             "citation_policy": (
                 "IDs present in successful tool outputs become allowed evidence refs."

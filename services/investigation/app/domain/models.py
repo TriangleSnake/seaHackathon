@@ -138,7 +138,8 @@ class AgentItemScore(StrictModel):
     """Raw specialist score for one evidence-backed investigation dimension."""
 
     item_type: str = Field(min_length=1)
-    score: float = Field(ge=0, le=1)
+    score: int = Field(ge=0, le=5)
+    is_direct_evidence: bool
     confidence: float = Field(ge=0, le=1)
     rationale: str = Field(min_length=1)
     evidence_refs: list[str] = Field(min_length=1)
@@ -148,7 +149,8 @@ class AgentItemScore(StrictModel):
 
 class WeightedItemContribution(StrictModel):
     item_type: str
-    score: float = Field(ge=0, le=1)
+    score: int = Field(ge=0, le=5)
+    is_direct_evidence: bool
     confidence: float = Field(ge=0, le=1)
     configured_weight: float = Field(gt=0)
     effective_weight: float = Field(ge=0)
