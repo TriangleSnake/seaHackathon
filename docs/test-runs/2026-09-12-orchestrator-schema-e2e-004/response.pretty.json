@@ -5,139 +5,126 @@
         "id": "MSG-0901"
     },
     "verdict": "suspicious",
-    "confidence": 0.04982398012,
-    "summary": "\u672c\u6848 `TEST-ORC-SCHEMA-004` \u7684\u6700\u7d42\u5224\u5b9a\u70ba `suspicious`\uff0c`fraud_score` \u70ba 0.524912\uff0c`verdict_confidence` \u70ba 0.049824\uff1b\u6b64\u7d50\u679c\u5df2\u7531\u7cfb\u7d71\u56fa\u5b9a\uff0c\u4ee5\u4e0b\u50c5\u4f5c\u8b49\u64da\u6574\u5408\u8aaa\u660e\uff0c\u4e0d\u91cd\u65b0\u8a08\u7b97\u6216\u6539\u5beb\u7d50\u8ad6\u3002\u6838\u5fc3\u98a8\u96aa\u96c6\u4e2d\u5728 `MSG-0901`\uff1a\u8ce3\u5bb6 ACC-0052 \u8981\u6c42\u8cb7\u5bb6 ACC-0111 \u524d\u5f80\u5e73\u53f0\u5916\u7684 `https://verify-market.invalid/session` \u5b8c\u6210\u6240\u8b02\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u7684\u9a57\u8b49\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u65bd\u58d3\uff0c\u9019\u8207 `MSG-0902` \u4e2d\u8cb7\u5bb6\u76f4\u63a5\u8cea\u7591\u300c\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u300d\u5f62\u6210\u4e00\u81f4\u8108\u7d61\uff0c\u5c6c\u5178\u578b\u7ad9\u5916\u5c0e\u6d41\uff0f\u91e3\u9b5a\uff0f\u793e\u5de5\u5f0f\u5f15\u5c0e\u8a0a\u865f\u3002\u53e6\u6709 `RPT-0901` \u6aa2\u8209\u5167\u5bb9\u8207\u4e0a\u8ff0\u884c\u70ba\u5b8c\u5168\u5c0d\u9f4a\uff0c\u9032\u4e00\u6b65\u652f\u6301\u6b64\u70ba\u5df2\u88ab\u56de\u5831\u7684\u53ef\u7591\u6a21\u5f0f\u3002`TXN-0031` \u986f\u793a ACC-0111 \u8207 ACC-0052 \u4e4b\u9593\u78ba\u5be6\u5b58\u5728\u65e2\u6709\u4ea4\u6613\u4e14\u72c0\u614b\u70ba delivered\uff0c\u4f46\u5e73\u53f0\u5167\u672a\u898b\u9000\u6b3e\u3001\u53d6\u6d88\u3001\u62d2\u7d55\u51fa\u8ca8\u6216\u6b63\u5f0f\u722d\u8b70\u7d00\u9304\u53ef\u8b49\u660e\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u662f\u6709\u6548\u7684\u8a02\u55ae\u72c0\u614b\uff1b\u56e0\u6b64\u4ea4\u6613\u8108\u7d61\u53ea\u80fd\u8b49\u660e\u96d9\u65b9\u6709\u8cb7\u8ce3\u95dc\u4fc2\uff0c\u7121\u6cd5\u6d88\u9664\u7ad9\u5916\u9a57\u8b49\u8a98\u5c0e\u7684\u98a8\u96aa\u3002\u503c\u5f97\u6ce8\u610f\u7684\u662f\uff0c\u5e33\u865f\u672c\u8eab\u7686\u70ba verified active\uff0c\u672a\u898b\u76f4\u63a5\u63a5\u7ba1\u6216\u767b\u5165\u7570\u5e38\uff0c\u5546\u54c1/\u50f9\u683c\u5c64\u9762\u4e5f\u672a\u767c\u73fe\u66f4\u5f37\u7684\u4eff\u5192\u6216\u8df3\u50f9\u8b49\u64da\uff0c\u6545\u672c\u6848\u4ecd\u5c6c\u9ad8\u98a8\u96aa\u53ef\u7591\uff0c\u4f46\u672a\u9054\u53ef\u76f4\u63a5\u5b9a\u6027\u70ba\u5df2\u8b49\u5be6\u8a50\u6b3a\u3002\u6700\u91cd\u8981\u7684\u8b49\u64da ID \u70ba `MSG-0901`\u3001`MSG-0902`\u3001`RPT-0901`\u3001`TXN-0031`\u3002\u5269\u9918\u4e0d\u78ba\u5b9a\u6027\u4e3b\u8981\u5728\u65bc\u5916\u90e8\u9a57\u8b49\u9801\u5be6\u969b\u5167\u5bb9\u8207\u662f\u5426\u5b58\u5728\u767b\u5165/\u4ed8\u6b3e\u8cc7\u6599\u8490\u96c6\u884c\u70ba\u672a\u80fd\u9032\u4e00\u6b65\u78ba\u8a8d\uff1b\u5efa\u8b70\u5f8c\u7e8c\u512a\u5148\u5c01\u9396\u6216\u5be9\u67e5 ACC-0052 \u7684\u7ad9\u5916\u9a57\u8b49\u6d41\u7a0b\uff0c\u4e26\u6301\u7e8c\u95dc\u6ce8\u662f\u5426\u6709\u76f8\u540c\u8a71\u8853\u6216\u76f8\u540c URL \u7684\u91cd\u8907\u51fa\u73fe\u3002",
+    "confidence": 0.055528034226,
+    "summary": "\u672c\u6848\u5df2\u7531 `chat`\u3001`order`\u3001`marketplace_info` \u4e09\u500b\u5c08\u5bb6\u5b8c\u6210\u4ea4\u53c9\u9a57\u8b49\uff0c\u8b49\u64da\u6574\u9ad4\u4e00\u81f4\u652f\u6301 `deterministic_verdict = suspicious`\uff0c\u4e14\u76ee\u524d `fraud_score = 0.527764`\u3001`verdict_confidence = 0.055528` \u7686\u61c9\u7dad\u6301\u4e0d\u8b8a\uff0c\u4e0d\u91cd\u65b0\u8a08\u7b97\u3002\u6838\u5fc3\u98a8\u96aa\u4f86\u81ea MSG-0901\uff1aACC-0052 \u5728 CONV-031 \u4e2d\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801 `https://verify-market.invalid/session` \u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u4f5c\u70ba\u4ea4\u6613\u58d3\u529b\uff1bMSG-0902 \u7acb\u5373\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u5c0d\u7ad9\u5916\u5c0e\u6d41\u5df2\u6709\u660e\u78ba\u7570\u8b70\u3002\u6b64\u98a8\u96aa\u53c8\u88ab RPT-0901 \u4f50\u8b49\uff0c\u6aa2\u8209\u539f\u56e0\u76f4\u63a5\u5beb\u660e\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\u3002\n\n`order` \u88dc\u8db3\u4e86\u4ea4\u6613\u8108\u7d61\uff1aCONV-031 \u8207 TXN-0031 \u78ba\u5be6\u5b58\u5728\u95dc\u806f\uff0c\u4e14 TXN-0031 \u72c0\u614b\u70ba delivered\uff0c\u8868\u793a\u9019\u4e0d\u662f\u5b8c\u5168\u812b\u96e2\u4ea4\u6613\u80cc\u666f\u7684\u8a0a\u606f\uff1b\u4f46\u4e5f\u56e0\u6b64\u53ef\u898b\uff0c\u6b64\u5c0e\u6d41\u884c\u70ba\u767c\u751f\u5728\u65e2\u6709\u4ea4\u6613\u4e4b\u5f8c\uff0c\u66f4\u50cf\u552e\u5f8c/\u5c65\u7d04\u968e\u6bb5\u7684\u9ad8\u98a8\u96aa\u7ad9\u5916\u64cd\u4f5c\uff0c\u800c\u975e\u6a19\u6e96\u5e73\u53f0\u5167\u6d41\u7a0b\u3002`marketplace_info` \u9032\u4e00\u6b65\u6307\u51fa SHOP-013 \u4e26\u672a\u5448\u73fe\u660e\u986f\u7cfb\u7d71\u6027\u8a50\u9a19\u7684\u5b8c\u6574\u8b49\u64da\uff1a\u8fd1\u671f\u4ea4\u6613\u591a\u6578\u70ba delivered\uff0c\u672a\u898b\u9000\u6b3e\u6216 dispute \u64f4\u5927\uff0c\u56e0\u6b64\u8f03\u5408\u7406\u7684\u7d50\u8ad6\u662f\u300c\u55ae\u4e00\u5c0d\u8a71/\u55ae\u6b21\u6d41\u7a0b\u7570\u5e38\u300d\u800c\u975e\u6574\u9ad4\u5e97\u92ea\u5df2\u88ab\u8b49\u5be6\u5168\u9762\u60e1\u610f\u3002\n\n\u6700\u91cd\u8981\u7684\u8b49\u64da ID \u70ba MSG-0901\u3001MSG-0902\u3001RPT-0901\u3001TXN-0031\uff0c\u4ee5\u53ca\u88dc\u5145\u80cc\u666f\u7684 SHOP-013\u3002\u4e3b\u8981\u5269\u9918\u4e0d\u78ba\u5b9a\u6027\u5728\u65bc\uff1a\u76ee\u524d\u672a\u898b\u9801\u9762\u5be6\u969b\u5167\u5bb9\u662f\u5426\u9032\u4e00\u6b65\u7d22\u53d6\u5bc6\u78bc\u3001OTP\u3001\u4ed8\u6b3e\u8cc7\u8a0a\u6216\u7b2c\u4e09\u65b9\u8df3\u8f49\uff0c\u56e0\u6b64\u5c1a\u4e0d\u8db3\u4ee5\u5347\u683c\u70ba\u76f4\u63a5\u4e14\u6c7a\u5b9a\u6027\u7684\u8a50\u9a19\u5b9a\u6848\uff1bACC-0052 \u4e5f\u672a\u898b\u660e\u986f\u5e33\u865f\u63a5\u7ba1\u6216\u7570\u5e38\u767b\u5165\u8de1\u8c61\u3002\u5efa\u8b70\u5f8c\u7e8c\u52d5\u4f5c\u662f\u5c07\u6b64\u6848\u7dad\u6301\u70ba suspicious\uff0c\u4e26\u512a\u5148\u6aa2\u67e5 `verify-market.invalid` \u7684\u5be6\u969b\u9801\u9762\u4e92\u52d5\u7d00\u9304\u8207\u662f\u5426\u5b58\u5728\u5176\u4ed6\u76f8\u540c\u5c0e\u6d41\u6a21\u5f0f\u7684\u8a0a\u606f\u6216\u6aa2\u8209\u3002",
     "findings": [
         {
             "type": "message_content",
-            "description": "\u8a0a\u606f\u660e\u78ba\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u300c\u9a57\u8b49\u9801\u300d\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u4f5c\u70ba\u58d3\u529b\u689d\u4ef6\uff1b\u9019\u662f\u628a\u4ea4\u6613\u6d41\u7a0b\u79fb\u51fa\u5e73\u53f0\u3001\u4ee5\u51fa\u8ca8\u4f5c\u8a98\u56e0\u63a8\u52d5\u7ad9\u5916\u64cd\u4f5c\u7684\u5178\u578b\u9ad8\u98a8\u96aa\u8a71\u8853\u3002",
+            "description": "MSG-0901 \u7684\u6587\u5b57\u8981\u6c42\u6536\u4ef6\u4eba\u5230\u300c\u9a57\u8b49\u9801\u300d\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u65bd\u52a0\u4ea4\u6613\u58d3\u529b\uff1b\u9019\u5c6c\u65bc\u660e\u986f\u7684\u5916\u90e8\u5c0e\u6d41\u8207\u4ed8\u6b3e/\u6536\u6b3e\u8a2d\u5b9a\u9a57\u8b49\u8a71\u8853\uff0c\u5e38\u898b\u65bc\u91e3\u9b5a\u6216\u4ea4\u6613\u8a50\u9a19\u5834\u666f\u3002",
             "impact": "supports_fraud",
-            "confidence": 0.95,
+            "confidence": 0.96,
             "evidence_refs": [
-                "MSG-0901",
-                "MSG-0902"
+                "MSG-0901"
             ]
         },
         {
             "type": "conversation_context",
-            "description": "\u540c\u4e00\u5c0d\u8a71\u4e2d\uff0c\u8cb7\u5bb6 ACC-0111 \u5148\u8a62\u554f\u51fa\u8ca8\u6642\u9593\uff0c\u96a8\u5f8c\u7acb\u5373\u8ffd\u554f\u300c\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1f\u300d\u986f\u793a\u5176\u5c0d\u7ad9\u5916\u6d41\u7a0b\u6709\u7591\u616e\uff0c\u4e14\u8ce3\u5bb6\u7b54\u8986\u672a\u63d0\u4f9b\u5e73\u53f0\u5167\u53ef\u9a57\u8b49\u7684\u8aaa\u660e\u3002",
+            "description": "\u5728 CONV-031 \u4e2d\uff0cACC-0111 \u8ffd\u554f\u300c\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1f\u300d\u986f\u793a\u5c0d\u5916\u90e8\u9a57\u8b49\u6d41\u7a0b\u6709\u7570\u8b70\uff1b\u540c\u6642\u8a0a\u606f\u4e32\u4e2d\u51fa\u73fe\u53cd\u8986\u7684\u51fa\u8ca8\u50ac\u554f\u8207\u55ae\u6b21\u5916\u90e8\u9a57\u8b49\u8981\u6c42\uff0c\u7b26\u5408\u53ef\u7591\u4ea4\u6613\u8a98\u5c0e\u7684\u5c0d\u8a71\u8108\u7d61\u3002",
             "impact": "supports_fraud",
-            "confidence": 0.92,
+            "confidence": 0.87,
             "evidence_refs": [
                 "MSG-0901",
                 "MSG-0902",
-                "MSG-0111",
-                "MSG-0151",
-                "MSG-0191",
-                "MSG-0231",
-                "MSG-0271",
-                "MSG-0311",
+                "MSG-0391",
                 "MSG-0351",
-                "MSG-0391"
+                "MSG-0311",
+                "MSG-0271"
             ]
         },
         {
             "type": "url_attachment_risk",
-            "description": "URL \u70ba `https://verify-market.invalid/session`\uff0c\u5176\u4e2d `.invalid` \u5c6c\u975e\u6b63\u5e38\u53ef\u89e3\u6790\u793a\u4f8b\u7db2\u57df\uff0c\u4e14\u8def\u5f91\u540d\u7a31\u8207\u300e\u9a57\u8b49/\u6536\u6b3e\u8a2d\u5b9a\u300f\u9ad8\u5ea6\u76f8\u95dc\uff1b\u9019\u8207\u7ad9\u5916\u9a57\u8b49\u8a98\u5c0e\u76f8\u7b26\u3002VirusTotal \u7121\u65e2\u6709\u5831\u544a\uff0c\u4e0d\u80fd\u8996\u70ba\u5b89\u5168\u3002",
+            "description": "\u9644\u5e36 URL `https://verify-market.invalid/session` \u4f7f\u7528 `.invalid` \u7db2\u57df\uff0c\u4e14\u8def\u5f91\u8a9e\u610f\u70ba session/verify\uff0c\u8207\u300c\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\u300d\u7684\u8a71\u8853\u9ad8\u5ea6\u4e00\u81f4\uff1bVirusTotal \u672a\u627e\u5230\u65e2\u6709\u5831\u544a\uff0c\u4e0d\u80fd\u8996\u70ba\u5b89\u5168\uff0c\u50c5\u8868\u793a\u7f3a\u4e4f\u5916\u90e8\u4f50\u8b49\u3002",
             "impact": "supports_fraud",
-            "confidence": 0.9,
+            "confidence": 0.98,
             "evidence_refs": [
                 "MSG-0901"
             ]
         },
         {
             "type": "participant_account_activity",
-            "description": "ACC-0052 \u8207 ACC-0111 \u5747\u70ba\u5df2\u9a57\u8b49\u3001\u4e00\u822c\u5340\u6bb5\u5e33\u865f\uff1bACC-0052 \u8fd1\u671f\u6709\u4e00\u7b46\u76f8\u540c\u8cb7\u5bb6 ACC-0111 \u7684\u5df2\u5b8c\u6210\u4ea4\u6613\uff0c\u986f\u793a\u5169\u8005\u9593\u78ba\u6709\u4ea4\u6613\u95dc\u4fc2\uff0c\u4f46\u5e33\u865f\u6d3b\u52d5\u672c\u8eab\u672a\u898b\u76f4\u63a5\u7570\u5e38\u767b\u5165\u6216\u63a5\u7ba1\u8b49\u64da\u3002",
+            "description": "ACC-0052 \u662f\u5df2\u9a57\u8b49\u5e33\u865f\uff0c\u5e33\u6236\u6d3b\u52d5\u672c\u8eab\u6c92\u6709\u660e\u986f\u7570\u5e38\u767b\u5165\u6216\u5b89\u5168\u4e8b\u4ef6\uff1b\u5176\u904e\u5f80\u8a0a\u606f\u8207\u4ea4\u6613\u7d00\u9304\u986f\u793a\u4e00\u822c\u8ce3\u5bb6\u578b\u614b\uff0c\u9019\u4e9b\u80cc\u666f\u4e0d\u652f\u6301\u76f4\u63a5\u5224\u5b9a\u5176\u5e33\u6236\u88ab\u76dc\u6216\u60e1\u610f\u81ea\u52d5\u5316\uff0c\u4f46\u4e5f\u4e0d\u8db3\u4ee5\u63a8\u7ffb\u672c\u6b21\u53ef\u7591\u5c0e\u6d41\u884c\u70ba\u3002",
             "impact": "neutral",
-            "confidence": 0.64,
+            "confidence": 0.72,
             "evidence_refs": [
-                "MSG-0901",
-                "TXN-0031"
-            ]
-        },
-        {
-            "type": "transaction_context",
-            "description": "\u53ef\u78ba\u8a8d ACC-0111 \u66fe\u5411 ACC-0052 \u8cfc\u8cb7\u904e\u5546\u54c1\uff0c\u4ea4\u6613\u72c0\u614b\u70ba delivered\uff0c\u8868\u793a\u5169\u8005\u4e4b\u9593\u5b58\u5728\u65e2\u6709\u4ea4\u6613\u8108\u7d61\uff1b\u4f46\u672c\u6b21\u8a0a\u606f\u6240\u8ff0\u300e\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300f\u7121\u5c0d\u61c9\u5230\u5e73\u53f0\u5167\u53ef\u6838\u5be6\u7684\u4ea4\u6613\u969c\u7919\u8cc7\u6599\uff0c\u56e0\u6b64\u4ea4\u6613\u4e0a\u4e0b\u6587\u53ea\u80fd\u652f\u6301\u96d9\u65b9\u70ba\u8cb7\u8ce3\u95dc\u4fc2\uff0c\u4e0d\u80fd\u55ae\u7368\u8b49\u660e\u5408\u6cd5\u6216\u8a50\u9a19\u3002",
-            "impact": "neutral",
-            "confidence": 0.71,
-            "evidence_refs": [
-                "TXN-0031",
                 "MSG-0901"
             ]
         },
         {
-            "type": "order_state_consistency",
-            "description": "\u5e73\u53f0\u5167\u53ef\u5c0d\u61c9\u5230 ACC-0052 \u8207 ACC-0111 \u7684\u4ea4\u6613\u70ba TXN-0031\uff0c\u5efa\u7acb\u65bc 2026-08-03\uff0c\u72c0\u614b\u662f delivered\u3002\u5c31\u5df2\u63d0\u4f9b\u8b49\u64da\u770b\uff0c\u6c92\u6709\u9000\u6b3e\u3001\u53d6\u6d88\u3001\u62d2\u7d55\u51fa\u8ca8\u6216\u5e73\u53f0\u722d\u8b70\u8a18\u9304\u53ef\u76f4\u63a5\u652f\u6301\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u662f\u6b63\u5f0f\u8a02\u55ae\u72c0\u614b\u3002",
-            "impact": "supports_legitimate",
-            "confidence": 0.9,
-            "evidence_refs": [
-                "TXN-0031",
-                "MSG-0901"
-            ]
-        },
-        {
-            "type": "conversation_pattern",
-            "description": "CONV-031 \u4e2d\uff0cACC-0111 \u81ea 2026-08-11 \u8d77\u591a\u6b21\u8a62\u554f\u51fa\u8ca8\u6642\u9593\uff0c\u986f\u793a\u5176\u4e3b\u8981\u8a34\u6c42\u4ecd\u5728\u5e73\u53f0\u5167\u7684\u6b63\u5e38\u5c65\u7d04\u6e9d\u901a\uff1b\u76f4\u5230 2026-09-02 \u624d\u51fa\u73fe\u8981\u6c42\u5916\u90e8\u9a57\u8b49\u4ed8\u6b3e\u7684\u8a0a\u606f\uff0c\u6642\u9593\u4e0a\u66f4\u50cf\u5f8c\u7e8c\u63d2\u5165\u7684\u7ad9\u5916\u5f15\u5c0e\uff0c\u800c\u4e0d\u662f\u65e2\u6709\u8a02\u55ae\u6d41\u7a0b\u4e2d\u7684\u6a19\u6e96\u6b65\u9a5f\u3002",
+            "type": "message_flow",
+            "description": "MSG-0901 \u65bc 2026-09-02 02:00:00Z \u8981\u6c42 ACC-0111 \u524d\u5f80 `https://verify-market.invalid/session` \u5b8c\u6210\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u8868\u793a\u5b8c\u6210\u5f8c\u624d\u80fd\u51fa\u8ca8\uff1bMSG-0902 \u65bc 02:05:00Z \u8ffd\u554f\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u96d9\u65b9\u5df2\u570d\u7e5e\u7ad9\u5916\u9a57\u8b49\u8207\u4ea4\u6613\u6d41\u7a0b\u9032\u884c\u4e92\u52d5\u3002",
             "impact": "supports_fraud",
-            "confidence": 0.82,
+            "confidence": 0.93,
             "evidence_refs": [
-                "MSG-0111",
-                "MSG-0151",
-                "MSG-0191",
-                "MSG-0231",
-                "MSG-0311",
-                "MSG-0351",
-                "MSG-0391",
                 "MSG-0901",
                 "MSG-0902"
             ]
         },
         {
-            "type": "account_history",
-            "description": "ACC-0052 \u8207 ACC-0111 \u7686\u70ba\u5df2\u9a57\u8b49\u3001\u4ecd\u70ba active \u7684\u5e33\u865f\uff0c\u904e\u5f80\u4e5f\u5404\u81ea\u6709\u6b63\u5e38\u4ea4\u6613\u7d00\u9304\uff1b\u76ee\u524d\u6c92\u6709\u770b\u5230\u5e33\u865f\u672c\u8eab\u7684\u76f4\u63a5\u7570\u5e38\u8db3\u4ee5\u55ae\u7368\u8b49\u660e\u8a50\u6b3a\uff0c\u4f46 ACC-0052 \u5728\u672c\u6b21\u5c0d\u8a71\u4e2d\u7684\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u5c6c\u53ef\u7591\u884c\u70ba\u3002",
-            "impact": "neutral",
-            "confidence": 0.71,
+            "type": "transaction_link",
+            "description": "CONV-031 \u5c0d\u61c9\u7684\u8cb7\u5bb6 ACC-0111 \u5728\u6b77\u53f2\u4ea4\u6613\u4e2d\u5b58\u5728 TXN-0031\uff0c\u4ea4\u6613\u6642\u9593\u70ba 2026-08-03 14:00:00Z\uff0c\u5546\u54c1\u70ba PROD-0031\uff0c\u72c0\u614b\u70ba delivered\uff0c\u8868\u793a\u8a72\u5c0d\u8a71\u78ba\u5be6\u8207\u4e00\u7b46\u65e2\u6709\u8a02\u55ae/\u4ea4\u6613\u80cc\u666f\u76f8\u9023\uff0c\u800c\u975e\u5b8c\u5168\u7121\u4ea4\u6613\u4f9d\u64da\u7684\u8a0a\u606f\u3002",
+            "impact": "supports_legitimate",
+            "confidence": 0.9,
             "evidence_refs": [
-                "ACC-0052",
-                "ACC-0111",
-                "TXN-0067",
-                "TXN-0071",
                 "TXN-0031",
-                "RPT-0901"
-            ]
-        },
-        {
-            "type": "\u5916\u90e8\u5c0e\u6d41\uff0f\u4ed8\u6b3e\u9a57\u8b49\u5f15\u5c0e",
-            "description": "MSG-0901 \u660e\u78ba\u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5e73\u53f0\u5916\u7684\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u63d0\u4f9b\u5916\u90e8 URL `https://verify-market.invalid/session`\uff1b\u540c\u4e00\u5c0d\u8a71\u4e2d\u8cb7\u5bb6 MSG-0902 \u8ffd\u554f\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u6b64\u6d41\u7a0b\u504f\u96e2\u5e73\u53f0\u5167\u6b63\u5e38\u4ea4\u6613\u5b8c\u6210\u65b9\u5f0f\u3002\u9019\u662f\u91e3\u9b5a\u6216\u793e\u5de5\u5c0e\u6d41\u7684\u5f37\u70c8\u5e02\u5834\u7aef\u8a0a\u865f\u3002",
-            "impact": "supports_fraud",
-            "confidence": 0.97,
-            "evidence_refs": [
                 "MSG-0901",
-                "MSG-0902",
-                "RPT-0901"
+                "MSG-0902"
             ]
         },
         {
-            "type": "\u5e73\u53f0\u6aa2\u8209\u4e00\u81f4\u6027",
-            "description": "ACC-0052 \u7684\u6d3b\u52d5\u4e2d\u5df2\u6709\u6aa2\u8209 RPT-0901\uff0c\u7406\u7531\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u4e14\u72c0\u614b\u70ba open\u3002\u6b64\u6aa2\u8209\u5167\u5bb9\u8207 MSG-0901 \u5b8c\u5168\u5c0d\u9f4a\uff0c\u986f\u793a\u4e0d\u662f\u55ae\u4e00\u5b64\u7acb\u8a0a\u606f\uff0c\u800c\u662f\u5df2\u88ab\u4f7f\u7528\u8005\u56de\u5831\u7684\u76f8\u540c\u884c\u70ba\u6a21\u5f0f\u3002",
+            "type": "temporal_order",
+            "description": "\u5df2\u77e5\u4ea4\u6613 TXN-0031 \u767c\u751f\u5728 2026-08-03\uff0c\u800c MSG-0901/MSG-0902 \u767c\u751f\u5728 2026-09-02\uff0c\u6642\u9593\u4e0a\u5c6c\u65bc\u4ea4\u6613\u4e4b\u5f8c\u7684\u5f8c\u7e8c\u5c0d\u8a71\uff1b\u9019\u652f\u6301\u5176\u53ef\u80fd\u662f\u552e\u5f8c\u6216\u5c65\u7d04\u76f8\u95dc\u6e9d\u901a\uff0c\u4f46\u4e5f\u8868\u793a\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u4e26\u975e\u4e0b\u55ae\u7576\u4e0b\u7684\u6a19\u6e96\u4ed8\u6b3e\u6d41\u7a0b\u3002",
+            "impact": "neutral",
+            "confidence": 0.82,
+            "evidence_refs": [
+                "TXN-0031",
+                "MSG-0901",
+                "MSG-0902"
+            ]
+        },
+        {
+            "type": "report_signal",
+            "description": "ACC-0052 \u7684\u5831\u544a RPT-0901 \u65bc 2026-09-02 03:00:00Z \u5efa\u7acb\uff0c\u539f\u56e0\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u8207 MSG-0901 \u7684\u5167\u5bb9\u4e00\u81f4\uff0c\u986f\u793a\u8cb7\u5bb6\u5df2\u5c07\u6b64\u5c0e\u6d41\u884c\u70ba\u8996\u70ba\u53ef\u7591\u4e26\u63d0\u51fa\u7533\u8a34\u3002",
             "impact": "supports_fraud",
-            "confidence": 0.92,
+            "confidence": 0.88,
             "evidence_refs": [
                 "RPT-0901",
                 "MSG-0901"
             ]
         },
         {
-            "type": "\u5546\u54c1\u5167\u5bb9\u8207\u50f9\u683c\u7570\u5e38",
-            "description": "\u5df2\u6aa2\u8996\u7684\u5546\u54c1 PROD-0085\u3001PROD-0067\u3001PROD-0049\u3001PROD-0031\u3001PROD-0013 \u50f9\u683c\u5206\u5e03\u96d6\u4e0d\u4e00\u81f4\uff0c\u4f46\u672a\u898b\u660e\u986f\u8df3\u50f9\u3001\u4eff\u5192\u54c1\u724c\u3001\u6216\u53ef\u76f4\u63a5\u8b49\u660e\u6b3a\u8a50\u7684\u63cf\u8ff0\uff1b\u5546\u54c1\u63cf\u8ff0\u5167\u5bb9\u53cd\u800c\u662f\u300c\u865b\u69cb\u6e2c\u8a66\u5546\u54c1\uff0c\u50c5\u4f9b\u672c\u5730\u8cc7\u6599\u74b0\u5883\u4f7f\u7528\u3002\u300d\u8f03\u50cf\u6e2c\u8a66\u8cc7\u6599\uff0c\u7121\u6cd5\u4f5c\u70ba\u771f\u5be6\u5546\u696d\u8a50\u6b3a\u7684\u76f4\u63a5\u8b49\u64da\u3002",
-            "impact": "neutral",
-            "confidence": 0.74,
+            "type": "\u5916\u90e8\u9a57\u8b49\u5c0e\u6d41\u8a0a\u606f",
+            "description": "MSG-0901 \u7531 ACC-0052 \u767c\u51fa\uff0c\u660e\u793a\u300c\u8acb\u5230\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\uff0c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\uff0c\u4e26\u9644\u4e0a\u5916\u90e8\u7db2\u5740 https://verify-market.invalid/session\uff1b\u540c\u5c0d\u8a71\u4e2d MSG-0902 \u986f\u793a\u8cb7\u5bb6\u5df2\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u3002\u9019\u662f\u5178\u578b\u7684\u7ad9\u5916\u64cd\u4f5c/\u9a57\u8b49\u5c0e\u6d41\u98a8\u96aa\u8a0a\u865f\u3002",
+            "impact": "supports_fraud",
+            "confidence": 0.98,
             "evidence_refs": [
-                "PROD-0085",
-                "PROD-0067",
-                "PROD-0049",
-                "PROD-0031",
-                "PROD-0013"
+                "MSG-0901",
+                "MSG-0902"
+            ]
+        },
+        {
+            "type": "\u76f8\u95dc\u6aa2\u8209\u7d00\u9304",
+            "description": "RPT-0901 \u7684\u539f\u56e0\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u8207\u672c\u6b21\u8a0a\u606f\u5167\u5bb9\u9ad8\u5ea6\u4e00\u81f4\uff0c\u8868\u793a\u6b64\u985e\u7ad9\u5916\u9a57\u8b49\u8981\u6c42\u5df2\u88ab\u8cb7\u5bb6\u6b63\u5f0f\u6aa2\u8209\u3002",
+            "impact": "supports_fraud",
+            "confidence": 0.96,
+            "evidence_refs": [
+                "RPT-0901"
+            ]
+        },
+        {
+            "type": "\u5546\u5e97\u4ea4\u6613\u8207\u8a55\u8ad6\u6982\u6cc1",
+            "description": "SHOP-013 \u8fd1\u671f\u6709 5 \u7b46\u4ea4\u6613\uff0c4 \u7b46\u70ba delivered\u30011 \u7b46\u70ba cancelled\uff1b\u5c0d\u61c9\u8a55\u8ad6\u5206\u5225\u70ba 5\u30013\u30012\u30014 \u5206\u3002\u672a\u898b\u9000\u6b3e\u6216 dispute\uff0c\u4e14\u6709\u90e8\u5206\u6b63\u5411\u4ea4\u4ed8\u7d00\u9304\uff0c\u986f\u793a\u76ee\u524d\u6c92\u6709\u8db3\u5920\u8b49\u64da\u8b49\u660e\u6574\u9ad4\u5546\u5e97\u7cfb\u7d71\u6027\u8a50\u9a19\u3002",
+            "impact": "supports_legitimate",
+            "confidence": 0.84,
+            "evidence_refs": [
+                "TXN-0085",
+                "TXN-0067",
+                "TXN-0049",
+                "TXN-0031",
+                "TXN-0013",
+                "REV-0067",
+                "REV-0049",
+                "REV-0031",
+                "REV-0013"
             ]
         }
     ],
@@ -187,61 +174,7 @@
             }
         },
         {
-            "id": "TEST-ORC-SCHEMA-004:tool:2:chat:find_conversation_accounts",
-            "source": "investigation",
-            "type": "tool_result:find_conversation_accounts",
-            "ref_id": "find_conversation_accounts",
-            "observed_at": null,
-            "data": {
-                "subject_account_id": "ACC-0052",
-                "matches": [
-                    {
-                        "account_id": "ACC-0111",
-                        "participant_role": "buyer",
-                        "conversation_count": 1,
-                        "evidence_refs": [
-                            "MSG-0031",
-                            "MSG-0071",
-                            "MSG-0111",
-                            "MSG-0151",
-                            "MSG-0191",
-                            "MSG-0231",
-                            "MSG-0271",
-                            "MSG-0311",
-                            "MSG-0351",
-                            "MSG-0391",
-                            "MSG-0901",
-                            "MSG-0902"
-                        ],
-                        "first_seen_at": "2026-08-10 11:20:00+00:00",
-                        "last_seen_at": "2026-09-02 02:05:00+00:00"
-                    },
-                    {
-                        "account_id": "ACC-0093",
-                        "participant_role": "buyer",
-                        "conversation_count": 1,
-                        "evidence_refs": [
-                            "MSG-0013",
-                            "MSG-0053",
-                            "MSG-0093",
-                            "MSG-0133",
-                            "MSG-0173",
-                            "MSG-0213",
-                            "MSG-0253",
-                            "MSG-0293",
-                            "MSG-0333",
-                            "MSG-0373",
-                            "MSG-0413"
-                        ],
-                        "first_seen_at": "2026-08-10 05:20:00+00:00",
-                        "last_seen_at": "2026-08-15 18:40:00+00:00"
-                    }
-                ],
-                "count": 2
-            }
-        },
-        {
-            "id": "TEST-ORC-SCHEMA-004:tool:3:chat:get_account_activity",
+            "id": "TEST-ORC-SCHEMA-004:tool:2:chat:get_account_activity",
             "source": "investigation",
             "type": "tool_result:get_account_activity",
             "ref_id": "get_account_activity",
@@ -988,325 +921,7 @@
             }
         },
         {
-            "id": "TEST-ORC-SCHEMA-004:tool:4:chat:get_account_activity",
-            "source": "investigation",
-            "type": "tool_result:get_account_activity",
-            "ref_id": "get_account_activity",
-            "observed_at": null,
-            "data": {
-                "found": true,
-                "account": {
-                    "id": "ACC-0111",
-                    "created_at": "2026-06-09 22:00:00+00:00",
-                    "status": "active",
-                    "activity_score": 0.67,
-                    "kyc_status": "verified",
-                    "bot_check_score": 0.27,
-                    "attributes": {
-                        "locale": "zh-TW",
-                        "segment": "standard"
-                    }
-                },
-                "logins": [
-                    {
-                        "id": "LOG-0231",
-                        "ip_address": "203.0.113.232/32",
-                        "device_id": "DEV-0021",
-                        "occurred_at": "2026-07-19 22:00:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "LOG-0111",
-                        "ip_address": "203.0.113.112/32",
-                        "device_id": "DEV-0041",
-                        "occurred_at": "2026-07-09 22:00:00+00:00",
-                        "attributes": {}
-                    }
-                ],
-                "reports": [],
-                "products": [],
-                "transactions": [
-                    {
-                        "id": "TXN-0071",
-                        "buyer_account_id": "ACC-0111",
-                        "seller_account_id": "ACC-0068",
-                        "product_id": "PROD-0071",
-                        "payment_method": "bank_transfer",
-                        "quantity": 3,
-                        "amount": "8478.00",
-                        "status": "delivered",
-                        "created_at": "2026-08-06 22:00:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "TXN-0031",
-                        "buyer_account_id": "ACC-0111",
-                        "seller_account_id": "ACC-0052",
-                        "product_id": "PROD-0031",
-                        "payment_method": "wallet",
-                        "quantity": 2,
-                        "amount": "2692.00",
-                        "status": "delivered",
-                        "created_at": "2026-08-03 14:00:00+00:00",
-                        "attributes": {}
-                    }
-                ],
-                "messages": [
-                    {
-                        "id": "MSG-0902",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-09-02 02:05:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0901",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0052",
-                        "recipient_account_id": "ACC-0111",
-                        "text": "\u7cfb\u7d71\u986f\u793a\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\uff0c\u8acb\u5230\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\uff0c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u3002",
-                        "image_urls": [],
-                        "urls": [
-                            "https://verify-market.invalid/session"
-                        ],
-                        "created_at": "2026-09-02 02:00:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0391",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-15 11:20:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0351",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-14 22:00:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0311",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-14 08:40:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0271",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-13 19:20:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0231",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-13 06:00:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0191",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-12 16:40:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0151",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-12 03:20:00+00:00",
-                        "attributes": {}
-                    },
-                    {
-                        "id": "MSG-0111",
-                        "conversation_id": "CONV-031",
-                        "sender_account_id": "ACC-0111",
-                        "recipient_account_id": "ACC-0052",
-                        "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                        "image_urls": [],
-                        "urls": [],
-                        "created_at": "2026-08-11 14:00:00+00:00",
-                        "attributes": {}
-                    }
-                ]
-            }
-        },
-        {
-            "id": "ACC-0111",
-            "source": "environment",
-            "type": "get_account_activity:account",
-            "ref_id": "ACC-0111",
-            "observed_at": null,
-            "data": {
-                "id": "ACC-0111",
-                "created_at": "2026-06-09 22:00:00+00:00",
-                "status": "active",
-                "activity_score": 0.67,
-                "kyc_status": "verified",
-                "bot_check_score": 0.27,
-                "attributes": {
-                    "locale": "zh-TW",
-                    "segment": "standard"
-                }
-            }
-        },
-        {
-            "id": "LOG-0231",
-            "source": "environment",
-            "type": "get_account_activity:logins[0]",
-            "ref_id": "LOG-0231",
-            "observed_at": null,
-            "data": {
-                "id": "LOG-0231",
-                "ip_address": "203.0.113.232/32",
-                "device_id": "DEV-0021",
-                "occurred_at": "2026-07-19 22:00:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "LOG-0111",
-            "source": "environment",
-            "type": "get_account_activity:logins[1]",
-            "ref_id": "LOG-0111",
-            "observed_at": null,
-            "data": {
-                "id": "LOG-0111",
-                "ip_address": "203.0.113.112/32",
-                "device_id": "DEV-0041",
-                "occurred_at": "2026-07-09 22:00:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "TXN-0071",
-            "source": "environment",
-            "type": "get_account_activity:transactions[0]",
-            "ref_id": "TXN-0071",
-            "observed_at": null,
-            "data": {
-                "id": "TXN-0071",
-                "buyer_account_id": "ACC-0111",
-                "seller_account_id": "ACC-0068",
-                "product_id": "PROD-0071",
-                "payment_method": "bank_transfer",
-                "quantity": 3,
-                "amount": "8478.00",
-                "status": "delivered",
-                "created_at": "2026-08-06 22:00:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "MSG-0231",
-            "source": "environment",
-            "type": "get_account_activity:messages[6]",
-            "ref_id": "MSG-0231",
-            "observed_at": null,
-            "data": {
-                "id": "MSG-0231",
-                "conversation_id": "CONV-031",
-                "sender_account_id": "ACC-0111",
-                "recipient_account_id": "ACC-0052",
-                "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                "image_urls": [],
-                "urls": [],
-                "created_at": "2026-08-13 06:00:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "MSG-0191",
-            "source": "environment",
-            "type": "get_account_activity:messages[7]",
-            "ref_id": "MSG-0191",
-            "observed_at": null,
-            "data": {
-                "id": "MSG-0191",
-                "conversation_id": "CONV-031",
-                "sender_account_id": "ACC-0111",
-                "recipient_account_id": "ACC-0052",
-                "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                "image_urls": [],
-                "urls": [],
-                "created_at": "2026-08-12 16:40:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "MSG-0151",
-            "source": "environment",
-            "type": "get_account_activity:messages[8]",
-            "ref_id": "MSG-0151",
-            "observed_at": null,
-            "data": {
-                "id": "MSG-0151",
-                "conversation_id": "CONV-031",
-                "sender_account_id": "ACC-0111",
-                "recipient_account_id": "ACC-0052",
-                "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                "image_urls": [],
-                "urls": [],
-                "created_at": "2026-08-12 03:20:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "MSG-0111",
-            "source": "environment",
-            "type": "get_account_activity:messages[9]",
-            "ref_id": "MSG-0111",
-            "observed_at": null,
-            "data": {
-                "id": "MSG-0111",
-                "conversation_id": "CONV-031",
-                "sender_account_id": "ACC-0111",
-                "recipient_account_id": "ACC-0052",
-                "text": "\u60a8\u597d\uff0c\u8acb\u554f\u4eca\u5929\u4e0b\u55ae\u5927\u7d04\u4f55\u6642\u51fa\u8ca8\uff1f",
-                "image_urls": [],
-                "urls": [],
-                "created_at": "2026-08-11 14:00:00+00:00",
-                "attributes": {}
-            }
-        },
-        {
-            "id": "TEST-ORC-SCHEMA-004:tool:5:chat:get_virustotal_reputation",
+            "id": "TEST-ORC-SCHEMA-004:tool:3:chat:get_virustotal_reputation",
             "source": "investigation",
             "type": "tool_result:get_virustotal_reputation",
             "ref_id": "get_virustotal_reputation",
@@ -1317,10 +932,328 @@
                     "type": "url",
                     "value": "https://verify-market.invalid/session"
                 },
-                "queried_at": "2026-09-12T07:06:09.658963+00:00",
+                "queried_at": "2026-09-12T07:15:41.241874+00:00",
                 "submitted_for_analysis": false,
                 "found": false,
                 "message": "No existing VirusTotal report was found; this is not a harmless verdict."
+            }
+        },
+        {
+            "id": "TEST-ORC-SCHEMA-004:tool:4:marketplace_info:get_subject_association_seeds",
+            "source": "investigation",
+            "type": "tool_result:get_subject_association_seeds",
+            "ref_id": "get_subject_association_seeds",
+            "observed_at": null,
+            "data": {
+                "found": true,
+                "subject": {
+                    "id": "ACC-0052",
+                    "created_at": "2026-06-05 00:00:00+00:00",
+                    "status": "active",
+                    "attributes": {
+                        "locale": "zh-TW",
+                        "segment": "standard"
+                    }
+                },
+                "indicators": [
+                    {
+                        "type": "ip",
+                        "value": "192.0.2.173",
+                        "entity_id": "ip:192.0.2.173",
+                        "occurrence_count": 1,
+                        "first_seen_at": "2026-07-15 00:00:00+00:00",
+                        "last_seen_at": "2026-07-15 00:00:00+00:00",
+                        "evidence_refs": [
+                            "LOG-0172"
+                        ]
+                    },
+                    {
+                        "type": "device",
+                        "value": "DEV-0032",
+                        "entity_id": "device:DEV-0032",
+                        "occurrence_count": 1,
+                        "first_seen_at": "2026-07-15 00:00:00+00:00",
+                        "last_seen_at": "2026-07-15 00:00:00+00:00",
+                        "evidence_refs": [
+                            "LOG-0172"
+                        ]
+                    },
+                    {
+                        "type": "ip",
+                        "value": "192.0.2.53",
+                        "entity_id": "ip:192.0.2.53",
+                        "occurrence_count": 1,
+                        "first_seen_at": "2026-07-05 00:00:00+00:00",
+                        "last_seen_at": "2026-07-05 00:00:00+00:00",
+                        "evidence_refs": [
+                            "LOG-0052"
+                        ]
+                    },
+                    {
+                        "type": "device",
+                        "value": "DEV-0052",
+                        "entity_id": "device:DEV-0052",
+                        "occurrence_count": 1,
+                        "first_seen_at": "2026-07-05 00:00:00+00:00",
+                        "last_seen_at": "2026-07-05 00:00:00+00:00",
+                        "evidence_refs": [
+                            "LOG-0052"
+                        ]
+                    }
+                ],
+                "shops": [
+                    {
+                        "id": "SHOP-013",
+                        "owner_account_id": "ACC-0052",
+                        "name": "\u5357\u65b9\u978b\u5c65",
+                        "status": "active",
+                        "attributes": {
+                            "fulfillment": "platform"
+                        }
+                    }
+                ],
+                "transaction_counterparties": [
+                    {
+                        "account_id": "ACC-0085",
+                        "occurrence_count": 1,
+                        "total_amount": "6688.00",
+                        "first_seen_at": "2026-08-08 02:00:00+00:00",
+                        "last_seen_at": "2026-08-08 02:00:00+00:00",
+                        "evidence_refs": [
+                            "TXN-0085"
+                        ]
+                    },
+                    {
+                        "account_id": "ACC-0089",
+                        "occurrence_count": 1,
+                        "total_amount": "4024.00",
+                        "first_seen_at": "2026-08-05 02:00:00+00:00",
+                        "last_seen_at": "2026-08-05 02:00:00+00:00",
+                        "evidence_refs": [
+                            "TXN-0049"
+                        ]
+                    },
+                    {
+                        "account_id": "ACC-0093",
+                        "occurrence_count": 1,
+                        "total_amount": "1360.00",
+                        "first_seen_at": "2026-08-02 02:00:00+00:00",
+                        "last_seen_at": "2026-08-02 02:00:00+00:00",
+                        "evidence_refs": [
+                            "TXN-0013"
+                        ]
+                    },
+                    {
+                        "account_id": "ACC-0107",
+                        "occurrence_count": 1,
+                        "total_amount": "5356.00",
+                        "first_seen_at": "2026-08-06 14:00:00+00:00",
+                        "last_seen_at": "2026-08-06 14:00:00+00:00",
+                        "evidence_refs": [
+                            "TXN-0067"
+                        ]
+                    },
+                    {
+                        "account_id": "ACC-0111",
+                        "occurrence_count": 1,
+                        "total_amount": "2692.00",
+                        "first_seen_at": "2026-08-03 14:00:00+00:00",
+                        "last_seen_at": "2026-08-03 14:00:00+00:00",
+                        "evidence_refs": [
+                            "TXN-0031"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "SHOP-013",
+            "source": "environment",
+            "type": "get_subject_association_seeds:shops[0]",
+            "ref_id": "SHOP-013",
+            "observed_at": null,
+            "data": {
+                "id": "SHOP-013",
+                "owner_account_id": "ACC-0052",
+                "name": "\u5357\u65b9\u978b\u5c65",
+                "status": "active",
+                "attributes": {
+                    "fulfillment": "platform"
+                }
+            }
+        },
+        {
+            "id": "TEST-ORC-SCHEMA-004:tool:5:marketplace_info:get_account_commerce_links",
+            "source": "investigation",
+            "type": "tool_result:get_account_commerce_links",
+            "ref_id": "get_account_commerce_links",
+            "observed_at": null,
+            "data": {
+                "account_id": "ACC-0052",
+                "lookback_days": 90,
+                "transactions": [
+                    {
+                        "id": "TXN-0085",
+                        "buyer_account_id": "ACC-0085",
+                        "seller_account_id": "ACC-0052",
+                        "product_id": "PROD-0085",
+                        "amount": "6688.00",
+                        "currency": "TWD",
+                        "status": "cancelled",
+                        "created_at": "2026-08-08 02:00:00+00:00",
+                        "attributes": {}
+                    },
+                    {
+                        "id": "TXN-0067",
+                        "buyer_account_id": "ACC-0107",
+                        "seller_account_id": "ACC-0052",
+                        "product_id": "PROD-0067",
+                        "amount": "5356.00",
+                        "currency": "TWD",
+                        "status": "delivered",
+                        "created_at": "2026-08-06 14:00:00+00:00",
+                        "attributes": {}
+                    },
+                    {
+                        "id": "TXN-0049",
+                        "buyer_account_id": "ACC-0089",
+                        "seller_account_id": "ACC-0052",
+                        "product_id": "PROD-0049",
+                        "amount": "4024.00",
+                        "currency": "TWD",
+                        "status": "delivered",
+                        "created_at": "2026-08-05 02:00:00+00:00",
+                        "attributes": {
+                            "campaign": "autumn_flash_sale"
+                        }
+                    },
+                    {
+                        "id": "TXN-0031",
+                        "buyer_account_id": "ACC-0111",
+                        "seller_account_id": "ACC-0052",
+                        "product_id": "PROD-0031",
+                        "amount": "2692.00",
+                        "currency": "TWD",
+                        "status": "delivered",
+                        "created_at": "2026-08-03 14:00:00+00:00",
+                        "attributes": {}
+                    },
+                    {
+                        "id": "TXN-0013",
+                        "buyer_account_id": "ACC-0093",
+                        "seller_account_id": "ACC-0052",
+                        "product_id": "PROD-0013",
+                        "amount": "1360.00",
+                        "currency": "TWD",
+                        "status": "delivered",
+                        "created_at": "2026-08-02 02:00:00+00:00",
+                        "attributes": {}
+                    }
+                ],
+                "refunds": [],
+                "disputes": [],
+                "reviews": [
+                    {
+                        "id": "REV-0067",
+                        "product_id": "PROD-0067",
+                        "transaction_id": "TXN-0067",
+                        "reviewer_account_id": "ACC-0107",
+                        "rating": 3,
+                        "created_at": "2026-08-10 14:00:00+00:00",
+                        "seller_account_id": "ACC-0052"
+                    },
+                    {
+                        "id": "REV-0049",
+                        "product_id": "PROD-0049",
+                        "transaction_id": "TXN-0049",
+                        "reviewer_account_id": "ACC-0089",
+                        "rating": 5,
+                        "created_at": "2026-08-09 02:00:00+00:00",
+                        "seller_account_id": "ACC-0052"
+                    },
+                    {
+                        "id": "REV-0031",
+                        "product_id": "PROD-0031",
+                        "transaction_id": "TXN-0031",
+                        "reviewer_account_id": "ACC-0111",
+                        "rating": 2,
+                        "created_at": "2026-08-07 14:00:00+00:00",
+                        "seller_account_id": "ACC-0052"
+                    },
+                    {
+                        "id": "REV-0013",
+                        "product_id": "PROD-0013",
+                        "transaction_id": "TXN-0013",
+                        "reviewer_account_id": "ACC-0093",
+                        "rating": 4,
+                        "created_at": "2026-08-06 02:00:00+00:00",
+                        "seller_account_id": "ACC-0052"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "REV-0067",
+            "source": "environment",
+            "type": "get_account_commerce_links:reviews[0]",
+            "ref_id": "REV-0067",
+            "observed_at": null,
+            "data": {
+                "id": "REV-0067",
+                "product_id": "PROD-0067",
+                "transaction_id": "TXN-0067",
+                "reviewer_account_id": "ACC-0107",
+                "rating": 3,
+                "created_at": "2026-08-10 14:00:00+00:00",
+                "seller_account_id": "ACC-0052"
+            }
+        },
+        {
+            "id": "REV-0049",
+            "source": "environment",
+            "type": "get_account_commerce_links:reviews[1]",
+            "ref_id": "REV-0049",
+            "observed_at": null,
+            "data": {
+                "id": "REV-0049",
+                "product_id": "PROD-0049",
+                "transaction_id": "TXN-0049",
+                "reviewer_account_id": "ACC-0089",
+                "rating": 5,
+                "created_at": "2026-08-09 02:00:00+00:00",
+                "seller_account_id": "ACC-0052"
+            }
+        },
+        {
+            "id": "REV-0031",
+            "source": "environment",
+            "type": "get_account_commerce_links:reviews[2]",
+            "ref_id": "REV-0031",
+            "observed_at": null,
+            "data": {
+                "id": "REV-0031",
+                "product_id": "PROD-0031",
+                "transaction_id": "TXN-0031",
+                "reviewer_account_id": "ACC-0111",
+                "rating": 2,
+                "created_at": "2026-08-07 14:00:00+00:00",
+                "seller_account_id": "ACC-0052"
+            }
+        },
+        {
+            "id": "REV-0013",
+            "source": "environment",
+            "type": "get_account_commerce_links:reviews[3]",
+            "ref_id": "REV-0013",
+            "observed_at": null,
+            "data": {
+                "id": "REV-0013",
+                "product_id": "PROD-0013",
+                "transaction_id": "TXN-0013",
+                "reviewer_account_id": "ACC-0093",
+                "rating": 4,
+                "created_at": "2026-08-06 02:00:00+00:00",
+                "seller_account_id": "ACC-0052"
             }
         }
     ],
@@ -1330,83 +1263,67 @@
             "case_type": "chat",
             "sequence": 1,
             "routing_score": 111,
-            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u76ee\u524d\u5df2\u9a57\u8b49\u7684\u7dda\u7d22\u96c6\u4e2d\u5728\u5c0d\u8a71\u5167\u5bb9\u8207\u5916\u90e8\u9a57\u8b49\u7db2\u5740\uff0c\u4e14\u6aa2\u6e2c\u7d50\u679c\u5df2\u76f4\u63a5\u6307\u5411\u7591\u4f3c\u91e3\u9b5a\u9023\u7d50\uff1b\u9700\u8981\u5148\u7531 chat \u5c08\u5bb6\u78ba\u8a8d\u8a0a\u606f\u8108\u7d61\u3001URL \u7279\u5fb5\u3001\u6d89\u53ca\u5e33\u865f\u8207\u662f\u5426\u5b58\u5728\u8a98\u5c0e\u9a57\u8b49/\u76dc\u53d6\u6191\u8b49\u7684\u8de1\u8c61\uff0c\u9019\u662f\u6700\u80fd\u7acb\u5373\u64f4\u5145\u8b49\u64da\u9762\u7684\u65b9\u5411\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u5206\u6790 MSG-0901 \u6240\u5c6c\u5c0d\u8a71\u8108\u7d61\u8207\u524d\u5f8c\u6587\uff0c\u78ba\u8a8d\u662f\u5426\u70ba\u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5916\u90e8\u9801\u9762\u7684\u8a98\u5c0e\u884c\u70ba\uff1b\u6aa2\u8996 URL https://verify-market.invalid/session \u7684\u53ef\u7591\u7279\u5fb5\u8207\u91e3\u9b5a\u610f\u5716\uff1b\u78ba\u8a8d sender_account_id ACC-0052 \u8207 recipient_account_id ACC-0111 \u5728\u8a0a\u606f\u4e2d\u7684\u89d2\u8272\u8207\u662f\u5426\u6709\u7570\u5e38\u4e92\u52d5\u6a21\u5f0f\uff1b\u56de\u5831\u662f\u5426\u53ef\u5c07\u6b64\u8a0a\u606f\u5b9a\u6027\u70ba\u91e3\u9b5a/\u793e\u5de5\u6216\u50c5\u70ba\u4e00\u822c\u6d41\u7a0b\u901a\u77e5"
+            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u6b64\u6848\u5df2\u5075\u6e2c\u5230\u7591\u4f3c\u91e3\u9b5a URL\uff0c\u6838\u5fc3\u672a\u89e3\u554f\u984c\u5728\u65bc\u5c0d\u8a71\u5167\u5bb9\u3001URL\u3001\u53c3\u8207\u5e33\u865f\u8207\u8a0a\u606f\u8108\u7d61\u662f\u5426\u652f\u6301\u60e1\u610f\u5c0e\u6d41\u6216\u793e\u5de5\uff1b`chat` \u53ef\u76f4\u63a5\u6aa2\u8996\u8a0a\u606f\u8207\u9023\u7d50\u98a8\u96aa\uff0c\u6700\u7b26\u5408\u76ee\u524d\u7f3a\u53e3\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u78ba\u8a8d MSG-0901 \u8207 CONV-031 \u7684\u5c0d\u8a71\u4e0a\u4e0b\u6587\u662f\u5426\u5b58\u5728\u8981\u6c42\u5916\u90e8\u9a57\u8b49\u3001\u7d22\u53d6\u6191\u8b49\u6216\u7570\u5e38\u5c0e\u6d41\uff1b\u5206\u6790 URL https://verify-market.invalid/session \u7684\u53ef\u7591\u7279\u5fb5\u8207\u662f\u5426\u5c6c\u65bc\u91e3\u9b5a/\u4eff\u5192\u9801\u9762\uff1b\u78ba\u8a8d sender_account_id ACC-0052 \u8207 recipient_account_id ACC-0111 \u5728\u5c0d\u8a71\u4e2d\u7684\u89d2\u8272\u8207\u662f\u5426\u6709\u91cd\u8907\u76f8\u4f3c\u8a71\u8853"
         },
         {
             "agent": "order",
             "case_type": "order",
             "sequence": 2,
-            "routing_score": 38,
-            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u76ee\u524d chat \u5c08\u5bb6\u5df2\u78ba\u8a8d\u8a0a\u606f\u8207 URL \u5177\u6709\u9ad8\u5ea6\u91e3\u9b5a/\u793e\u5de5\u5c0e\u6d41\u98a8\u96aa\uff0c\u4f46\u4ecd\u7f3a\u5c11\u8a02\u55ae\u8207\u4ed8\u6b3e\u5c64\u9762\u7684\u5e73\u53f0\u5167\u8b49\u64da\uff0c\u4e14 chat \u5831\u544a\u4e5f\u660e\u78ba\u6307\u51fa\u300e\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300f\u6c92\u6709\u5c0d\u61c9\u5230\u53ef\u6838\u5be6\u7684\u4ea4\u6613\u969c\u7919\u8cc7\u6599\u3002\u4f9d\u8cac\u4efb\u5206\u5de5\uff0corder \u5c08\u5bb6\u6700\u9069\u5408\u88dc\u8db3\u662f\u5426\u5b58\u5728\u7570\u5e38\u8a02\u55ae\u72c0\u614b\u3001\u4ed8\u6b3e\u8981\u6c42\u3001\u914d\u9001\u524d\u7f6e\u689d\u4ef6\u3001\u9000\u6b3e/\u722d\u8b70\u8a18\u9304\uff0c\u9032\u4e00\u6b65\u78ba\u8a8d\u9019\u662f\u5426\u53ea\u662f\u8a0a\u606f\u5c64\u9762\u7684\u8a98\u5c0e\uff0c\u6216\u5df2\u5ef6\u4f38\u5230\u4ea4\u6613\u6d41\u7a0b\u6b3a\u8a50\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u6aa2\u67e5\u8207 MSG-0901 \u5c0d\u61c9\u7684\u8a02\u55ae\u3001\u4ed8\u6b3e\u3001\u51fa\u8ca8\u8207\u722d\u8b70\u8a18\u9304\u662f\u5426\u5b58\u5728\u5e73\u53f0\u5167\u7570\u5e38\u6216\u4e0d\u4e00\u81f4\uff1b\u78ba\u8a8d\u300e\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300f\u662f\u5426\u80fd\u5728\u4ea4\u6613\u6216\u8a02\u55ae\u6d41\u7a0b\u4e2d\u627e\u5230\u6b63\u5f0f\u5c0d\u61c9\uff0c\u6216\u50c5\u70ba\u7ad9\u5916\u8a98\u5c0e\u8aaa\u6cd5\uff1b\u627e\u51fa ACC-0052 \u8207 ACC-0111 \u4e4b\u9593\u6b64\u7b46\u4ea4\u6613\u7684\u5b8c\u6574\u72c0\u614b\u3001\u6642\u9593\u7dda\u8207\u662f\u5426\u6709\u9000\u6b3e/\u53d6\u6d88/\u62d2\u7d55\u51fa\u8ca8\u8de1\u8c61\uff1b\u56de\u5831\u4efb\u4f55\u80fd\u652f\u6301\u6216\u524a\u5f31\u5df2\u7591\u4f3c\u91e3\u9b5a\u5c0e\u6d41\u7684\u8a02\u55ae\u5c64\u8b49\u64da"
+            "routing_score": 33,
+            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u76ee\u524d\u5df2\u7531 chat \u78ba\u8a8d\u8a0a\u606f\u8207 URL \u5177\u660e\u986f\u91e3\u9b5a/\u96e2\u7ad9\u9a57\u8b49\u98a8\u96aa\uff0c\u4f46\u4ecd\u7f3a\u5c11\u4ea4\u6613\u5c64\u9762\u7684\u95dc\u806f\u8b49\u64da\uff0c\u7121\u6cd5\u78ba\u8a8d\u662f\u5426\u5b58\u5728\u8a02\u55ae\u3001\u4ed8\u6b3e\u3001\u914d\u9001\u6216\u722d\u8b70\u6d41\u7a0b\u914d\u5408\u6b64\u8a71\u8853\u3002`order` \u53ef\u88dc\u8db3\u4ea4\u6613\u8108\u7d61\u3001\u4ed8\u6b3e\u8a2d\u5b9a\u7570\u5e38\u3001\u662f\u5426\u8981\u6c42\u8f49\u79fb\u81f3\u5916\u90e8\u4ed8\u6b3e\u9801\uff0c\u4ee5\u53ca\u662f\u5426\u6709\u9000\u6b3e/\u722d\u8b70\u6216\u51fa\u8ca8\u689d\u4ef6\u8207\u6b64\u8a0a\u606f\u76f8\u4e92\u5370\u8b49\uff0c\u9019\u662f\u4e0b\u4e00\u500b\u6700\u6709\u6a5f\u6703\u6539\u8b8a\u7d50\u8ad6\u7684\u7f3a\u53e3\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u78ba\u8a8d CONV-031 \u5c0d\u61c9\u7684\u8a02\u55ae/\u4ea4\u6613\u662f\u5426\u5b58\u5728\uff0c\u4ee5\u53ca\u8207 MSG-0901 \u7684\u6642\u9593\u9806\u5e8f\uff1b\u6aa2\u67e5\u662f\u5426\u6709\u4ed8\u6b3e\u3001\u6536\u6b3e\u8a2d\u5b9a\u3001\u51fa\u8ca8\u689d\u4ef6\u3001\u9000\u6b3e\u6216\u722d\u8b70\u7d00\u9304\u8207\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u76f8\u9023\uff1b\u5224\u65b7\u6b64\u5c0e\u6d41\u662f\u5426\u5f71\u97ff\u4ea4\u6613\u6d41\u7a0b\uff0c\u6216\u662f\u5426\u53ea\u662f\u4e00\u822c\u5ba2\u670d/\u901a\u77e5\u60c5\u5883"
         },
         {
             "agent": "marketplace_info",
             "case_type": "marketplace_info",
             "sequence": 3,
-            "routing_score": 103,
-            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u76ee\u524d chat \u8207 order \u5df2\u63d0\u4f9b\u8db3\u5920\u5f37\u7684\u8a0a\u606f\u8207\u4ea4\u6613\u5c64\u7dda\u7d22\uff0c\u986f\u793a\u9ad8\u5ea6\u7591\u4f3c\u7ad9\u5916\u5c0e\u6d41/\u91e3\u9b5a\uff1b\u4f46\u4ecd\u7f3a\u5c11\u5546\u54c1\u3001\u5546\u5e97\u6216\u8ce3\u5bb6\u5c64\u9762\u7684\u5e73\u53f0\u80cc\u666f\u4f86\u5224\u65b7\u9019\u662f\u5426\u70ba\u5b64\u7acb\u8a0a\u606f\uff0c\u6216\u662f\u8207\u8ce3\u5bb6\u9801\u9762\u3001\u5546\u54c1\u63cf\u8ff0\u3001\u8a55\u8ad6/\u6aa2\u8209\u6a21\u5f0f\u4e00\u81f4\u7684\u7cfb\u7d71\u6027\u98a8\u96aa\u3002marketplace_info \u5c1a\u672a\u57f7\u884c\uff0c\u4e14\u5176\u8cac\u4efb\u53ef\u88dc\u8db3\u5546\u5e97/\u5546\u54c1/\u8a55\u8ad6/\u6aa2\u8209/\u8ce3\u5bb6\u8cc7\u8a0a\uff0c\u9019\u662f\u5269\u9918\u9810\u7b97\u4e0b\u6700\u80fd\u589e\u52a0\u5224\u65b7\u628a\u63e1\u5ea6\u7684\u65b9\u5411\u3002\u8abf\u67e5\u7126\u9ede\uff1a\u6aa2\u8996 ACC-0052 \u7684\u5546\u5e97/\u5546\u54c1\u9801\u662f\u5426\u6709\u76f8\u4f3c\u7684\u5916\u90e8\u5c0e\u6d41\u3001\u9a57\u8b49\u6216\u4ed8\u6b3e\u8a2d\u5b9a\u8aaa\u6cd5\uff1b\u78ba\u8a8d\u76f8\u95dc\u5546\u54c1\u63cf\u8ff0\u3001\u50f9\u683c\u3001\u5716\u7247\u6216\u8a55\u8ad6\u662f\u5426\u5b58\u5728\u7570\u5e38\u6216\u4eff\u5192\u8de1\u8c61\uff1b\u67e5\u627e\u662f\u5426\u6709\u5176\u4ed6\u6aa2\u8209\u3001\u8ca0\u8a55\u6216\u5e73\u53f0\u98a8\u96aa\u6a19\u8a18\u652f\u6301\u6b64\u985e\u884c\u70ba\u662f\u5426\u70ba\u91cd\u8907\u6a21\u5f0f\uff1b\u56de\u5831\u4efb\u4f55\u80fd\u9032\u4e00\u6b65\u5b9a\u6027\u70ba\u91e3\u9b5a\u3001\u793e\u5de5\u6216\u4e00\u822c\u4ea4\u6613\u6e9d\u901a\u7684\u5e02\u5834\u7aef\u8b49\u64da\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u6aa2\u8996 ACC-0052 \u7684\u5546\u5e97/\u5546\u54c1\u9801\u662f\u5426\u6709\u76f8\u4f3c\u7684\u5916\u90e8\u5c0e\u6d41\u3001\u9a57\u8b49\u6216\u4ed8\u6b3e\u8a2d\u5b9a\u8aaa\u6cd5\uff1b\u78ba\u8a8d\u76f8\u95dc\u5546\u54c1\u63cf\u8ff0\u3001\u50f9\u683c\u3001\u5716\u7247\u6216\u8a55\u8ad6\u662f\u5426\u5b58\u5728\u7570\u5e38\u6216\u4eff\u5192\u8de1\u8c61\uff1b\u67e5\u627e\u662f\u5426\u6709\u5176\u4ed6\u6aa2\u8209\u3001\u8ca0\u8a55\u6216\u5e73\u53f0\u98a8\u96aa\u6a19\u8a18\u652f\u6301\u6b64\u985e\u884c\u70ba\u662f\u5426\u70ba\u91cd\u8907\u6a21\u5f0f\uff1b\u56de\u5831\u4efb\u4f55\u80fd\u9032\u4e00\u6b65\u5b9a\u6027\u70ba\u91e3\u9b5a\u3001\u793e\u5de5\u6216\u4e00\u822c\u4ea4\u6613\u6e9d\u901a\u7684\u5e02\u5834\u7aef\u8b49\u64da"
+            "routing_score": 95,
+            "reason": "\u555f\u52d5\u8abf\u67e5\uff1a\u76ee\u524d `chat` \u8207 `order` \u90fd\u5df2\u63d0\u4f9b\u9ad8\u98a8\u96aa\u5916\u90e8\u5c0e\u6d41\u8207\u4ea4\u6613\u8108\u7d61\uff0c\u4f46\u4ecd\u7f3a\u5c11\u5546\u5e97/\u8ce3\u5bb6\u5c64\u9762\u7684\u80cc\u666f\u8b49\u64da\u4f86\u5224\u65b7\u662f\u5426\u70ba\u55ae\u6b21\u53ef\u7591\u6e9d\u901a\uff0c\u6216\u662f\u8207\u540c\u4e00\u8ce3\u5bb6/\u5546\u54c1/\u8a55\u8ad6/\u6aa2\u8209\u6a21\u5f0f\u76f8\u95dc\u7684\u7cfb\u7d71\u6027\u98a8\u96aa\u3002`marketplace_info` \u5c1a\u672a\u88ab\u555f\u52d5\uff0c\u4e14\u5176\u8cac\u4efb\u6b63\u597d\u80fd\u88dc\u8db3\u5546\u5e97\u3001\u5546\u54c1\u3001\u50f9\u683c\u3001\u5716\u7247\u3001\u8a55\u8ad6\u3001\u6aa2\u8209\u8207\u8ce3\u5bb6\u8cc7\u8a0a\uff0c\u9019\u662f\u76ee\u524d\u6700\u53ef\u80fd\u6539\u8b8a\u7d50\u8ad6\u7684\u672a\u8986\u84cb\u9762\u5411\u3002 \u8abf\u67e5\u7126\u9ede\uff1a\u78ba\u8a8d ACC-0052 \u5c0d\u61c9\u8ce3\u5bb6/\u5546\u5e97\u662f\u5426\u6709\u76f8\u4f3c\u7684\u5916\u90e8\u9a57\u8b49\u3001\u4ed8\u6b3e\u8a2d\u5b9a\u6216\u7ad9\u5916\u5c0e\u6d41\u6aa2\u8209\u7d00\u9304\uff1b\u6aa2\u67e5\u76f8\u95dc\u5546\u54c1\u8207\u5546\u5e97\u8a55\u8ad6\u662f\u5426\u51fa\u73fe\u985e\u4f3c\u8a50\u9a19\u3001\u5ef6\u9072\u51fa\u8ca8\u6216\u8981\u6c42\u96e2\u7ad9\u64cd\u4f5c\u7684\u6a21\u5f0f\uff1b\u5224\u65b7\u6b64\u6848\u662f\u5426\u70ba\u55ae\u4e00\u5c0d\u8a71\u98a8\u96aa\uff0c\u6216\u5b58\u5728\u66f4\u5ee3\u6cdb\u7684 marketplace \u5c64\u7d1a\u7570\u5e38"
         }
     ],
     "agent_results": [
         {
             "agent": "chat",
             "raw_analysis": {
-                "summary": "MSG-0901 \u986f\u793a\u8ce3\u5bb6 ACC-0052 \u8981\u6c42\u8cb7\u5bb6 ACC-0111 \u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u9762\u5b8c\u6210\u300c\u6536\u6b3e\u8a2d\u5b9a\u300d\u5f8c\u624d\u51fa\u8ca8\uff0c\u4e14\u8cb7\u5bb6\u660e\u78ba\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u3002\u6b64\u578b\u614b\u7b26\u5408\u5e38\u898b\u7684\u5c0e\u6d41\u81f3\u7ad9\u5916\u9a57\u8b49/\u4ed8\u6b3e\u6d41\u7a0b\u7684\u793e\u5de5\u624b\u6cd5\uff1b\u4f46\u76ee\u524d\u672a\u53d6\u5f97\u53ef\u76f4\u63a5\u8b49\u660e\u60e1\u610f\u6216\u7aca\u53d6\u6191\u8b49\u7684\u9801\u9762\u5167\u5bb9\uff0c\u56e0\u6b64\u5c6c\u65bc\u5f37\u70c8\u53ef\u7591\u3001\u672a\u5b8c\u5168\u5b9a\u6027\u7684\u91e3\u9b5a/\u793e\u5de5\u8de1\u8c61\u3002",
+                "summary": "MSG-0901 \u7531 ACC-0052 \u5728 CONV-031 \u4e2d\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u9762\u5b8c\u6210\u300c\u6536\u6b3e\u8a2d\u5b9a\u300d\u5f8c\u624d\u51fa\u8ca8\uff0c\u4e14\u9644\u5e36\u7684 URL \u70ba `https://verify-market.invalid/session`\u3002\u540c\u4e00\u5c0d\u8a71\u4e2d\uff0cACC-0111 \u660e\u78ba\u8ffd\u554f\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u96d9\u65b9\u5c0d\u5916\u90e8\u5c0e\u6d41\u6709\u7591\u616e\u3002\u5c31\u76ee\u524d\u8b49\u64da\u770b\uff0c\u9019\u662f\u5178\u578b\u7684\u96e2\u7ad9\u9a57\u8b49/\u4ed8\u6b3e\u8a2d\u5b9a\u5f15\u5c0e\u8a71\u8853\uff0c\u5177\u6709\u660e\u986f\u91e3\u9b5a\u98a8\u96aa\uff1b\u4f46\u73fe\u6709\u8cc7\u6599\u672a\u76f4\u63a5\u8b49\u660e\u9801\u9762\u5167\u6709\u7d22\u53d6\u5bc6\u78bc\u3001OTP \u6216\u5176\u4ed6\u6191\u8b49\uff0c\u56e0\u6b64\u4e0d\u9054\u5230\u76f4\u63a5\u4e14 \u0928\u093f\u0930\u094d\u0923 decisive \u7684 5 \u5206\u8b49\u64da\u3002",
                 "findings": [
                     {
                         "type": "message_content",
-                        "description": "\u8a0a\u606f\u660e\u78ba\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u300c\u9a57\u8b49\u9801\u300d\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u4f5c\u70ba\u58d3\u529b\u689d\u4ef6\uff1b\u9019\u662f\u628a\u4ea4\u6613\u6d41\u7a0b\u79fb\u51fa\u5e73\u53f0\u3001\u4ee5\u51fa\u8ca8\u4f5c\u8a98\u56e0\u63a8\u52d5\u7ad9\u5916\u64cd\u4f5c\u7684\u5178\u578b\u9ad8\u98a8\u96aa\u8a71\u8853\u3002",
+                        "description": "MSG-0901 \u7684\u6587\u5b57\u8981\u6c42\u6536\u4ef6\u4eba\u5230\u300c\u9a57\u8b49\u9801\u300d\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u65bd\u52a0\u4ea4\u6613\u58d3\u529b\uff1b\u9019\u5c6c\u65bc\u660e\u986f\u7684\u5916\u90e8\u5c0e\u6d41\u8207\u4ed8\u6b3e/\u6536\u6b3e\u8a2d\u5b9a\u9a57\u8b49\u8a71\u8853\uff0c\u5e38\u898b\u65bc\u91e3\u9b5a\u6216\u4ea4\u6613\u8a50\u9a19\u5834\u666f\u3002",
                         "impact": "supports_fraud",
-                        "confidence": 0.95,
+                        "confidence": 0.96,
                         "evidence_refs": [
-                            "MSG-0901",
-                            "MSG-0902"
+                            "MSG-0901"
                         ]
                     },
                     {
                         "type": "conversation_context",
-                        "description": "\u540c\u4e00\u5c0d\u8a71\u4e2d\uff0c\u8cb7\u5bb6 ACC-0111 \u5148\u8a62\u554f\u51fa\u8ca8\u6642\u9593\uff0c\u96a8\u5f8c\u7acb\u5373\u8ffd\u554f\u300c\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1f\u300d\u986f\u793a\u5176\u5c0d\u7ad9\u5916\u6d41\u7a0b\u6709\u7591\u616e\uff0c\u4e14\u8ce3\u5bb6\u7b54\u8986\u672a\u63d0\u4f9b\u5e73\u53f0\u5167\u53ef\u9a57\u8b49\u7684\u8aaa\u660e\u3002",
+                        "description": "\u5728 CONV-031 \u4e2d\uff0cACC-0111 \u8ffd\u554f\u300c\u70ba\u4ec0\u9ebc\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1f\u300d\u986f\u793a\u5c0d\u5916\u90e8\u9a57\u8b49\u6d41\u7a0b\u6709\u7570\u8b70\uff1b\u540c\u6642\u8a0a\u606f\u4e32\u4e2d\u51fa\u73fe\u53cd\u8986\u7684\u51fa\u8ca8\u50ac\u554f\u8207\u55ae\u6b21\u5916\u90e8\u9a57\u8b49\u8981\u6c42\uff0c\u7b26\u5408\u53ef\u7591\u4ea4\u6613\u8a98\u5c0e\u7684\u5c0d\u8a71\u8108\u7d61\u3002",
                         "impact": "supports_fraud",
-                        "confidence": 0.92,
+                        "confidence": 0.87,
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902",
-                            "MSG-0111",
-                            "MSG-0151",
-                            "MSG-0191",
-                            "MSG-0231",
-                            "MSG-0271",
-                            "MSG-0311",
+                            "MSG-0391",
                             "MSG-0351",
-                            "MSG-0391"
+                            "MSG-0311",
+                            "MSG-0271"
                         ]
                     },
                     {
                         "type": "url_attachment_risk",
-                        "description": "URL \u70ba `https://verify-market.invalid/session`\uff0c\u5176\u4e2d `.invalid` \u5c6c\u975e\u6b63\u5e38\u53ef\u89e3\u6790\u793a\u4f8b\u7db2\u57df\uff0c\u4e14\u8def\u5f91\u540d\u7a31\u8207\u300e\u9a57\u8b49/\u6536\u6b3e\u8a2d\u5b9a\u300f\u9ad8\u5ea6\u76f8\u95dc\uff1b\u9019\u8207\u7ad9\u5916\u9a57\u8b49\u8a98\u5c0e\u76f8\u7b26\u3002VirusTotal \u7121\u65e2\u6709\u5831\u544a\uff0c\u4e0d\u80fd\u8996\u70ba\u5b89\u5168\u3002",
+                        "description": "\u9644\u5e36 URL `https://verify-market.invalid/session` \u4f7f\u7528 `.invalid` \u7db2\u57df\uff0c\u4e14\u8def\u5f91\u8a9e\u610f\u70ba session/verify\uff0c\u8207\u300c\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\u300d\u7684\u8a71\u8853\u9ad8\u5ea6\u4e00\u81f4\uff1bVirusTotal \u672a\u627e\u5230\u65e2\u6709\u5831\u544a\uff0c\u4e0d\u80fd\u8996\u70ba\u5b89\u5168\uff0c\u50c5\u8868\u793a\u7f3a\u4e4f\u5916\u90e8\u4f50\u8b49\u3002",
                         "impact": "supports_fraud",
-                        "confidence": 0.9,
+                        "confidence": 0.98,
                         "evidence_refs": [
                             "MSG-0901"
                         ]
                     },
                     {
                         "type": "participant_account_activity",
-                        "description": "ACC-0052 \u8207 ACC-0111 \u5747\u70ba\u5df2\u9a57\u8b49\u3001\u4e00\u822c\u5340\u6bb5\u5e33\u865f\uff1bACC-0052 \u8fd1\u671f\u6709\u4e00\u7b46\u76f8\u540c\u8cb7\u5bb6 ACC-0111 \u7684\u5df2\u5b8c\u6210\u4ea4\u6613\uff0c\u986f\u793a\u5169\u8005\u9593\u78ba\u6709\u4ea4\u6613\u95dc\u4fc2\uff0c\u4f46\u5e33\u865f\u6d3b\u52d5\u672c\u8eab\u672a\u898b\u76f4\u63a5\u7570\u5e38\u767b\u5165\u6216\u63a5\u7ba1\u8b49\u64da\u3002",
+                        "description": "ACC-0052 \u662f\u5df2\u9a57\u8b49\u5e33\u865f\uff0c\u5e33\u6236\u6d3b\u52d5\u672c\u8eab\u6c92\u6709\u660e\u986f\u7570\u5e38\u767b\u5165\u6216\u5b89\u5168\u4e8b\u4ef6\uff1b\u5176\u904e\u5f80\u8a0a\u606f\u8207\u4ea4\u6613\u7d00\u9304\u986f\u793a\u4e00\u822c\u8ce3\u5bb6\u578b\u614b\uff0c\u9019\u4e9b\u80cc\u666f\u4e0d\u652f\u6301\u76f4\u63a5\u5224\u5b9a\u5176\u5e33\u6236\u88ab\u76dc\u6216\u60e1\u610f\u81ea\u52d5\u5316\uff0c\u4f46\u4e5f\u4e0d\u8db3\u4ee5\u63a8\u7ffb\u672c\u6b21\u53ef\u7591\u5c0e\u6d41\u884c\u70ba\u3002",
                         "impact": "neutral",
-                        "confidence": 0.64,
+                        "confidence": 0.72,
                         "evidence_refs": [
-                            "MSG-0901",
-                            "TXN-0031"
-                        ]
-                    },
-                    {
-                        "type": "transaction_context",
-                        "description": "\u53ef\u78ba\u8a8d ACC-0111 \u66fe\u5411 ACC-0052 \u8cfc\u8cb7\u904e\u5546\u54c1\uff0c\u4ea4\u6613\u72c0\u614b\u70ba delivered\uff0c\u8868\u793a\u5169\u8005\u4e4b\u9593\u5b58\u5728\u65e2\u6709\u4ea4\u6613\u8108\u7d61\uff1b\u4f46\u672c\u6b21\u8a0a\u606f\u6240\u8ff0\u300e\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300f\u7121\u5c0d\u61c9\u5230\u5e73\u53f0\u5167\u53ef\u6838\u5be6\u7684\u4ea4\u6613\u969c\u7919\u8cc7\u6599\uff0c\u56e0\u6b64\u4ea4\u6613\u4e0a\u4e0b\u6587\u53ea\u80fd\u652f\u6301\u96d9\u65b9\u70ba\u8cb7\u8ce3\u95dc\u4fc2\uff0c\u4e0d\u80fd\u55ae\u7368\u8b49\u660e\u5408\u6cd5\u6216\u8a50\u9a19\u3002",
-                        "impact": "neutral",
-                        "confidence": 0.71,
-                        "evidence_refs": [
-                            "TXN-0031",
                             "MSG-0901"
                         ]
                     }
@@ -1416,38 +1333,33 @@
                         "item_type": "message_content",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.95,
-                        "rationale": "\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u5230\u5916\u90e8\u9a57\u8b49\u9801\uff0c\u4e26\u4ee5\u51fa\u8ca8\u4f5c\u70ba\u58d3\u529b\u689d\u4ef6\uff0c\u5c6c\u5f37\u70c8\u793e\u5de5/\u91e3\u9b5a\u5c0e\u6d41\u7279\u5fb5\uff1b\u4f46\u672a\u898b\u9801\u9762\u5be6\u969b\u5167\u5bb9\u6216\u660e\u793a\u7aca\u53d6\u884c\u70ba\uff0c\u56e0\u6b64\u4e0d\u5230 5\u3002",
+                        "confidence": 0.96,
+                        "rationale": "\u6587\u5b57\u660e\u78ba\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u5b8c\u6210\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u4ee5\u51fa\u8ca8\u4f5c\u70ba\u689d\u4ef6\uff0c\u5c6c\u5f37\u70c8\u53ef\u7591\u7684\u96e2\u7ad9\u9a57\u8b49\u5f15\u5c0e\uff0c\u4f46\u672a\u76f4\u63a5\u51fa\u73fe\u7d22\u53d6\u5bc6\u78bc/OTP \u7b49\u6c7a\u5b9a\u6027\u6191\u8b49\u3002",
                         "evidence_refs": [
-                            "MSG-0901",
-                            "MSG-0902"
+                            "MSG-0901"
                         ]
                     },
                     {
                         "item_type": "conversation_context",
-                        "score": 4,
+                        "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.92,
-                        "rationale": "\u8cb7\u5bb6\u76f4\u63a5\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u5c0d\u7ad9\u5916\u6d41\u7a0b\u6709\u7591\u616e\uff0c\u4e14\u5c0d\u8a71\u672a\u63d0\u4f9b\u5408\u7406\u5e73\u53f0\u5167\u8aaa\u660e\uff0c\u652f\u6301\u53ef\u7591\u8108\u7d61\u3002",
+                        "confidence": 0.87,
+                        "rationale": "\u5c0d\u8a71\u4e2d\u8cb7\u5bb6\u5c0d\u5916\u90e8\u9a57\u8b49\u63d0\u51fa\u8cea\u7591\uff0c\u4e14\u4e0a\u4e0b\u6587\u5448\u73fe\u51fa\u8ca8\u58d3\u529b\u8207\u5916\u90e8\u6d41\u7a0b\u4e26\u5b58\uff1b\u6709\u986f\u8457\u98a8\u96aa \u0938\u0902\u0915\u0947\u0924\uff0c\u4f46\u4ecd\u7f3a\u5c11\u66f4\u591a\u4f86\u56de\u6216\u660e\u78ba\u53d7\u5bb3\u8b49\u64da\u3002",
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902",
-                            "MSG-0111",
-                            "MSG-0151",
-                            "MSG-0191",
-                            "MSG-0231",
-                            "MSG-0271",
-                            "MSG-0311",
+                            "MSG-0391",
                             "MSG-0351",
-                            "MSG-0391"
+                            "MSG-0311",
+                            "MSG-0271"
                         ]
                     },
                     {
                         "item_type": "url_attachment_risk",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.9,
-                        "rationale": "`.invalid` \u7db2\u57df\u8207\u300everify/session\u300f\u547d\u540d\u9ad8\u5ea6\u53ef\u7591\uff0c\u4f46\u7f3a\u4e4f\u53ef\u76f4\u63a5\u8b49\u660e\u60e1\u610f\u5167\u5bb9\u7684\u56de\u5831\u6216\u9801\u9762\u8b49\u64da\uff0c\u56e0\u6b64\u5c6c\u5f37\u53ef\u7591\u800c\u975e \u0928\u093f\u0930\u094d\u0923\u5b9a\u6027\u8b49\u64da\u3002",
+                        "confidence": 0.98,
+                        "rationale": "URL \u4f7f\u7528 `.invalid`\uff0c\u4e14\u5167\u5bb9\u8a9e\u610f\u8207\u9a57\u8b49\u4ed8\u6b3e/\u6536\u6b3e\u8a2d\u5b9a\u9ad8\u5ea6\u543b\u5408\uff1b\u672a\u67e5\u5230 VT \u5831\u544a\u4e0d\u7b49\u65bc\u5b89\u5168\uff0c\u53ea\u662f\u7f3a\u4e4f\u5916\u90e8\u8072\u8b7d\u8cc7\u6599\uff0c\u56e0\u6b64\u5c6c\u5f37\u70c8\u53ef\u7591\u4f46\u975e\u76f4\u63a5\u8b49\u64da\u3002",
                         "evidence_refs": [
                             "MSG-0901"
                         ]
@@ -1456,76 +1368,59 @@
                         "item_type": "participant_account_activity",
                         "score": 1,
                         "is_direct_evidence": false,
-                        "confidence": 0.64,
-                        "rationale": "\u5169\u5e33\u865f\u7686\u70ba active\u3001verified\uff0c\u4e14\u672a\u898b\u660e\u986f\u767b\u5165\u63a5\u7ba1\u6216\u5171\u4eab\u57fa\u790e\u8a2d\u65bd\u7570\u5e38\uff1b\u5e33\u865f\u5c64\u9762\u672a\u63d0\u4f9b\u652f\u6301\u8a50\u9a19\u7684\u76f4\u63a5\u8a0a\u865f\u3002",
+                        "confidence": 0.72,
+                        "rationale": "ACC-0052 \u7684\u5e33\u6236\u6d3b\u52d5\u6c92\u6709\u986f\u8457\u767b\u5165\u98a8\u96aa\u3001\u88dd\u7f6e\u5171\u4eab\u6216\u5b89\u5168\u8b66\u793a\uff1b\u6b77\u53f2\u4ea4\u6613\u770b\u8d77\u4f86\u50cf\u4e00\u822c\u8ce3\u5bb6\u5e33\u6236\uff0c\u5c0d\u672c\u6b21\u8a0a\u606f\u98a8\u96aa\u6c92\u6709\u63d0\u4f9b\u984d\u5916\u60e1\u610f\u8b49\u64da\u3002",
                         "evidence_refs": [
-                            "MSG-0901",
-                            "TXN-0031"
-                        ]
-                    },
-                    {
-                        "item_type": "transaction_context",
-                        "score": 1,
-                        "is_direct_evidence": false,
-                        "confidence": 0.71,
-                        "rationale": "\u5b58\u5728\u65e2\u6709\u8cb7\u8ce3\u4ea4\u6613\u95dc\u4fc2\u8207\u5df2\u5b8c\u6210\u4ea4\u4ed8\u7d00\u9304\uff0c\u5c0d\u5408\u6cd5\u4e92\u52d5\u6709\u4e00\u5b9a\u652f\u6301\uff1b\u4f46\u672c\u6b21\u722d\u9ede\u662f\u7ad9\u5916\u9a57\u8b49\u8a98\u5c0e\uff0c\u4ea4\u6613\u8cc7\u8a0a\u7121\u6cd5\u6d88\u9664\u53ef\u7591\u6027\u3002",
-                        "evidence_refs": [
-                            "TXN-0031",
                             "MSG-0901"
                         ]
                     }
                 ],
                 "direct_evidence_found": false,
-                "recommended_follow_up": "\u5efa\u8b70\u9032\u4e00\u6b65\u6aa2\u67e5\u9a57\u8b49\u9801\u5be6\u969b\u5167\u5bb9\u8207\u8df3\u8f49\u93c8\u662f\u5426\u8981\u6c42\u8f38\u5165\u4ed8\u6b3e/\u767b\u5165\u8cc7\u8a0a\uff0c\u4e26\u78ba\u8a8d\u5e73\u53f0\u5167\u662f\u5426\u6709\u5c0d\u61c9\u7684\u6b63\u5f0f\u6536\u6b3e\u8a2d\u5b9a\u6d41\u7a0b\uff1b\u82e5\u7121\uff0c\u5247\u53ef\u5c07\u6b64\u8a0a\u606f\u8996\u70ba\u9ad8\u98a8\u96aa\u793e\u5de5/\u91e3\u9b5a\u5c0e\u6d41\u3002"
+                "recommended_follow_up": "\u82e5\u8981\u9032\u4e00\u6b65\u78ba\u8a8d\u662f\u5426\u70ba\u91e3\u9b5a\u9801\uff0c\u5efa\u8b70\u91dd\u5c0d `verify-market.invalid` \u7684\u5be6\u969b\u9801\u9762\u5167\u5bb9\u6216\u5f8c\u7e8c\u5c0d\u8a71\u53d6\u8b49\uff0c\u7279\u5225\u662f\u662f\u5426\u8981\u6c42\u8f38\u5165\u5e33\u5bc6\u3001OTP\u3001\u4ed8\u6b3e\u8cc7\u8a0a\u6216\u8df3\u8f49\u5230\u7b2c\u4e09\u65b9\u652f\u4ed8\uff1b\u540c\u6642\u53ef\u6aa2\u67e5 CONV-031 \u662f\u5426\u9084\u6709\u5176\u4ed6\u8981\u6c42\u96e2\u7ad9\u9a57\u8b49\u7684\u8a0a\u606f\u3002"
             },
             "score_aggregate": {
-                "weighted_score": 0.683960625362,
-                "confidence": 0.8635,
-                "coverage": 1.0,
-                "total_effective_weight": 0.8635,
+                "weighted_score": 0.677641277641,
+                "confidence": 0.9044444444444444,
+                "coverage": 0.9,
+                "total_effective_weight": 0.814,
                 "contributions": [
                     {
                         "item_type": "message_content",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.95,
+                        "confidence": 0.96,
                         "configured_weight": 0.35,
-                        "effective_weight": 0.33249999999999996,
-                        "weighted_contribution": 0.26599999999999996,
+                        "effective_weight": 0.33599999999999997,
+                        "weighted_contribution": 0.2688,
                         "evidence_refs": [
-                            "MSG-0901",
-                            "MSG-0902"
+                            "MSG-0901"
                         ]
                     },
                     {
                         "item_type": "conversation_context",
-                        "score": 4,
+                        "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.92,
+                        "confidence": 0.87,
                         "configured_weight": 0.2,
-                        "effective_weight": 0.18400000000000002,
-                        "weighted_contribution": 0.14720000000000003,
+                        "effective_weight": 0.17400000000000002,
+                        "weighted_contribution": 0.1044,
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902",
-                            "MSG-0111",
-                            "MSG-0151",
-                            "MSG-0191",
-                            "MSG-0231",
-                            "MSG-0271",
-                            "MSG-0311",
+                            "MSG-0391",
                             "MSG-0351",
-                            "MSG-0391"
+                            "MSG-0311",
+                            "MSG-0271"
                         ]
                     },
                     {
                         "item_type": "url_attachment_risk",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.9,
+                        "confidence": 0.98,
                         "configured_weight": 0.2,
-                        "effective_weight": 0.18000000000000002,
-                        "weighted_contribution": 0.14400000000000002,
+                        "effective_weight": 0.196,
+                        "weighted_contribution": 0.15680000000000002,
                         "evidence_refs": [
                             "MSG-0901"
                         ]
@@ -1534,25 +1429,11 @@
                         "item_type": "participant_account_activity",
                         "score": 1,
                         "is_direct_evidence": false,
-                        "confidence": 0.64,
+                        "confidence": 0.72,
                         "configured_weight": 0.15,
-                        "effective_weight": 0.096,
-                        "weighted_contribution": 0.019200000000000002,
+                        "effective_weight": 0.108,
+                        "weighted_contribution": 0.0216,
                         "evidence_refs": [
-                            "MSG-0901",
-                            "TXN-0031"
-                        ]
-                    },
-                    {
-                        "item_type": "transaction_context",
-                        "score": 1,
-                        "is_direct_evidence": false,
-                        "confidence": 0.71,
-                        "configured_weight": 0.1,
-                        "effective_weight": 0.071,
-                        "weighted_contribution": 0.014199999999999999,
-                        "evidence_refs": [
-                            "TXN-0031",
                             "MSG-0901"
                         ]
                     }
@@ -1563,57 +1444,48 @@
         {
             "agent": "order",
             "raw_analysis": {
-                "summary": "\u5c31\u76ee\u524d\u53ef\u7528\u8b49\u64da\u4f86\u770b\uff0cMSG-0901 \u7684\u5167\u5bb9\u9ad8\u5ea6\u7b26\u5408\u7ad9\u5916\u91e3\u9b5a/\u5c0e\u6d41\u8a71\u8853\uff1a\u8ce3\u5bb6 ACC-0052 \u8981\u6c42\u8cb7\u5bb6 ACC-0111 \u524d\u5f80\u5916\u90e8\u7db2\u5740\u5b8c\u6210\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u7684\u9a57\u8b49\uff0c\u4e14\u8cb7\u5bb6\u7acb\u5373\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u3002\u5e73\u53f0\u5167\u5df2\u53ef\u898b\u96d9\u65b9\u5148\u524d\u78ba\u5be6\u5b58\u5728\u4e00\u7b46\u4ea4\u6613 TXN-0031\uff0c\u72c0\u614b\u70ba delivered\uff0c\u4e26\u6c92\u6709\u770b\u5230\u8a72\u7b46\u4ea4\u6613\u6709\u9000\u6b3e\u3001\u53d6\u6d88\u3001\u62d2\u7d55\u51fa\u8ca8\u6216\u722d\u8b70\u7684\u76f4\u63a5\u7d00\u9304\uff1b\u56e0\u6b64\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u8f03\u50cf\u662f\u7ad9\u5916\u8a98\u5c0e\u8aaa\u6cd5\uff0c\u800c\u975e\u76ee\u524d\u4ea4\u6613\u6d41\u7a0b\u4e2d\u7684\u6b63\u5f0f\u72c0\u614b\u3002",
+                "summary": "CONV-031 \u4e2d\u7684 MSG-0901 \u660e\u78ba\u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u9762\u5b8c\u6210\u300c\u6536\u6b3e\u8a2d\u5b9a\u300d\u5f8c\u624d\u53ef\u51fa\u8ca8\uff0c\u4e14\u5f8c\u7e8c MSG-0902 \u76f4\u63a5\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u6b64\u5c0e\u6d41\u8207\u4ea4\u6613\u6d41\u7a0b\u76f4\u63a5\u76f8\u95dc\u3002\u65e2\u6709\u8cc7\u6599\u540c\u6642\u986f\u793a ACC-0052 \u78ba\u5be6\u5b58\u5728\u8207 ACC-0111 \u7684\u4ea4\u6613 TXN-0031\uff0c\u4e14\u8a72\u7b46\u4ea4\u6613\u72c0\u614b\u70ba delivered\uff0c\u4ee3\u8868\u6b64\u5c0d\u8a71\u4e26\u975e\u7a7a\u6cdb\u8a50\u9a19\u8a71\u8853\uff0c\u4ecd\u6709\u771f\u5be6\u8a02\u55ae\u80cc\u666f\u3002\u4e0d\u904e\uff0c\u76ee\u524d\u672a\u898b\u4ed8\u6b3e\u5931\u6557\u3001\u9000\u6b3e\u3001\u722d\u8b70\u5347\u7d1a\u6216\u51fa\u8ca8\u7570\u5e38\u7b49\u66f4\u5f37\u8b49\u64da\uff0c\u56e0\u6b64\u50c5\u80fd\u5224\u5b9a\u70ba\u9ad8\u98a8\u96aa\u7684\u7ad9\u5916\u9a57\u8b49\u5c0e\u6d41\u60c5\u5883\uff0c\u800c\u975e\u5df2\u88ab\u8b49\u5be6\u7684\u8a50\u9a19\u7d50\u679c\u3002",
                 "findings": [
                     {
-                        "type": "message_content",
-                        "description": "MSG-0901 \u660e\u78ba\u8981\u6c42\u5c0d\u65b9\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801 https://verify-market.invalid/session\uff0c\u7406\u7531\u662f\u300c\u7cfb\u7d71\u986f\u793a\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\uff0c\u8acb\u5230\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\uff0c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u3002\u300d\u9019\u7a2e\u628a\u4ea4\u6613\u8655\u7406\u5f15\u5c0e\u5230\u7ad9\u5916\u9801\u9762\u7684\u884c\u70ba\uff0c\u548c\u91e3\u9b5a/\u5c0e\u6d41\u7279\u5fb5\u76f8\u7b26\u3002",
+                        "type": "message_flow",
+                        "description": "MSG-0901 \u65bc 2026-09-02 02:00:00Z \u8981\u6c42 ACC-0111 \u524d\u5f80 `https://verify-market.invalid/session` \u5b8c\u6210\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u8868\u793a\u5b8c\u6210\u5f8c\u624d\u80fd\u51fa\u8ca8\uff1bMSG-0902 \u65bc 02:05:00Z \u8ffd\u554f\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u96d9\u65b9\u5df2\u570d\u7e5e\u7ad9\u5916\u9a57\u8b49\u8207\u4ea4\u6613\u6d41\u7a0b\u9032\u884c\u4e92\u52d5\u3002",
                         "impact": "supports_fraud",
-                        "confidence": 0.97,
+                        "confidence": 0.93,
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902"
                         ]
                     },
                     {
-                        "type": "order_state_consistency",
-                        "description": "\u5e73\u53f0\u5167\u53ef\u5c0d\u61c9\u5230 ACC-0052 \u8207 ACC-0111 \u7684\u4ea4\u6613\u70ba TXN-0031\uff0c\u5efa\u7acb\u65bc 2026-08-03\uff0c\u72c0\u614b\u662f delivered\u3002\u5c31\u5df2\u63d0\u4f9b\u8b49\u64da\u770b\uff0c\u6c92\u6709\u9000\u6b3e\u3001\u53d6\u6d88\u3001\u62d2\u7d55\u51fa\u8ca8\u6216\u5e73\u53f0\u722d\u8b70\u8a18\u9304\u53ef\u76f4\u63a5\u652f\u6301\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u662f\u6b63\u5f0f\u8a02\u55ae\u72c0\u614b\u3002",
+                        "type": "transaction_link",
+                        "description": "CONV-031 \u5c0d\u61c9\u7684\u8cb7\u5bb6 ACC-0111 \u5728\u6b77\u53f2\u4ea4\u6613\u4e2d\u5b58\u5728 TXN-0031\uff0c\u4ea4\u6613\u6642\u9593\u70ba 2026-08-03 14:00:00Z\uff0c\u5546\u54c1\u70ba PROD-0031\uff0c\u72c0\u614b\u70ba delivered\uff0c\u8868\u793a\u8a72\u5c0d\u8a71\u78ba\u5be6\u8207\u4e00\u7b46\u65e2\u6709\u8a02\u55ae/\u4ea4\u6613\u80cc\u666f\u76f8\u9023\uff0c\u800c\u975e\u5b8c\u5168\u7121\u4ea4\u6613\u4f9d\u64da\u7684\u8a0a\u606f\u3002",
                         "impact": "supports_legitimate",
                         "confidence": 0.9,
                         "evidence_refs": [
                             "TXN-0031",
-                            "MSG-0901"
-                        ]
-                    },
-                    {
-                        "type": "conversation_pattern",
-                        "description": "CONV-031 \u4e2d\uff0cACC-0111 \u81ea 2026-08-11 \u8d77\u591a\u6b21\u8a62\u554f\u51fa\u8ca8\u6642\u9593\uff0c\u986f\u793a\u5176\u4e3b\u8981\u8a34\u6c42\u4ecd\u5728\u5e73\u53f0\u5167\u7684\u6b63\u5e38\u5c65\u7d04\u6e9d\u901a\uff1b\u76f4\u5230 2026-09-02 \u624d\u51fa\u73fe\u8981\u6c42\u5916\u90e8\u9a57\u8b49\u4ed8\u6b3e\u7684\u8a0a\u606f\uff0c\u6642\u9593\u4e0a\u66f4\u50cf\u5f8c\u7e8c\u63d2\u5165\u7684\u7ad9\u5916\u5f15\u5c0e\uff0c\u800c\u4e0d\u662f\u65e2\u6709\u8a02\u55ae\u6d41\u7a0b\u4e2d\u7684\u6a19\u6e96\u6b65\u9a5f\u3002",
-                        "impact": "supports_fraud",
-                        "confidence": 0.82,
-                        "evidence_refs": [
-                            "MSG-0111",
-                            "MSG-0151",
-                            "MSG-0191",
-                            "MSG-0231",
-                            "MSG-0311",
-                            "MSG-0351",
-                            "MSG-0391",
                             "MSG-0901",
                             "MSG-0902"
                         ]
                     },
                     {
-                        "type": "account_history",
-                        "description": "ACC-0052 \u8207 ACC-0111 \u7686\u70ba\u5df2\u9a57\u8b49\u3001\u4ecd\u70ba active \u7684\u5e33\u865f\uff0c\u904e\u5f80\u4e5f\u5404\u81ea\u6709\u6b63\u5e38\u4ea4\u6613\u7d00\u9304\uff1b\u76ee\u524d\u6c92\u6709\u770b\u5230\u5e33\u865f\u672c\u8eab\u7684\u76f4\u63a5\u7570\u5e38\u8db3\u4ee5\u55ae\u7368\u8b49\u660e\u8a50\u6b3a\uff0c\u4f46 ACC-0052 \u5728\u672c\u6b21\u5c0d\u8a71\u4e2d\u7684\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u5c6c\u53ef\u7591\u884c\u70ba\u3002",
+                        "type": "temporal_order",
+                        "description": "\u5df2\u77e5\u4ea4\u6613 TXN-0031 \u767c\u751f\u5728 2026-08-03\uff0c\u800c MSG-0901/MSG-0902 \u767c\u751f\u5728 2026-09-02\uff0c\u6642\u9593\u4e0a\u5c6c\u65bc\u4ea4\u6613\u4e4b\u5f8c\u7684\u5f8c\u7e8c\u5c0d\u8a71\uff1b\u9019\u652f\u6301\u5176\u53ef\u80fd\u662f\u552e\u5f8c\u6216\u5c65\u7d04\u76f8\u95dc\u6e9d\u901a\uff0c\u4f46\u4e5f\u8868\u793a\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u4e26\u975e\u4e0b\u55ae\u7576\u4e0b\u7684\u6a19\u6e96\u4ed8\u6b3e\u6d41\u7a0b\u3002",
                         "impact": "neutral",
-                        "confidence": 0.71,
+                        "confidence": 0.82,
                         "evidence_refs": [
-                            "ACC-0052",
-                            "ACC-0111",
-                            "TXN-0067",
-                            "TXN-0071",
                             "TXN-0031",
-                            "RPT-0901"
+                            "MSG-0901",
+                            "MSG-0902"
+                        ]
+                    },
+                    {
+                        "type": "report_signal",
+                        "description": "ACC-0052 \u7684\u5831\u544a RPT-0901 \u65bc 2026-09-02 03:00:00Z \u5efa\u7acb\uff0c\u539f\u56e0\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u8207 MSG-0901 \u7684\u5167\u5bb9\u4e00\u81f4\uff0c\u986f\u793a\u8cb7\u5bb6\u5df2\u5c07\u6b64\u5c0e\u6d41\u884c\u70ba\u8996\u70ba\u53ef\u7591\u4e26\u63d0\u51fa\u7533\u8a34\u3002",
+                        "impact": "supports_fraud",
+                        "confidence": 0.88,
+                        "evidence_refs": [
+                            "RPT-0901",
+                            "MSG-0901"
                         ]
                     }
                 ],
@@ -1622,8 +1494,8 @@
                         "item_type": "transaction_activity",
                         "score": 1,
                         "is_direct_evidence": false,
-                        "confidence": 0.9,
-                        "rationale": "\u5df2\u898b\u4ea4\u6613 TXN-0031 \u72c0\u614b\u70ba delivered\uff0c\u4e14\u672a\u898b\u4ea4\u6613\u91d1\u984d\u3001\u72c0\u614b\u6b77\u7a0b\u6216\u53d6\u6d88\u7570\u5e38\u53ef\u652f\u6301\u8a50\u6b3a\uff1b\u76ee\u524d\u53ea\u6709\u5f8c\u7e8c\u5c0d\u8a71\u53ef\u7591\uff0c\u4ea4\u6613\u672c\u8eab\u504f\u6b63\u5e38\u3002",
+                        "confidence": 0.88,
+                        "rationale": "\u5df2\u78ba\u8a8d CONV-031 \u5c0d\u61c9\u5230 ACC-0111 \u7684\u6b77\u53f2\u4ea4\u6613 TXN-0031\uff0c\u4e14\u72c0\u614b\u70ba delivered\uff0c\u986f\u793a\u6709\u771f\u5be6\u4ea4\u6613\u80cc\u666f\uff1b\u76ee\u524d\u672a\u898b\u4ea4\u6613\u91d1\u984d\u3001\u72c0\u614b\u7570\u5e38\u6216\u591a\u7b46\u5931\u6557\u5617\u8a66\uff0c\u56e0\u6b64\u50c5\u5c6c\u504f\u5411\u6b63\u5e38\u7684\u4ea4\u6613\u95dc\u806f\u3002",
                         "evidence_refs": [
                             "TXN-0031"
                         ]
@@ -1632,8 +1504,8 @@
                         "item_type": "payment_activity",
                         "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.79,
-                        "rationale": "\u8a0a\u606f\u4e2d\u63d0\u5230\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u300d\u4e26\u8981\u6c42\u53bb\u5916\u90e8\u9a57\u8b49\u9801\uff0c\u4f46\u76ee\u524d\u6c92\u6709\u5e73\u53f0\u5167\u4ed8\u6b3e\u8a2d\u5b9a\u6216\u5931\u6557\u7d00\u9304\u53ef\u9a57\u8b49\u8a72\u72c0\u614b\uff0c\u5c6c\u672a\u89e3\u6c7a\u7684\u53ef\u7591\u4ed8\u6b3e\u5c0e\u6d41\u60c5\u5883\u3002",
+                        "confidence": 0.92,
+                        "rationale": "MSG-0901 \u660e\u793a\u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u5b8c\u6210\u6536\u6b3e\u8a2d\u5b9a\uff0c\u9019\u662f\u4ea4\u6613\u4ed8\u6b3e/\u6536\u6b3e\u6d41\u7a0b\u4e2d\u5e38\u898b\u7684\u9ad8\u98a8\u96aa\u7ad9\u5916\u5c0e\u6d41\u6a21\u5f0f\uff1b\u4f46\u76ee\u524d\u6c92\u6709\u76f4\u63a5\u770b\u5230\u4ed8\u6b3e\u5931\u6557\u3001\u8cc7\u91d1\u6263\u6b3e\u6216\u652f\u4ed8\u6191\u8b49\u7570\u5e38\uff0c\u56e0\u6b64\u5c6c\u65bc\u660e\u986f\u4f46\u672a\u88ab\u6c7a\u5b9a\u6027\u8b49\u5be6\u7684\u98a8\u96aa\u3002",
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902"
@@ -1641,62 +1513,57 @@
                     },
                     {
                         "item_type": "fulfillment_activity",
-                        "score": 2,
+                        "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.88,
-                        "rationale": "\u5c0d\u8a71\u660e\u793a\u300c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\uff0c\u4f46\u73fe\u6709\u4ea4\u6613 TXN-0031 \u5df2\u662f delivered\uff0c\u548c\u8a0a\u606f\u6558\u8ff0\u4e0d\u4e00\u81f4\uff1b\u9019\u986f\u793a\u6558\u8ff0\u53ef\u4fe1\u5ea6\u4f4e\uff0c\u4f46\u5c1a\u672a\u898b\u62d2\u7d55\u51fa\u8ca8\u6216\u7269\u6d41\u7570\u5e38\u7684\u76f4\u63a5\u8b49\u64da\u3002",
+                        "confidence": 0.83,
+                        "rationale": "\u8a0a\u606f\u5c07\u300c\u5b8c\u6210\u9a57\u8b49\u300d\u8207\u300c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\u76f4\u63a5\u7d81\u5b9a\uff0c\u4ee3\u8868\u51fa\u8ca8\u689d\u4ef6\u88ab\u5916\u90e8\u9801\u9762\u884c\u70ba\u6240\u5f71\u97ff\uff1b\u4e0d\u904e TXN-0031 \u5df2\u662f delivered\uff0c\u4e14\u672a\u898b\u55ae\u4e00\u8a02\u55ae\u7684\u5be6\u969b\u5ef6\u9072\u6216\u62d2\u7d55\u51fa\u8ca8\u8b49\u64da\uff0c\u56e0\u6b64\u4ecd\u5c6c\u672a\u5b8c\u5168\u8b49\u5be6\u7684\u5c65\u7d04\u98a8\u96aa\u3002",
                         "evidence_refs": [
-                            "TXN-0031",
                             "MSG-0901",
-                            "MSG-0902"
+                            "TXN-0031"
                         ]
                     },
                     {
                         "item_type": "refund_dispute_activity",
-                        "score": 0,
+                        "score": 2,
                         "is_direct_evidence": false,
-                        "confidence": 0.92,
-                        "rationale": "\u76ee\u524d\u672a\u898b TXN-0031 \u6216\u76f8\u95dc\u4ea4\u6613\u7684\u9000\u6b3e\u3001\u722d\u8b70\u3001\u64a4\u92b7\u3001\u62d2\u7d55\u53d7\u7406\u7b49\u76f4\u63a5\u7d00\u9304\uff1bRPT-0901 \u50c5\u662f\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\u7684\u5831\u544a\uff0c\u672a\u986f\u793a\u5be6\u969b\u9000\u6b3e\u6216\u722d\u8b70\u8655\u7406\u7d50\u679c\u3002",
+                        "confidence": 0.86,
+                        "rationale": "\u76ee\u524d\u50c5\u770b\u5230 RPT-0901 \u91dd\u5c0d\u300c\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\u63d0\u51fa\u6aa2\u8209\uff0c\u5c1a\u672a\u898b\u9000\u6b3e\u3001\u62d2\u4ed8\u3001\u722d\u8b70\u6210\u7acb\u6216\u91d1\u6d41\u8fd4\u9084\u7d00\u9304\uff1b\u56e0\u6b64\u6709\u7591\u616e\u4f46\u8b49\u64da\u5f37\u5ea6\u4e0d\u8db3\u3002",
                         "evidence_refs": [
-                            "RPT-0901",
-                            "TXN-0031"
+                            "RPT-0901"
                         ]
                     },
                     {
                         "item_type": "account_activity",
                         "score": 2,
                         "is_direct_evidence": false,
-                        "confidence": 0.78,
-                        "rationale": "ACC-0052 \u8207 ACC-0111 \u5747\u70ba verified active\uff0c\u767b\u5165\u8207\u6b77\u53f2\u4ea4\u6613\u770b\u8d77\u4f86\u6b63\u5e38\uff1b\u4f46 ACC-0052 \u5728 CONV-031 \u4e2d\u8981\u6c42\u5916\u90e8\u9a57\u8b49\u4ed8\u6b3e\uff0c\u9019\u662f\u53ef\u7591\u4f46\u4ecd\u9700\u66f4\u591a\u5e73\u53f0\u5167\u6d41\u7a0b\u8b49\u64da\u624d\u80fd\u5b9a\u6027\u3002",
+                        "confidence": 0.74,
+                        "rationale": "ACC-0052 \u5e33\u865f\u72c0\u614b\u6b63\u5e38\u3001KYC verified\u3001bot_check_score \u4f4e\uff0c\u4e14\u65e2\u6709\u767b\u5165\u8207\u4ea4\u6613\u8cc7\u6599\u672a\u986f\u793a\u660e\u78ba\u5e33\u865f\u63a5\u7ba1\u6216\u7570\u5e38\u6279\u91cf\u64cd\u4f5c\uff1b\u96d6\u7136 report \u986f\u793a\u53ef\u7591\u884c\u70ba\uff0c\u4f46\u4e0d\u8db3\u4ee5\u652f\u6301\u66f4\u9ad8\u98a8\u96aa\u5206\u6578\u3002",
                         "evidence_refs": [
                             "ACC-0052",
-                            "ACC-0111",
                             "LOG-0172",
                             "LOG-0052",
-                            "LOG-0231",
-                            "LOG-0111",
-                            "MSG-0901",
-                            "RPT-0901"
+                            "RPT-0901",
+                            "RPT-0013"
                         ]
                     }
                 ],
                 "direct_evidence_found": false,
-                "recommended_follow_up": "\u82e5\u8981\u9032\u4e00\u6b65\u78ba\u8a8d\uff0c\u53ef\u88dc\u67e5 TXN-0031 \u7684 commerce links \u6216\u4ed8\u6b3e/\u5c65\u7d04\u7d30\u7bc0\uff0c\u5c24\u5176\u662f\u662f\u5426\u5b58\u5728\u8a02\u55ae\u9801\u4e2d\u7684\u4ed8\u6b3e\u5931\u6557\u3001\u51fa\u8ca8\u5f85\u78ba\u8a8d\u3001\u9000\u6b3e/\u7533\u8a34\u7d00\u9304\uff1b\u4f46\u4ee5\u76ee\u524d\u8b49\u64da\uff0c\u5df2\u8db3\u4ee5\u5c07 MSG-0901 \u8996\u70ba\u9ad8\u98a8\u96aa\u7684\u7ad9\u5916\u5c0e\u6d41\u8a0a\u606f\u3002"
+                "recommended_follow_up": "\u5efa\u8b70\u9032\u4e00\u6b65\u8abf\u95b1 CONV-031 \u5c0d\u61c9\u7684\u5b8c\u6574\u8a02\u55ae\u72c0\u614b\u3001\u652f\u4ed8\u7d00\u9304\u8207\u51fa\u8ca8/\u53d6\u6d88\u6642\u9593\u8ef8\uff0c\u78ba\u8a8d\u662f\u5426\u5b58\u5728\u5e73\u53f0\u5167\u4ed8\u6b3e\u5931\u6557\u3001\u6536\u6b3e\u8a2d\u5b9a\u8b8a\u66f4\u8acb\u6c42\u3001\u6216\u56e0\u5916\u90e8\u9a57\u8b49\u800c\u5c0e\u81f4\u7684\u5ef6\u9072\u51fa\u8ca8\uff1b\u82e5\u53ef\u518d\u88dc\u5145\u4ed8\u6b3e\u5de5\u5177\u6216\u722d\u8b70\u7d00\u9304\uff0c\u61c9\u512a\u5148\u6aa2\u67e5\u662f\u5426\u6709\u5176\u4ed6\u8cb7\u5bb6\u906d\u9047\u76f8\u540c\u5c0e\u6d41\u6a21\u5f0f\u3002"
             },
             "score_aggregate": {
-                "weighted_score": 0.31843183148,
-                "confidence": 0.8545,
+                "weighted_score": 0.421083284799,
+                "confidence": 0.8585,
                 "coverage": 1.0,
-                "total_effective_weight": 0.8545,
+                "total_effective_weight": 0.8585,
                 "contributions": [
                     {
                         "item_type": "transaction_activity",
                         "score": 1,
                         "is_direct_evidence": false,
-                        "confidence": 0.9,
+                        "confidence": 0.88,
                         "configured_weight": 0.3,
-                        "effective_weight": 0.27,
-                        "weighted_contribution": 0.054000000000000006,
+                        "effective_weight": 0.264,
+                        "weighted_contribution": 0.05280000000000001,
                         "evidence_refs": [
                             "TXN-0031"
                         ]
@@ -1705,10 +1572,10 @@
                         "item_type": "payment_activity",
                         "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.79,
+                        "confidence": 0.92,
                         "configured_weight": 0.25,
-                        "effective_weight": 0.1975,
-                        "weighted_contribution": 0.1185,
+                        "effective_weight": 0.23,
+                        "weighted_contribution": 0.138,
                         "evidence_refs": [
                             "MSG-0901",
                             "MSG-0902"
@@ -1716,48 +1583,43 @@
                     },
                     {
                         "item_type": "fulfillment_activity",
-                        "score": 2,
+                        "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.88,
+                        "confidence": 0.83,
                         "configured_weight": 0.15,
-                        "effective_weight": 0.132,
-                        "weighted_contribution": 0.05280000000000001,
+                        "effective_weight": 0.12449999999999999,
+                        "weighted_contribution": 0.07469999999999999,
                         "evidence_refs": [
-                            "TXN-0031",
                             "MSG-0901",
-                            "MSG-0902"
+                            "TXN-0031"
                         ]
                     },
                     {
                         "item_type": "refund_dispute_activity",
-                        "score": 0,
+                        "score": 2,
                         "is_direct_evidence": false,
-                        "confidence": 0.92,
+                        "confidence": 0.86,
                         "configured_weight": 0.15,
-                        "effective_weight": 0.138,
-                        "weighted_contribution": 0.0,
+                        "effective_weight": 0.129,
+                        "weighted_contribution": 0.05160000000000001,
                         "evidence_refs": [
-                            "RPT-0901",
-                            "TXN-0031"
+                            "RPT-0901"
                         ]
                     },
                     {
                         "item_type": "account_activity",
                         "score": 2,
                         "is_direct_evidence": false,
-                        "confidence": 0.78,
+                        "confidence": 0.74,
                         "configured_weight": 0.15,
-                        "effective_weight": 0.11699999999999999,
-                        "weighted_contribution": 0.0468,
+                        "effective_weight": 0.111,
+                        "weighted_contribution": 0.0444,
                         "evidence_refs": [
                             "ACC-0052",
-                            "ACC-0111",
                             "LOG-0172",
                             "LOG-0052",
-                            "LOG-0231",
-                            "LOG-0111",
-                            "MSG-0901",
-                            "RPT-0901"
+                            "RPT-0901",
+                            "RPT-0013"
                         ]
                     }
                 ]
@@ -1767,34 +1629,52 @@
         {
             "agent": "marketplace_info",
             "raw_analysis": {
-                "summary": "\u5c31\u76ee\u524d\u8b49\u64da\u4f86\u770b\uff0cACC-0052 \u5df2\u51fa\u73fe\u660e\u78ba\u7684\u7ad9\u5916\u5c0e\u6d41\uff0f\u5916\u90e8\u9a57\u8b49\u8981\u6c42\u8a0a\u606f\uff1a\u8ce3\u5bb6\u5728 MSG-0901 \u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e14\u9644\u5e36\u5916\u90e8 URL `https://verify-market.invalid/session`\uff1b\u8cb7\u5bb6 MSG-0902 \u4e5f\u76f4\u63a5\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u3002\u9019\u985e\u8a0a\u606f\u8207\u6aa2\u8209 RPT-0901\uff08\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff09\u5f7c\u6b64\u4e00\u81f4\uff0c\u652f\u6301\u6b64\u5e33\u865f\u5b58\u5728\u91e3\u9b5a\u6216\u793e\u5de5\u5f0f\u5f15\u5c0e\u98a8\u96aa\u3002\u5176\u9918\u5546\u54c1\u8207\u4ea4\u6613\u8cc7\u6599\u672a\u898b\u660e\u986f\u4eff\u5192\u3001\u7570\u5e38\u50f9\u683c\u8df3\u52d5\u6216\u5716\u7247\u91cd\u7528\u7684\u76f4\u63a5\u8b49\u64da\uff1b\u5546\u54c1\u63cf\u8ff0\u591a\u70ba\u6e2c\u8a66\u74b0\u5883\u5b57\u6a23\uff0c\u8f03\u50cf\u8cc7\u6599\u74b0\u5883\u5167\u5bb9\uff0c\u5c0d\u6b3a\u8a50\u5224\u5b9a\u7684\u5e6b\u52a9\u6709\u9650\u3002",
+                "summary": "\u5c31\u76ee\u524d\u8b49\u64da\u770b\uff0cACC-0052 \u6240\u5c6c\u5546\u5e97 SHOP-013 \u5b58\u5728\u660e\u78ba\u7684\u7ad9\u5916\u9a57\u8b49\u5c0e\u6d41\u98a8\u96aa\uff1a\u8a0a\u606f MSG-0901 \u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5916\u90e8\u9a57\u8b49\u9801\u5b8c\u6210\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e14\u540c\u4e00\u5c0d\u8a71\u5df2\u6709\u8cb7\u5bb6\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff1b\u540c\u6642 RPT-0901 \u4e5f\u76f4\u63a5\u53cd\u6620\u300c\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\u7684\u7533\u8a34\u3002\u4e0d\u904e\uff0c\u73fe\u6709\u5546\u5e97\u4ea4\u6613\u8207\u8a55\u8ad6\u8cc7\u6599\u986f\u793a\u591a\u7b46\u5df2\u5b8c\u6210\u4ea4\u4ed8\uff0c\u4e14\u672a\u898b\u9000\u6b3e\u6216\u722d\u8b70\uff0c\u8f03\u50cf\u662f\u55ae\u4e00\u5c0d\u8a71\uff0f\u55ae\u6b21\u6d41\u7a0b\u7570\u5e38\uff0c\u800c\u975e\u53ef\u76f4\u63a5\u8b49\u660e\u6574\u9ad4\u5e97\u92ea\u5168\u9762\u8a50\u9a19\u3002",
                 "findings": [
                     {
-                        "type": "\u5916\u90e8\u5c0e\u6d41\uff0f\u4ed8\u6b3e\u9a57\u8b49\u5f15\u5c0e",
-                        "description": "MSG-0901 \u660e\u78ba\u8981\u6c42\u8cb7\u5bb6\u524d\u5f80\u5e73\u53f0\u5916\u7684\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\u6536\u6b3e\u8a2d\u5b9a\uff0c\u4e26\u63d0\u4f9b\u5916\u90e8 URL `https://verify-market.invalid/session`\uff1b\u540c\u4e00\u5c0d\u8a71\u4e2d\u8cb7\u5bb6 MSG-0902 \u8ffd\u554f\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\uff0c\u986f\u793a\u6b64\u6d41\u7a0b\u504f\u96e2\u5e73\u53f0\u5167\u6b63\u5e38\u4ea4\u6613\u5b8c\u6210\u65b9\u5f0f\u3002\u9019\u662f\u91e3\u9b5a\u6216\u793e\u5de5\u5c0e\u6d41\u7684\u5f37\u70c8\u5e02\u5834\u7aef\u8a0a\u865f\u3002",
+                        "type": "\u5916\u90e8\u9a57\u8b49\u5c0e\u6d41\u8a0a\u606f",
+                        "description": "MSG-0901 \u7531 ACC-0052 \u767c\u51fa\uff0c\u660e\u793a\u300c\u8acb\u5230\u9a57\u8b49\u9801\u91cd\u65b0\u958b\u901a\uff0c\u5b8c\u6210\u5f8c\u6211\u624d\u80fd\u51fa\u8ca8\u300d\uff0c\u4e26\u9644\u4e0a\u5916\u90e8\u7db2\u5740 https://verify-market.invalid/session\uff1b\u540c\u5c0d\u8a71\u4e2d MSG-0902 \u986f\u793a\u8cb7\u5bb6\u5df2\u8cea\u7591\u70ba\u4f55\u4e0d\u80fd\u76f4\u63a5\u5728\u5e73\u53f0\u8a02\u55ae\u9801\u5b8c\u6210\u3002\u9019\u662f\u5178\u578b\u7684\u7ad9\u5916\u64cd\u4f5c/\u9a57\u8b49\u5c0e\u6d41\u98a8\u96aa\u8a0a\u865f\u3002",
                         "impact": "supports_fraud",
-                        "confidence": 0.97,
+                        "confidence": 0.98,
                         "evidence_refs": [
                             "MSG-0901",
-                            "MSG-0902",
+                            "MSG-0902"
+                        ]
+                    },
+                    {
+                        "type": "\u76f8\u95dc\u6aa2\u8209\u7d00\u9304",
+                        "description": "RPT-0901 \u7684\u539f\u56e0\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u8207\u672c\u6b21\u8a0a\u606f\u5167\u5bb9\u9ad8\u5ea6\u4e00\u81f4\uff0c\u8868\u793a\u6b64\u985e\u7ad9\u5916\u9a57\u8b49\u8981\u6c42\u5df2\u88ab\u8cb7\u5bb6\u6b63\u5f0f\u6aa2\u8209\u3002",
+                        "impact": "supports_fraud",
+                        "confidence": 0.96,
+                        "evidence_refs": [
                             "RPT-0901"
                         ]
                     },
                     {
-                        "type": "\u5e73\u53f0\u6aa2\u8209\u4e00\u81f4\u6027",
-                        "description": "ACC-0052 \u7684\u6d3b\u52d5\u4e2d\u5df2\u6709\u6aa2\u8209 RPT-0901\uff0c\u7406\u7531\u70ba\u300c\u5c0d\u65b9\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u4e14\u72c0\u614b\u70ba open\u3002\u6b64\u6aa2\u8209\u5167\u5bb9\u8207 MSG-0901 \u5b8c\u5168\u5c0d\u9f4a\uff0c\u986f\u793a\u4e0d\u662f\u55ae\u4e00\u5b64\u7acb\u8a0a\u606f\uff0c\u800c\u662f\u5df2\u88ab\u4f7f\u7528\u8005\u56de\u5831\u7684\u76f8\u540c\u884c\u70ba\u6a21\u5f0f\u3002",
-                        "impact": "supports_fraud",
-                        "confidence": 0.92,
+                        "type": "\u5546\u5e97\u4ea4\u6613\u8207\u8a55\u8ad6\u6982\u6cc1",
+                        "description": "SHOP-013 \u8fd1\u671f\u6709 5 \u7b46\u4ea4\u6613\uff0c4 \u7b46\u70ba delivered\u30011 \u7b46\u70ba cancelled\uff1b\u5c0d\u61c9\u8a55\u8ad6\u5206\u5225\u70ba 5\u30013\u30012\u30014 \u5206\u3002\u672a\u898b\u9000\u6b3e\u6216 dispute\uff0c\u4e14\u6709\u90e8\u5206\u6b63\u5411\u4ea4\u4ed8\u7d00\u9304\uff0c\u986f\u793a\u76ee\u524d\u6c92\u6709\u8db3\u5920\u8b49\u64da\u8b49\u660e\u6574\u9ad4\u5546\u5e97\u7cfb\u7d71\u6027\u8a50\u9a19\u3002",
+                        "impact": "supports_legitimate",
+                        "confidence": 0.84,
                         "evidence_refs": [
-                            "RPT-0901",
-                            "MSG-0901"
+                            "TXN-0085",
+                            "TXN-0067",
+                            "TXN-0049",
+                            "TXN-0031",
+                            "TXN-0013",
+                            "REV-0067",
+                            "REV-0049",
+                            "REV-0031",
+                            "REV-0013"
                         ]
-                    },
+                    }
+                ],
+                "item_scores": [
                     {
-                        "type": "\u5546\u54c1\u5167\u5bb9\u8207\u50f9\u683c\u7570\u5e38",
-                        "description": "\u5df2\u6aa2\u8996\u7684\u5546\u54c1 PROD-0085\u3001PROD-0067\u3001PROD-0049\u3001PROD-0031\u3001PROD-0013 \u50f9\u683c\u5206\u5e03\u96d6\u4e0d\u4e00\u81f4\uff0c\u4f46\u672a\u898b\u660e\u986f\u8df3\u50f9\u3001\u4eff\u5192\u54c1\u724c\u3001\u6216\u53ef\u76f4\u63a5\u8b49\u660e\u6b3a\u8a50\u7684\u63cf\u8ff0\uff1b\u5546\u54c1\u63cf\u8ff0\u5167\u5bb9\u53cd\u800c\u662f\u300c\u865b\u69cb\u6e2c\u8a66\u5546\u54c1\uff0c\u50c5\u4f9b\u672c\u5730\u8cc7\u6599\u74b0\u5883\u4f7f\u7528\u3002\u300d\u8f03\u50cf\u6e2c\u8a66\u8cc7\u6599\uff0c\u7121\u6cd5\u4f5c\u70ba\u771f\u5be6\u5546\u696d\u8a50\u6b3a\u7684\u76f4\u63a5\u8b49\u64da\u3002",
-                        "impact": "neutral",
-                        "confidence": 0.74,
+                        "item_type": "listing_content",
+                        "score": 0,
+                        "is_direct_evidence": false,
+                        "confidence": 0.72,
+                        "rationale": "\u76ee\u524d\u53ef\u898b\u7684\u5546\u54c1\u6a19\u984c\u8207\u63cf\u8ff0\u591a\u70ba\u4e00\u822c\u6027\u6e2c\u8a66\u5167\u5bb9\uff0c\u672a\u898b\u593e\u5e36\u8a50\u9a19\u8a71\u8853\u3001\u5916\u90e8\u806f\u7e6b\u8981\u6c42\u6216\u660e\u986f\u8aa4\u5c0e\u6027\u6587\u6848\uff1b\u5c31 listing \u5167\u5bb9\u672c\u8eab\uff0c\u7f3a\u4e4f\u53ef\u652f\u6301\u8a50\u9a19\u7684\u76f4\u63a5\u8de1\u8c61\u3002",
                         "evidence_refs": [
                             "PROD-0085",
                             "PROD-0067",
@@ -1802,143 +1682,99 @@
                             "PROD-0031",
                             "PROD-0013"
                         ]
-                    }
-                ],
-                "item_scores": [
-                    {
-                        "item_type": "listing_content",
-                        "score": 3,
-                        "is_direct_evidence": false,
-                        "confidence": 0.89,
-                        "rationale": "\u5df2\u770b\u5230\u5916\u90e8\u9a57\u8b49\uff0f\u7ad9\u5916\u5c0e\u6d41\u8a0a\u606f\uff0c\u4f46\u76ee\u524d\u50c5\u80fd\u78ba\u8a8d\u5c0d\u8a71\u4e2d\u5b58\u5728\u7591\u4f3c\u91e3\u9b5a\u8a71\u8853\uff0c\u5c1a\u672a\u53d6\u5f97\u5546\u5e97\u9801\u672c\u8eab\u7684\u516c\u958b\u6587\u6848\u3001\u653f\u7b56\u6216\u66f4\u5ee3\u6cdb\u5217\u8868\u6587\u5b57\u8b49\u64da\uff1b\u56e0\u6b64\u5c6c\u65bc\u660e\u986f\u4f46\u672a\u5b8c\u5168\u5b9a\u6027\u7684\u98a8\u96aa\u6307\u6a19\u3002",
-                        "evidence_refs": [
-                            "MSG-0901",
-                            "MSG-0902",
-                            "RPT-0901"
-                        ]
-                    },
-                    {
-                        "item_type": "price_status_history",
-                        "score": 1,
-                        "is_direct_evidence": false,
-                        "confidence": 0.63,
-                        "rationale": "\u73fe\u6709\u4ea4\u6613\u8207\u5546\u54c1\u50f9\u683c\u672a\u986f\u793a\u660e\u986f\u7684\u7a81\u7136\u62ac\u50f9\u3001\u53cd\u8986\u4e0a\u4e0b\u67b6\u6216\u50f9\u683c\u64cd\u7e31\u8de1\u8c61\uff1b\u50c5\u6191\u76ee\u524d\u8cc7\u6599\u770b\u4e0d\u51fa\u5f37\u70c8\u53ef\u7591\u6a21\u5f0f\u3002",
-                        "evidence_refs": [
-                            "PROD-0085",
-                            "PROD-0067",
-                            "PROD-0049",
-                            "PROD-0031",
-                            "PROD-0013",
-                            "TXN-0085",
-                            "TXN-0067",
-                            "TXN-0049",
-                            "TXN-0031",
-                            "TXN-0013"
-                        ]
                     },
                     {
                         "item_type": "reviews_reports",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.93,
-                        "rationale": "RPT-0901 \u8207 MSG-0901 \u9ad8\u5ea6\u4e00\u81f4\uff0c\u6307\u5411\u300c\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\u7684\u53ef\u7591\u6a21\u5f0f\uff1b\u9019\u662f\u5f37\u70c8 fraud indicator\uff0c\u4f46\u4ecd\u5c6c\u6aa2\u8209\uff0f\u8a0a\u865f\uff0c\u4e0d\u662f\u76f4\u63a5\u8b49\u660e\u8a50\u6b3a\u884c\u70ba\u672c\u8eab\u3002",
+                        "confidence": 0.95,
+                        "rationale": "RPT-0901 \u76f4\u63a5\u53cd\u6620\u300c\u8981\u6c42\u96e2\u958b\u5e73\u53f0\u9a57\u8b49\u4ed8\u6b3e\u300d\uff0c\u8207 MSG-0901 \u7684\u5167\u5bb9\u4e00\u81f4\uff0c\u5c6c\u5f37\u70c8\u98a8\u96aa\u6307\u6a19\uff1b\u4f46\u5b83\u4ecd\u5c6c\u6aa2\u8209/\u56de\u5831\u800c\u975e\u5e73\u53f0\u5167\u5df2\u88ab\u9a57\u8b49\u7684\u8a50\u9a19\u5b9a\u6848\uff0c\u56e0\u6b64\u4e0d\u9054 direct evidence\u3002",
                         "evidence_refs": [
                             "RPT-0901",
-                            "MSG-0901"
+                            "RPT-0013",
+                            "REV-0067",
+                            "REV-0049",
+                            "REV-0031",
+                            "REV-0013"
                         ]
                     },
                     {
                         "item_type": "seller_account_activity",
                         "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.81,
-                        "rationale": "ACC-0052 \u8fd1\u671f\u6709\u6b63\u5e38\u4ea4\u6613\u8207\u56de\u8986\u7d00\u9304\uff0cKYC \u4e5f\u70ba verified\uff0c\u6c92\u6709\u76f4\u63a5\u986f\u793a\u7570\u5e38\u767b\u5165\u3001\u8a2d\u5099\u5171\u4eab\u6216\u4ed8\u6b3e\u5de5\u5177\u5171\u7528\u7b49\u66f4\u5f37\u7684\u95dc\u806f\u8b49\u64da\uff1b\u4f46\u5c0d\u8a71\u4e2d\u5df2\u51fa\u73fe\u53ef\u7591\u7ad9\u5916\u9a57\u8b49\u5f15\u5c0e\uff0c\u56e0\u6b64\u6574\u9ad4\u5c6c\u4e2d\u5ea6\u672a\u89e3\u98a8\u96aa\u3002",
+                        "confidence": 0.89,
+                        "rationale": "ACC-0052 \u6709\u6d3b\u8e8d\u5e33\u865f\u3001KYC verified\uff0c\u4e14\u5b58\u5728\u591a\u7b46\u5b8c\u6210\u4ea4\u4ed8\u4ea4\u6613\u8207\u6b63\u5e38\u8cb7\u8ce3\u5f80\u4f86\uff1b\u4f46\u6d3b\u52d5\u4e2d\u51fa\u73fe\u7ad9\u5916\u9a57\u8b49\u5c0e\u6d41\u8a0a\u606f\u8207\u5c0d\u61c9\u6aa2\u8209\uff0c\u8868\u793a\u5b58\u5728\u660e\u986f\u672a\u89e3\u98a8\u96aa\uff0c\u4f46\u5c1a\u4e0d\u8db3\u4ee5\u5b9a\u6027\u70ba\u6574\u9ad4\u8ce3\u5bb6\u5e33\u865f\u6b3a\u8a50\u3002",
                         "evidence_refs": [
                             "ACC-0052",
-                            "MSG-0901",
-                            "MSG-0902",
+                            "TXN-0085",
                             "TXN-0067",
                             "TXN-0049",
                             "TXN-0031",
                             "TXN-0013",
-                            "TXN-0085"
+                            "MSG-0901",
+                            "MSG-0902"
                         ]
                     }
                 ],
                 "direct_evidence_found": false,
-                "recommended_follow_up": "\u82e5\u8981\u9032\u4e00\u6b65\u5b9a\u6027\uff0c\u5efa\u8b70\u88dc\u67e5 ACC-0052 \u7684\u5546\u5e97\u9801\uff0f\u5546\u54c1\u9801\u516c\u958b\u6587\u6848\u8207\u662f\u5426\u5b58\u5728\u76f8\u540c\u300c\u6536\u6b3e\u8a2d\u5b9a\u672a\u5b8c\u6210\u3001\u8acb\u5230\u9a57\u8b49\u9801\u300d\u6a21\u677f\uff1b\u82e5\u53ef\u7528\uff0c\u4ea6\u53ef\u6bd4\u5c0d\u662f\u5426\u6709\u76f8\u540c\u5916\u90e8 URL\u3001\u91cd\u8907\u8a71\u8853\u6216\u8de8\u5e33\u865f\u5171\u7528\u7684\u9a57\u8b49\u9801\u6a21\u5f0f\uff0c\u4ee5\u78ba\u8a8d\u662f\u5426\u70ba\u7cfb\u7d71\u6027\u91e3\u9b5a\u6d41\u7a0b\u3002"
+                "recommended_follow_up": "\u5efa\u8b70\u518d\u6838\u5c0d SHOP-013 \u662f\u5426\u6709\u5176\u4ed6\u5c0d\u8a71\u4e2d\u91cd\u8907\u51fa\u73fe\u300c\u9a57\u8b49\u4ed8\u6b3e\uff0f\u6536\u6b3e\u8a2d\u5b9a\u300d\u6216\u7ad9\u5916 URL \u7684\u8a0a\u606f\uff0c\u4ee5\u53ca\u662f\u5426\u6709\u66f4\u591a\u91dd\u5c0d ACC-0052 \u7684\u6aa2\u8209\u6216\u5c01\u9396\u7d00\u9304\uff1b\u82e5\u8981\u5224\u65b7\u662f\u5426\u70ba\u66f4\u5ee3\u6cdb\u7684\u5e97\u92ea\u7570\u5e38\uff0c\u53ef\u9032\u4e00\u6b65\u6aa2\u67e5\u662f\u5426\u6709\u540c\u985e\u8a0a\u606f\u6a21\u5f0f\u51fa\u73fe\u5728\u5176\u4ed6\u8cb7\u5bb6\u5c0d\u8a71\u4e2d\u3002"
             },
             "score_aggregate": {
-                "weighted_score": 0.581048097631,
-                "confidence": 0.8194117647058824,
-                "coverage": 0.8500000000000001,
-                "total_effective_weight": 0.6965000000000001,
+                "weighted_score": 0.472262773723,
+                "confidence": 0.8430769230769232,
+                "coverage": 0.65,
+                "total_effective_weight": 0.548,
                 "contributions": [
                     {
                         "item_type": "listing_content",
-                        "score": 3,
+                        "score": 0,
                         "is_direct_evidence": false,
-                        "confidence": 0.89,
+                        "confidence": 0.72,
                         "configured_weight": 0.25,
-                        "effective_weight": 0.2225,
-                        "weighted_contribution": 0.1335,
-                        "evidence_refs": [
-                            "MSG-0901",
-                            "MSG-0902",
-                            "RPT-0901"
-                        ]
-                    },
-                    {
-                        "item_type": "price_status_history",
-                        "score": 1,
-                        "is_direct_evidence": false,
-                        "confidence": 0.63,
-                        "configured_weight": 0.2,
-                        "effective_weight": 0.126,
-                        "weighted_contribution": 0.0252,
+                        "effective_weight": 0.18,
+                        "weighted_contribution": 0.0,
                         "evidence_refs": [
                             "PROD-0085",
                             "PROD-0067",
                             "PROD-0049",
                             "PROD-0031",
-                            "PROD-0013",
-                            "TXN-0085",
-                            "TXN-0067",
-                            "TXN-0049",
-                            "TXN-0031",
-                            "TXN-0013"
+                            "PROD-0013"
                         ]
                     },
                     {
                         "item_type": "reviews_reports",
                         "score": 4,
                         "is_direct_evidence": false,
-                        "confidence": 0.93,
+                        "confidence": 0.95,
                         "configured_weight": 0.2,
-                        "effective_weight": 0.18600000000000003,
-                        "weighted_contribution": 0.14880000000000002,
+                        "effective_weight": 0.19,
+                        "weighted_contribution": 0.15200000000000002,
                         "evidence_refs": [
                             "RPT-0901",
-                            "MSG-0901"
+                            "RPT-0013",
+                            "REV-0067",
+                            "REV-0049",
+                            "REV-0031",
+                            "REV-0013"
                         ]
                     },
                     {
                         "item_type": "seller_account_activity",
                         "score": 3,
                         "is_direct_evidence": false,
-                        "confidence": 0.81,
+                        "confidence": 0.89,
                         "configured_weight": 0.2,
-                        "effective_weight": 0.16200000000000003,
-                        "weighted_contribution": 0.09720000000000002,
+                        "effective_weight": 0.17800000000000002,
+                        "weighted_contribution": 0.1068,
                         "evidence_refs": [
                             "ACC-0052",
-                            "MSG-0901",
-                            "MSG-0902",
+                            "TXN-0085",
                             "TXN-0067",
                             "TXN-0049",
                             "TXN-0031",
                             "TXN-0013",
-                            "TXN-0085"
+                            "MSG-0901",
+                            "MSG-0902"
                         ]
                     }
                 ]
@@ -1952,12 +1788,12 @@
             "version": "development-v1"
         },
         "scoring_policy_version": "specialist-weighted-v1",
-        "fraud_score": 0.52491199006,
+        "fraud_score": 0.527764017113,
         "usage": {
             "agent_calls": 3,
             "tool_calls": 5,
             "investigation_steps": 11,
-            "tokens": 74934,
+            "tokens": 73935,
             "cost_usd": 0.0
         },
         "budget": {
@@ -1972,33 +1808,33 @@
                 "agent_id": "orchestrator",
                 "calls": 4,
                 "tool_calls": 0,
-                "tokens": 21127,
+                "tokens": 19067,
                 "cost_usd": 0.0
             },
             {
                 "agent_id": "chat",
                 "calls": 1,
-                "tool_calls": 5,
-                "tokens": 28631,
+                "tool_calls": 3,
+                "tokens": 16383,
                 "cost_usd": 0.0
             },
             {
                 "agent_id": "order",
                 "calls": 1,
                 "tool_calls": 0,
-                "tokens": 12588,
+                "tokens": 9581,
                 "cost_usd": 0.0
             },
             {
                 "agent_id": "marketplace_info",
                 "calls": 1,
-                "tool_calls": 0,
-                "tokens": 12588,
+                "tool_calls": 2,
+                "tokens": 28904,
                 "cost_usd": 0.0
             }
         ],
         "stop_reason": "budget_exhausted",
-        "updated_at": "2026-09-12T07:06:56.145692Z"
+        "updated_at": "2026-09-12T07:16:22.116973Z"
     },
     "stop_reason": "budget_exhausted"
 }

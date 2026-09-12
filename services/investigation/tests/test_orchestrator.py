@@ -181,6 +181,7 @@ def request() -> InvestigationRequest:
             "detection_result": {
                 "detection_id": "detection-new",
                 "subject": {"type": "account", "id": "acct-known-fraud"},
+                "policy_ref": {"type": "detection", "version": "baseline-v1"},
                 "detected": True,
                 "triggers": [],
                 "evidence": [],

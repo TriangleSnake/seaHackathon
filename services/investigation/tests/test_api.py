@@ -236,6 +236,7 @@ def valid_request() -> dict[str, Any]:
         "detection_result": {
             "detection_id": "detection-001",
             "subject": {"type": "transaction", "id": "TXN-0001"},
+            "policy_ref": {"type": "detection", "version": "baseline-v1"},
             "detected": True,
             "triggers": [
                 {

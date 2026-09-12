@@ -103,6 +103,7 @@ curl -X POST http://localhost:10002/investigate \
     "detection_result": {
       "detection_id": "detection-demo-1",
       "subject": {"type": "account", "id": "ACC-0001"},
+      "policy_ref": {"type": "detection", "version": "baseline-v1"},
       "detected": true,
       "triggers": [{
         "type": "manual_review",

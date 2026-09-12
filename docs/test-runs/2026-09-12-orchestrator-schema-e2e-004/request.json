@@ -6,6 +6,10 @@
       "type": "message",
       "id": "MSG-0901"
     },
+    "policy_ref": {
+      "type": "detection",
+      "version": "baseline-v1"
+    },
     "detected": true,
     "triggers": [
       {
