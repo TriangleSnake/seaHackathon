@@ -126,6 +126,8 @@ services:
         condition: service_started
     ports:
       - "${SYSTEM_PORT:-10005}:10005"
+    networks:
+      - fraud-intelligence-network
 
   investigation:
     build:
