@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 from app.policies.models import DetectionPolicy
 import psycopg
@@ -69,14 +70,27 @@ class FilePolicyRepository:
         if stored is not None:
             self._cache[version] = stored
             return stored
+        policy = DetectionPolicy.model_validate(self.read_document(version))
+        self._cache[version] = policy
+        return policy
+
+    def read_document(self, version: str) -> dict[str, Any]:
+        """Read an uncoerced policy document for cross-validator boundaries."""
+
+        if not _SAFE_VERSION.fullmatch(version):
+            raise PolicyNotFoundError(version)
         path = self.policy_dir / f"{version}.json"
         if not path.is_file():
             raise PolicyNotFoundError(version)
-        policy = DetectionPolicy.model_validate(json.loads(path.read_text(encoding="utf-8")))
-        if policy.version != version:
-            raise ValueError(f"Policy file version {policy.version!r} does not match {version!r}")
-        self._cache[version] = policy
-        return policy
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(document, dict):
+            raise ValueError(f"Policy file {version!r} must contain a JSON object")
+        if document.get("version") != version:
+            raise ValueError(
+                f"Policy file version {document.get('version')!r} does not match "
+                f"{version!r}"
+            )
+        return document
 
     async def list_versions(self) -> list[dict]:
         if not self.database_url:
@@ -133,7 +147,37 @@ class FilePolicyRepository:
         async with await psycopg.AsyncConnection.connect(self.database_url) as conn:
             async with conn.transaction():
                 exists = await (await conn.execute("SELECT 1 FROM agent_policies WHERE agent='detection' AND strategy='default' AND version=%s", (version,))).fetchone()
-                if not exists: return False
+                if not exists:
+                    return False
                 await conn.execute("UPDATE agent_policies SET active=false WHERE agent='detection' AND strategy='default'")
                 await conn.execute("UPDATE agent_policies SET active=true WHERE agent='detection' AND strategy='default' AND version=%s", (version,))
                 return True
+
+
+class LayeredFilePolicyRepository:
+    """Resolve immutable policies across non-overlapping read-only directories."""
+
+    def __init__(self, policy_dirs: tuple[str | Path, ...] | list[str | Path]) -> None:
+        if not policy_dirs:
+            raise ValueError("At least one policy directory is required")
+        self._repositories = tuple(FilePolicyRepository(path) for path in policy_dirs)
+        self._cache: dict[str, DetectionPolicy] = {}
+
+    def resolve(self, version: str) -> DetectionPolicy:
+        if version in self._cache:
+            return self._cache[version]
+        matches: list[dict[str, Any]] = []
+        for repository in self._repositories:
+            try:
+                matches.append(repository.read_document(version))
+            except PolicyNotFoundError:
+                continue
+        if not matches:
+            raise PolicyNotFoundError(version)
+        if len(matches) != 1:
+            raise ValueError(
+                f"Policy version {version!r} exists in multiple policy directories"
+            )
+        policy = DetectionPolicy.model_validate(matches[0])
+        self._cache[version] = policy
+        return policy

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from types import MappingProxyType
 from typing import Any, Mapping
@@ -59,12 +60,32 @@ class DetectionInput:
 class DetectionCase:
     input: DetectionInput
     is_fraud: bool | None
+    label_provenance: str | None = None
+
+
+@dataclass(frozen=True)
+class DatasetSnapshot:
+    """Environment state required by a deterministic evaluation manifest."""
+
+    scenario_name: str
+    simulation_time: datetime
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.scenario_name, str) or not self.scenario_name.strip():
+            raise ValueError("scenario_name must be a non-empty string")
+        if (
+            not isinstance(self.simulation_time, datetime)
+            or self.simulation_time.tzinfo is None
+            or self.simulation_time.utcoffset() is None
+        ):
+            raise ValueError("simulation_time must be a timezone-aware datetime")
 
 
 @dataclass(frozen=True)
 class EvaluationDataset:
     ref: DatasetRef
     records: tuple[object, ...]
+    snapshot: DatasetSnapshot | None = None
 
 
 @dataclass(frozen=True)

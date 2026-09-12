@@ -1,0 +1,15 @@
+services:
+  detection:
+    build:
+      context: ./services/detection
+      target: runtime
+    container_name: sea-member4-detection
+    environment:
+      DATABASE_URL: postgresql://fraud:${MEMBER4_POSTGRES_PASSWORD:-fraud_dev_password}@host.docker.internal:55432/fraud_intelligence
+      DETECTION_POLICY_DIR: /app/config/policies
+      DETECTION_CANDIDATE_POLICY_DIR: /app/runtime/detection-policies
+      DEFAULT_DETECTION_POLICY_VERSION: baseline-v1
+    ports:
+      - "127.0.0.1:${MEMBER4_DETECTION_PORT:-11001}:8000"
+    volumes:
+      - ./runtime/detection-policies:/app/runtime/detection-policies:ro

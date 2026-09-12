@@ -12,6 +12,7 @@ class Settings:
     openai_api_key: str | None
     openai_model: str
     policy_dir: str = "config/policies"
+    candidate_policy_dir: str | None = None
     default_policy_version: str = "baseline-v1"
 
     @classmethod
@@ -27,6 +28,8 @@ class Settings:
             openai_api_key=api_key,
             openai_model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),
             policy_dir=os.environ.get("DETECTION_POLICY_DIR", "config/policies"),
+            candidate_policy_dir=os.environ.get("DETECTION_CANDIDATE_POLICY_DIR")
+            or None,
             default_policy_version=os.environ.get(
                 "DEFAULT_DETECTION_POLICY_VERSION", "baseline-v1"
             ),

@@ -29,7 +29,13 @@ _ALLOWED_TRANSITIONS: dict[RunState, frozenset[RunState]] = {
         {RunState.REVISING, RunState.FROZEN, RunState.REJECTED, RunState.FAILED}
     ),
     RunState.REVISING: frozenset(
-        {RunState.BUILDING, RunState.REJECTED, RunState.FAILED, RunState.ABORTED}
+        {
+            RunState.RESOLVING,
+            RunState.BUILDING,
+            RunState.REJECTED,
+            RunState.FAILED,
+            RunState.ABORTED,
+        }
     ),
     RunState.FROZEN: frozenset({RunState.HOLDOUT, RunState.REJECTED}),
     RunState.HOLDOUT: frozenset(

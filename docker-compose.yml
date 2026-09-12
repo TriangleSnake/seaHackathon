@@ -88,12 +88,15 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${DETECTION_OPENAI_MODEL:-gpt-4.1-mini}
       DETECTION_POLICY_DIR: /app/config/policies
+      DETECTION_CANDIDATE_POLICY_DIR: /app/runtime/detection-policies
       DEFAULT_DETECTION_POLICY_VERSION: ${DEFAULT_DETECTION_POLICY_VERSION:-baseline-v1}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "${DETECTION_PORT:-10001}:8000"
+    volumes:
+      - ./runtime/detection-policies:/app/runtime/detection-policies:ro
     networks:
       - fraud-intelligence-network
 

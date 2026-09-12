@@ -1,0 +1,89 @@
+{
+  "manifest_version": 1,
+  "dataset": {
+    "name": "validation",
+    "ref": "manifest://evaluator/taiwan-marketplace-message-demo/validation-v1"
+  },
+  "cases": [
+    {
+      "case_id": "MSG-0901",
+      "subject_type": "message",
+      "subject_id": "MSG-0901",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0902",
+      "subject_type": "message",
+      "subject_id": "MSG-0902",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0907",
+      "subject_type": "message",
+      "subject_id": "MSG-0907",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0908",
+      "subject_type": "message",
+      "subject_id": "MSG-0908",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0911",
+      "subject_type": "message",
+      "subject_id": "MSG-0911",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0916",
+      "subject_type": "message",
+      "subject_id": "MSG-0916",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": true,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0002",
+      "subject_type": "message",
+      "subject_id": "MSG-0002",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    },
+    {
+      "case_id": "MSG-0009",
+      "subject_type": "message",
+      "subject_id": "MSG-0009",
+      "simulation_time": "2026-09-10T12:00:00+08:00",
+      "scenario_name": "taiwan-marketplace-20260912",
+      "is_fraud": false,
+      "label_provenance": "synthetic-scenario/manual-adjudication",
+      "split": "validation"
+    }
+  ]
+}
