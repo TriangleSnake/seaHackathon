@@ -35,6 +35,119 @@ async def database_health() -> dict[str, Any]:
 
 
 @mcp.tool()
+async def get_patrol_overview(lookback_hours: int = 24) -> dict[str, Any]:
+    """Summarize recent system activity so Patrol can choose an exploration direction."""
+    hours = max(1, min(lookback_hours, 24 * 30))
+    row = await fetch_one(
+        """
+        SELECT
+          (SELECT COUNT(*) FROM accounts
+           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS new_account_count,
+          (SELECT COUNT(*) FROM login_events
+           WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')) AS login_count,
+          (SELECT COUNT(DISTINCT ip_address) FROM login_events
+           WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')) AS distinct_ip_count,
+          (SELECT COUNT(*) FROM products
+           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS product_count,
+          (SELECT COUNT(*) FROM messages
+           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS message_count,
+          (SELECT COUNT(*) FROM report_records
+           WHERE created_at >= NOW() - (%s * INTERVAL '1 hour')) AS report_count,
+          (SELECT COUNT(*) FROM cases
+           WHERE status IN ('pending', 'investigating', 'manual_review')) AS open_case_count
+        """,
+        (hours, hours, hours, hours, hours, hours),
+    )
+    return {
+        "lookback_hours": hours,
+        "observed_at": datetime.now().astimezone().isoformat(),
+        **(row or {}),
+    }
+
+
+@mcp.tool()
+async def find_high_density_ips(
+    lookback_hours: int = 72,
+    minimum_accounts: int = 3,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Find IPs used by many accounts recently, with login IDs usable as evidence."""
+    hours = max(1, min(lookback_hours, 24 * 30))
+    minimum = max(2, min(minimum_accounts, 100))
+    rows = await fetch_all(
+        """
+        SELECT ip_address::text AS ip_address,
+               COUNT(DISTINCT account_id) AS account_count,
+               ARRAY_AGG(DISTINCT account_id ORDER BY account_id) AS account_ids,
+               ARRAY_AGG(DISTINCT id ORDER BY id) AS evidence_refs,
+               MIN(occurred_at) AS first_seen_at,
+               MAX(occurred_at) AS last_seen_at
+        FROM login_events
+        WHERE occurred_at >= NOW() - (%s * INTERVAL '1 hour')
+        GROUP BY ip_address
+        HAVING COUNT(DISTINCT account_id) >= %s
+        ORDER BY account_count DESC, last_seen_at DESC
+        LIMIT %s
+        """,
+        (hours, minimum, bounded_limit(limit)),
+    )
+    return {
+        "lookback_hours": hours,
+        "minimum_accounts": minimum,
+        "clusters": rows,
+        "count": len(rows),
+    }
+
+
+@mcp.tool()
+async def find_new_account_bursts(
+    account_age_days: int = 14,
+    lookback_hours: int = 24,
+    minimum_events: int = 5,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Find young accounts with bursty login, listing, or message activity and evidence IDs."""
+    age_days = max(1, min(account_age_days, 90))
+    hours = max(1, min(lookback_hours, 24 * 30))
+    minimum = max(1, min(minimum_events, 10000))
+    rows = await fetch_all(
+        """
+        WITH recent_activity AS (
+          SELECT a.id AS account_id, a.created_at, a.status, a.activity_score,
+                 COUNT(DISTINCT l.id) AS login_count,
+                 COUNT(DISTINCT p.id) AS product_count,
+                 COUNT(DISTINCT m.id) AS message_count,
+                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT l.id), NULL) ||
+                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT p.id), NULL) ||
+                 ARRAY_REMOVE(ARRAY_AGG(DISTINCT m.id), NULL) AS evidence_refs
+          FROM accounts a
+          LEFT JOIN login_events l ON l.account_id = a.id
+            AND l.occurred_at >= NOW() - (%s * INTERVAL '1 hour')
+          LEFT JOIN products p ON p.seller_account_id = a.id
+            AND p.created_at >= NOW() - (%s * INTERVAL '1 hour')
+          LEFT JOIN messages m ON m.sender_account_id = a.id
+            AND m.created_at >= NOW() - (%s * INTERVAL '1 hour')
+          WHERE a.created_at >= NOW() - (%s * INTERVAL '1 day')
+          GROUP BY a.id
+        )
+        SELECT *, (login_count + product_count + message_count) AS total_event_count
+        FROM recent_activity
+        WHERE (login_count + product_count + message_count) >= %s
+        ORDER BY total_event_count DESC, created_at DESC
+        LIMIT %s
+        """,
+        (hours, hours, hours, age_days, minimum, bounded_limit(limit)),
+    )
+    return {
+        "account_age_days": age_days,
+        "lookback_hours": hours,
+        "minimum_events": minimum,
+        "candidates": rows,
+        "count": len(rows),
+    }
+
+
+@mcp.tool()
 async def search_accounts(
     status: Literal["active", "restricted", "banned"] | None = None,
     created_after: datetime | None = None,

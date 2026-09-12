@@ -22,6 +22,9 @@ health_response="$(curl -fsS "$gateway_url" \
 
 printf '%s\n' "$initialize_response" | grep -q 'fraud-intelligence-system-tools'
 printf '%s\n' "$tools_response" | grep -q 'find_shared_ip_accounts'
+printf '%s\n' "$tools_response" | grep -q 'get_patrol_overview'
+printf '%s\n' "$tools_response" | grep -q 'find_high_density_ips'
+printf '%s\n' "$tools_response" | grep -q 'find_new_account_bursts'
 printf '%s\n' "$health_response" | grep -q '"ok":true'
 
 printf 'MCP gateway smoke test passed: %s\n' "$gateway_url"
