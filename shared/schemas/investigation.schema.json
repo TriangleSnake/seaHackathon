@@ -35,15 +35,110 @@
       "additionalProperties": false,
       "required": [
         "agent",
+        "case_type",
+        "sequence",
+        "routing_score",
         "reason"
       ],
       "properties": {
         "agent": {
           "type": "string"
         },
+        "case_type": {
+          "type": "string",
+          "enum": ["order", "chat", "marketplace_info"]
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "routing_score": {
+          "type": "integer",
+          "minimum": 0
+        },
         "reason": {
           "type": "string"
         }
+      }
+    },
+    "AgentItemScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_type", "score", "confidence", "rationale", "evidence_refs"],
+      "properties": {
+        "item_type": {"type": "string", "minLength": 1},
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "rationale": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "AgentAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "findings", "item_scores", "direct_evidence_found"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "findings": {
+          "type": "array",
+          "items": {"$ref": "common.schema.json#/$defs/Finding"}
+        },
+        "item_scores": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/AgentItemScore"}
+        },
+        "direct_evidence_found": {"type": "boolean"},
+        "recommended_follow_up": {"type": ["string", "null"]}
+      }
+    },
+    "WeightedItemContribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_type", "score", "confidence", "configured_weight", "effective_weight", "weighted_contribution", "evidence_refs"],
+      "properties": {
+        "item_type": {"type": "string"},
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "configured_weight": {"type": "number", "exclusiveMinimum": 0},
+        "effective_weight": {"type": "number", "minimum": 0},
+        "weighted_contribution": {"type": "number", "minimum": 0},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "AgentScoreAggregate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weighted_score", "confidence", "coverage", "total_effective_weight", "contributions"],
+      "properties": {
+        "weighted_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "total_effective_weight": {"type": "number", "exclusiveMinimum": 0},
+        "contributions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/WeightedItemContribution"}
+        }
+      }
+    },
+    "SpecialistAgentResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent", "raw_analysis", "score_aggregate", "rejected_item_scores"],
+      "properties": {
+        "agent": {"type": "string"},
+        "raw_analysis": {"$ref": "#/$defs/AgentAnalysis"},
+        "score_aggregate": {
+          "oneOf": [
+            {"$ref": "#/$defs/AgentScoreAggregate"},
+            {"type": "null"}
+          ]
+        },
+        "rejected_item_scores": {"type": "integer", "minimum": 0}
       }
     },
     "InvestigationResult": {
@@ -58,6 +153,7 @@
         "findings",
         "evidence",
         "agents_invoked",
+        "agent_results",
         "scoreboard",
         "stop_reason"
       ],
@@ -101,6 +197,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/AgentInvocation"
+          }
+        },
+        "agent_results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SpecialistAgentResult"
           }
         },
         "scoreboard": {
