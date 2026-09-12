@@ -8,6 +8,7 @@ from app.domain import (
     CapabilityKind,
     ConfigListOperation,
     DETECTION_CHAT_REQUEST_PHRASES_PATH,
+    DETECTION_CODE_ALLOWED_PATHS,
     DetectionPolicyChange,
     PolicyChangeProposal,
     PolicyType,
@@ -112,6 +113,8 @@ class DetectionPolicyCapabilityAdapterTests(unittest.TestCase):
 
         self.assertIs(directive.kind, CapabilityKind.CODE)
         self.assertIn("Role-aware", directive.reason)
+        self.assertEqual(directive.boundary.allowed_paths, DETECTION_CODE_ALLOWED_PATHS)
+        self.assertIn("services/evaluator/", directive.boundary.forbidden_paths)
 
     def test_missing_baseline_and_wrong_policy_are_unsupported(self) -> None:
         missing = self.adapter.resolve(proposal(add_phrase(), base_policy_version=None))

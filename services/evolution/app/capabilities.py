@@ -6,6 +6,8 @@ from .domain import (
     ArtifactBoundary,
     CapabilityKind,
     DETECTION_CHAT_REQUEST_PHRASES_PATH,
+    DETECTION_CODE_ALLOWED_PATHS,
+    DETECTION_CODE_FORBIDDEN_PATHS,
     ImplementationDirective,
     PolicyChangeProposal,
     PolicyType,
@@ -37,37 +39,28 @@ class DetectionPolicyCapabilityAdapter:
                 reason="A Detection CONFIG build requires a base policy version",
             )
         if not proposal.detection_policy_changes:
-            return ImplementationDirective(
-                directive_id=f"code:{proposal.proposal_id}",
-                kind=CapabilityKind.CODE,
-                target_policy=proposal.target_policy,
+            return self._code_directive(
+                proposal,
                 summary="No structured Detection CONFIG change was proposed",
                 reason="The requested behavior cannot be expressed as a CONFIG mutation",
-                base_policy_version=proposal.base_policy_version,
             )
         if any(
             change.path != DETECTION_CHAT_REQUEST_PHRASES_PATH
             for change in proposal.detection_policy_changes
         ):
-            return ImplementationDirective(
-                directive_id=f"code:{proposal.proposal_id}",
-                kind=CapabilityKind.CODE,
-                target_policy=proposal.target_policy,
+            return self._code_directive(
+                proposal,
                 summary="Detection change exceeds the supported CONFIG surface",
                 reason="Only chat request phrase-list mutations are currently configurable",
-                base_policy_version=proposal.base_policy_version,
             )
         if any(signal != "message.text" for signal in proposal.required_signals):
-            return ImplementationDirective(
-                directive_id=f"code:{proposal.proposal_id}",
-                kind=CapabilityKind.CODE,
-                target_policy=proposal.target_policy,
+            return self._code_directive(
+                proposal,
                 summary="Detection behavior requires signals outside phrase CONFIG",
                 reason=(
                     "Role-aware, account-aware, compound, or other multi-signal "
-                    "behavior requires the deferred CODE path"
+                    "behavior requires the CODE path"
                 ),
-                base_policy_version=proposal.base_policy_version,
             )
         return ImplementationDirective(
             directive_id=f"config:{proposal.proposal_id}",
@@ -78,6 +71,23 @@ class DetectionPolicyCapabilityAdapter:
             base_policy_version=proposal.base_policy_version,
             detection_policy_changes=tuple(
                 change for change in proposal.detection_policy_changes
+            ),
+        )
+
+    @staticmethod
+    def _code_directive(
+        proposal: PolicyChangeProposal, *, summary: str, reason: str
+    ) -> ImplementationDirective:
+        return ImplementationDirective(
+            directive_id=f"code:{proposal.proposal_id}",
+            kind=CapabilityKind.CODE,
+            target_policy=proposal.target_policy,
+            summary=summary,
+            reason=reason,
+            base_policy_version=proposal.base_policy_version,
+            boundary=ArtifactBoundary(
+                allowed_paths=DETECTION_CODE_ALLOWED_PATHS,
+                forbidden_paths=DETECTION_CODE_FORBIDDEN_PATHS,
             ),
         )
 

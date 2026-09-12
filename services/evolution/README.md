@@ -5,8 +5,9 @@ OpenAI-backed planner. The runtime keeps state transitions, retry accounting,
 IDs, versioning, evaluator decisions, and governance outside the model. The
 model diagnoses policy gaps and proposes what behavior should change and why.
 
-It does not implement ConfigBuilder/Codex execution, Detection HTTP execution,
-publishing, deployment, governance, persistent storage, or rollback.
+It includes ConfigBuilder and a thin adapter to the real isolated Codex runtime.
+The Evolution core itself does not deploy services or activate CODE engines;
+engine-version evaluation remains an explicit integration gap.
 
 ## Layers
 
@@ -25,6 +26,9 @@ publishing, deployment, governance, persistent storage, or rollback.
   builder routing.
 - `app/config_builder.py`: the real Detection CONFIG builder, dual policy
   validation, and environment-backed local assembly.
+- `app/code_builder.py`: the thin adapter from CODE directives to the isolated
+  real Codex runtime under `services/codex-builder`, preserving CandidateResult
+  and the existing candidate registry flow.
 - `app/artifacts.py`: deterministic atomic publication of immutable JSON
   artifacts.
 - `app/versioning.py`: deterministic single-policy composition, evaluation
@@ -140,8 +144,14 @@ a narrower replacement without introducing a rule-expression DSL or changing
 Detection's Python logic.
 
 `DetectionPolicyCapabilityAdapter` routes supported typed changes to
-`ConfigBuilder`. Unstructured Detection behavior remains on the deferred CODE
-route, and missing capabilities remain unsupported. `ConfigBuilder` loads the
+`ConfigBuilder`. Unstructured, role-aware, and compound Detection behavior
+routes to the CODE builder, while missing capabilities remain unsupported.
+Successful CODE builds register a distinct internal `CodeCandidate` in the same
+candidate registry and attempt lineage, without any policy-version substitute.
+The orchestrator stops at `VALIDATING` until an engine-aware evaluator exists.
+`DetectionConfigCapabilityProvider(code_builder_available=True)` should be used
+only when a real CODE builder is actually wired; availability defaults to false.
+`ConfigBuilder` loads the
 named baseline through Detection's existing repository, validates the baseline
 and candidate with both Detection's Pydantic runtime model and the shared JSON
 Schema, then publishes a deterministic `DP-CAND-NNN.json`. The existing

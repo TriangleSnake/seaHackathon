@@ -48,6 +48,29 @@ class ConfigListOperation(str, Enum):
 
 
 DETECTION_CHAT_REQUEST_PHRASES_PATH = "rule_based.chat_request_phrases"
+DETECTION_CODE_ALLOWED_PATHS = (
+    "services/detection/app/repository.py",
+    "services/detection/app/detectors/rules.py",
+)
+DETECTION_CODE_FORBIDDEN_PATHS = (
+    "shared/schemas/",
+    "services/evaluator/",
+    "services/governance/",
+    "services/evolution/",
+    "services/codex-builder/",
+    "services/detection/config/policies/",
+    "services/detection/tests/",
+    "environment/",
+    "services/replay/",
+    "services/investigation/",
+    "services/patrol/",
+    "services/association/",
+    "agentgateway/",
+    "docker-compose.yml",
+    ".env",
+    ".env.example",
+    ".git/",
+)
 _SAFE_DOTTED_CONFIG_PATH = re.compile(
     r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+$"
 )
@@ -278,7 +301,7 @@ class EvolutionAttempt:
 
 @dataclass(frozen=True)
 class ArtifactBoundary:
-    """Future builder sandbox boundary; enforcement belongs in concrete builders."""
+    """Builder sandbox boundary enforced again after candidate execution."""
 
     allowed_paths: tuple[str, ...] = ()
     forbidden_paths: tuple[str, ...] = (
@@ -333,6 +356,17 @@ class CandidatePolicyRecord:
     build_log_ref: str | None
     build_status: str
     candidate_result: Mapping[str, Any]
+    code_candidate: CodeCandidate | None = None
+
+
+@dataclass(frozen=True)
+class CodeCandidate:
+    """Engine identity; deliberately has no policy version."""
+
+    candidate_id: str
+    base_commit: str
+    candidate_commit: str
+    metadata_ref: str
 
 
 @dataclass(frozen=True)
@@ -353,11 +387,12 @@ class BuildOutcome:
     candidate_result: Mapping[str, Any]
     candidate_policy: CandidatePolicy | None = None
     error: str | None = None
+    code_candidate: CodeCandidate | None = None
 
     def __post_init__(self) -> None:
-        if self.success and self.candidate_policy is None:
-            raise ValueError("Successful build requires a CandidatePolicy")
-        if not self.success and self.candidate_policy is not None:
+        if self.success and (self.candidate_policy is None) == (self.code_candidate is None):
+            raise ValueError("Successful build requires exactly one policy or code candidate")
+        if not self.success and (self.candidate_policy is not None or self.code_candidate is not None):
             raise ValueError("Failed build cannot expose a CandidatePolicy")
 
 

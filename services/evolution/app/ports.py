@@ -6,6 +6,7 @@ from typing import Mapping, Protocol, Any
 from .domain import (
     BuildOutcome,
     CandidatePolicy,
+    CodeCandidate,
     CandidatePolicyRecord,
     DefenseVersionSnapshot,
     DiagnosisResult,
@@ -92,6 +93,7 @@ class CandidatePolicyRegistry(Protocol):
         target_policy: PolicyType,
         base: DefenseVersionSnapshot,
         candidate_policy: CandidatePolicy | None,
+        code_candidate: CodeCandidate | None = None,
     ) -> CandidatePolicyRecord: ...
 
     def get(self, candidate_id: str) -> CandidatePolicyRecord: ...
