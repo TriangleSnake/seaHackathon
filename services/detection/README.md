@@ -9,6 +9,12 @@ fraud verdict and the system-owned scoreboard owns scoring.
 - `GET /health`
 - `GET /ready`
 - `POST /detect`
+- `GET /policies/detection`
+- `POST /policies/detection/validate`
+- `POST /policies/detection/drafts`
+- `POST /policies/detection/test`
+- `POST /policies/detection/publish`
+- `POST /policies/detection/rollback/{version}`
 
 Example:
 
@@ -41,11 +47,21 @@ for the one-output-token contract. Override it with `DETECTION_OPENAI_MODEL`.
 
 ## Versioned policies
 
-Detection policies are immutable JSON artifacts under `config/policies`. Their
-format is defined by `shared/schemas/detection-policy.schema.json`. The filename
-must be `<version>.json` and the internal `version` must match. A running process
-caches a resolved policy, so evaluating another version never mutates the
-default or previously resolved artifact.
+Bundled Detection policies live under `config/policies`; mutable control-plane
+state lives in the shared `agent_policies` table. Their format is defined by
+`shared/schemas/detection-policy.schema.json`. Each policy can select versioned
+components, enable or disable them, override their configuration, and choose
+whether a component failure aborts detection or is reported while processing
+continues. Published versions are immutable and exactly one version can be
+active. Evolution can create and test a draft without changing production,
+then publish it after evaluation; rollback only changes the active pointer.
+
+Detector implementations register by `(type, version)` and declare the evidence
+they require. Detection loads the union of those requirements once, executes
+the selected components, and reports each component as `completed`,
+`unavailable`, or `failed` in `component_results`. This keeps policy iteration
+separate from code deployment while making missing model keys or detector
+versions visible instead of silently returning a clean result.
 
 Evaluator should hold the Environment simulation time fixed and call `/detect`
 twice with the same subject and checks, changing only `policy_ref.version`:
@@ -65,6 +81,7 @@ A successful response remains the shared `DetectionResult` contract:
 {
   "detection_id": "DET-<uuid>",
   "subject": {"type": "message", "id": "MSG-0901"},
+  "policy_ref": {"type": "detection", "version": "candidate-v1"},
   "detected": true,
   "triggers": [
     {
@@ -93,6 +110,17 @@ A successful response remains the shared `DetectionResult` contract:
         "text": "系統顯示收款設定未完成，請到驗證頁重新開通，完成後我才能出貨。",
         "urls": ["https://verify-market.invalid/session"]
       }
+    }
+  ],
+  "component_results": [
+    {
+      "component_id": "marketplace-rules",
+      "detector": "rule_based",
+      "version": "builtin-v1",
+      "status": "completed",
+      "trigger_count": 1,
+      "latency_ms": 0.2,
+      "reason": null
     }
   ]
 }

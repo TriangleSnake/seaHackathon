@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from contextvars import ContextVar
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any
-from contextvars import ContextVar
 
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
@@ -107,33 +107,45 @@ class PostgresDetectionRepository:
             data=_json_safe(values),
         )
 
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         await self._open()
         async with self.pool.connection() as connection:
             async with connection.transaction():
-                await connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+                await connection.execute(
+                    "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"
+                )
                 token = self._snapshot_connection.set(connection)
                 try:
-                    rows = await self._fetch_all("SELECT simulation_time FROM simulation_state WHERE singleton_id = 1")
+                    rows = await self._fetch_all(
+                        "SELECT simulation_time FROM simulation_state WHERE singleton_id = 1"
+                    )
                     if not rows:
                         raise RuntimeError("Simulation state is not initialized")
-                    return await self._load_context(subject, rows[0]["simulation_time"])
+                    return await self._load_context(
+                        subject, required_evidence, rows[0]["simulation_time"]
+                    )
                 finally:
                     self._snapshot_connection.reset(token)
 
-    async def _load_context(self, subject: Subject, as_of: datetime) -> DetectionContext | None:
+    async def _load_context(
+        self,
+        subject: Subject,
+        required_evidence: set[str] | None,
+        as_of: datetime,
+    ) -> DetectionContext | None:
         account_ids = await self._resolve_accounts(subject)
         if account_ids is None:
             return None
 
+        required = required_evidence if required_evidence is not None else {"message","report_record","login_event","account_security_event","product","product_image","payment_attempt","delivery_event","refund","dispute"}
         evidence: list[Evidence] = []
-        evidence.extend(await self._load_messages(subject, account_ids))
-        evidence.extend(await self._load_reports(subject, account_ids))
-        evidence.extend(await self._load_account_access(account_ids))
-        evidence.extend(await self._load_products(subject, account_ids))
-        evidence.extend(await self._load_payments(subject, account_ids))
-        evidence.extend(await self._load_delivery(subject, account_ids))
-        evidence.extend(await self._load_claims(subject, account_ids))
+        if "message" in required: evidence.extend(await self._load_messages(subject, account_ids))
+        if "report_record" in required: evidence.extend(await self._load_reports(subject, account_ids))
+        if required & {"login_event", "account_security_event"}: evidence.extend(await self._load_account_access(account_ids))
+        if required & {"product", "product_image"}: evidence.extend(await self._load_products(subject, account_ids))
+        if "payment_attempt" in required: evidence.extend(await self._load_payments(subject, account_ids))
+        if "delivery_event" in required: evidence.extend(await self._load_delivery(subject, account_ids))
+        if required & {"refund", "dispute"}: evidence.extend(await self._load_claims(subject, account_ids))
         unique = {item.id: item for item in evidence}
         return DetectionContext(
             subject=subject,

@@ -74,18 +74,22 @@ class LLMDetector:
         ]
         if not message_evidence:
             raise CheckInconclusiveError("llm_classifier: no message text available")
-        classification = await self.classifier.classify([str(item.data["text"]) for item in message_evidence], self.threshold)
-        if classification.raw_result.get("decision") == "abstain":
-            raise CheckInconclusiveError("llm_classifier: " + str(classification.raw_result.get("reason", "abstain")))
-        if not classification.suspicious:
-            return []
-        return [
-            DetectionTrigger(
+        triggers: list[DetectionTrigger] = []
+        for item in message_evidence:
+            classification = await self.classifier.classify([str(item.data["text"])], self.threshold)
+            if classification.raw_result.get("decision") == "abstain":
+                raise CheckInconclusiveError(
+                    "llm_classifier: "
+                    + str(classification.raw_result.get("reason", "abstain"))
+                )
+            if not classification.suspicious:
+                continue
+            triggers.append(DetectionTrigger(
                 type="llm_suspicious_chat",
                 detector="llm_classifier",
                 rule_id="LLM-CHAT-001",
                 reason="The optional binary classifier marked the chat as suspicious.",
                 raw_result=classification.raw_result,
-                evidence_refs=[item.id for item in message_evidence],
-            )
-        ]
+                evidence_refs=[item.id],
+            ))
+        return triggers

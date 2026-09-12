@@ -12,6 +12,22 @@
       "items": {"enum": ["rule_based", "anomaly", "llm_classifier", "ml_classifier"]},
       "uniqueItems": true
     },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "version"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["rule_based", "anomaly", "llm_classifier", "ml_classifier"]},
+          "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "enabled": {"type": "boolean", "default": true},
+          "failure_mode": {"enum": ["continue", "fail"], "default": "continue"},
+          "config": {"type": "object", "default": {}}
+        }
+      }
+    },
     "rule_based": {
       "type": "object",
       "additionalProperties": false,

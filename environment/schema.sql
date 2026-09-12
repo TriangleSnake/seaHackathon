@@ -510,7 +510,7 @@ CREATE TABLE agent_jobs (
 CREATE INDEX agent_jobs_agent_updated_idx ON agent_jobs(agent, updated_at DESC);
 
 CREATE TABLE agent_policies (
-    agent TEXT NOT NULL CHECK (agent IN ('patrol', 'association')),
+    agent TEXT NOT NULL CHECK (agent IN ('patrol', 'association', 'detection')),
     strategy TEXT NOT NULL,
     version TEXT NOT NULL,
     document JSONB NOT NULL,

@@ -2,19 +2,20 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime
+
 import pytest
-from app.errors import CheckUnavailableError
 
 from app.domain.context import DetectionContext
 from app.domain.models import DetectionRequest, Evidence, Subject
 from app.service import DetectionService
+from app.errors import CheckUnavailableError
 
 
 class FakeRepository:
     def __init__(self, context: DetectionContext | None) -> None:
         self.context = context
 
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         return self.context
 
 
@@ -82,7 +83,6 @@ def test_legitimate_warning_is_not_flagged() -> None:
 def test_anomaly_detector_finds_payment_instrument_churn() -> None:
     subject = Subject(type="transaction", id="TXN-0091")
     context = DetectionContext(
-        as_of=datetime.fromisoformat("2026-09-04T10:10:00+08:00"),
         subject=subject,
         account_ids=["ACC-0091"],
         evidence=[
@@ -141,7 +141,7 @@ def test_requested_checks_filter_detectors() -> None:
     assert result.detected is False
 
 
-def test_explicit_empty_requested_checks_runs_no_detectors() -> None:
+def test_explicit_empty_requested_checks_is_rejected() -> None:
     subject = Subject(type="account", id="ACC-0101")
     context = DetectionContext(
         subject=subject,
@@ -150,7 +150,7 @@ def test_explicit_empty_requested_checks_runs_no_detectors() -> None:
     )
     service = DetectionService(FakeRepository(context))
 
-    with pytest.raises(CheckUnavailableError):
+    with pytest.raises(CheckUnavailableError, match="No checks requested"):
         asyncio.run(service.detect(DetectionRequest(subject=subject, requested_checks=[])))
 
 
@@ -207,7 +207,6 @@ def test_llm_check_uses_classifier_threshold_result() -> None:
 def test_baseline_and_candidate_policies_are_selected_independently() -> None:
     subject = Subject(type="account", id="ACC-0001")
     context = DetectionContext(
-        as_of=datetime.fromisoformat("2026-09-01T10:10:00+08:00"),
         subject=subject,
         account_ids=["ACC-0001"],
         evidence=[evidence("RPT-0001", "report_record", status="open")]
@@ -283,4 +282,40 @@ def test_delivery_claim_before_delivery_does_not_trigger() -> None:
         )
     )
 
+    assert result.detected is False
+
+
+def test_unavailable_requested_detector_is_not_reported_as_executed() -> None:
+    subject = Subject(type="account", id="ACC-1")
+    service = DetectionService(FakeRepository(DetectionContext(subject=subject)))
+    with pytest.raises(CheckUnavailableError, match="llm_classifier is not configured"):
+        asyncio.run(service.detect(DetectionRequest(subject=subject, requested_checks=["llm_classifier"])))
+
+
+def test_login_diversity_does_not_mix_accounts() -> None:
+    subject = Subject(type="transaction", id="TXN-1")
+    context = DetectionContext(subject=subject, account_ids=["A", "B"], evidence=[
+        evidence("L1", "login_event", account_id="A", country_code="TW", device_id="D1", success=True, occurred_at="2026-09-01T10:00:00+08:00"),
+        evidence("L2", "login_event", account_id="B", country_code="US", device_id="D2", success=True, occurred_at="2026-09-01T10:01:00+08:00"),
+    ])
+    result = asyncio.run(DetectionService(FakeRepository(context)).detect(DetectionRequest(subject=subject, requested_checks=["anomaly"])))
+    assert result.detected is False
+
+
+def test_security_change_does_not_pair_with_another_account_login() -> None:
+    subject = Subject(type="transaction", id="TXN-1")
+    context = DetectionContext(subject=subject, account_ids=["A", "B"], evidence=[
+        evidence("S1", "account_security_event", account_id="A", event_type="password_reset", occurred_at="2026-09-01T10:00:00+08:00"),
+        evidence("L1", "login_event", account_id="B", device_novel=True, occurred_at="2026-09-01T10:05:00+08:00"),
+    ])
+    result = asyncio.run(DetectionService(FakeRepository(context)).detect(DetectionRequest(subject=subject, requested_checks=["rule_based"])))
+    assert result.detected is False
+
+
+def test_old_burst_is_outside_context_as_of_window() -> None:
+    subject = Subject(type="account", id="A")
+    context = DetectionContext(subject=subject, account_ids=["A"], as_of=datetime.fromisoformat("2026-09-10T10:00:00+08:00"), evidence=[
+        evidence(f"M{i}", "message", sender_account_id="A", text="hello", created_at=f"2026-09-01T10:{i:02d}:00+08:00") for i in range(8)
+    ])
+    result = asyncio.run(DetectionService(FakeRepository(context)).detect(DetectionRequest(subject=subject, requested_checks=["anomaly"])))
     assert result.detected is False

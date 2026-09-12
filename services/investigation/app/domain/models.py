@@ -69,12 +69,29 @@ class DetectionTrigger(StrictModel):
     _unique_evidence_refs = field_validator("evidence_refs")(_require_unique)
 
 
+class PolicyRef(StrictModel):
+    type: Literal["detection"]
+    version: str
+
+
+class ComponentResult(StrictModel):
+    component_id: str
+    detector: Literal["rule_based", "anomaly", "llm_classifier", "ml_classifier"]
+    version: str
+    status: Literal["completed", "abstained", "unavailable", "failed"]
+    trigger_count: int = Field(ge=0)
+    latency_ms: float = Field(ge=0)
+    reason: Optional[str] = None
+
+
 class DetectionResult(StrictModel):
     detection_id: str
     subject: Subject
+    policy_ref: PolicyRef
     detected: bool
     triggers: list[DetectionTrigger]
     evidence: list[Evidence]
+    component_results: list[ComponentResult] = Field(default_factory=list)
 
 
 class ScoreboardConfigRef(StrictModel):

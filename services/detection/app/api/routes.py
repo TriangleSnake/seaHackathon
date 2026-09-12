@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Header, Request, Response, status
+from fastapi import APIRouter, Body, Header, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
 from openai import APIError as OpenAIAPIError
 from psycopg import Error as PsycopgError
@@ -15,6 +15,7 @@ from app.domain.models import (
     ReadinessResponse,
 )
 from app.service import SubjectNotFoundError
+from app.policies.models import DetectionPolicy
 from app.policies.repository import PolicyNotFoundError
 from app.errors import CheckUnavailableError, CheckInconclusiveError
 
@@ -75,11 +76,7 @@ async def detect(
     request_id = x_request_id or request.state.request_id
     try:
         result = await request.app.state.detection_service.detect(payload)
-        response.headers["X-Detection-Policy-Version"] = (
-            payload.policy_ref.version
-            if "policy_ref" in payload.model_fields_set
-            else request.app.state.settings.default_policy_version
-        )
+        response.headers["X-Detection-Policy-Version"] = result.policy_ref.version
         return result
     except (CheckUnavailableError, CheckInconclusiveError) as error:
         return JSONResponse(
@@ -122,3 +119,54 @@ async def detect(
                 }
             },
         )
+
+
+@router.get("/policies/detection", tags=["detection-policy"])
+async def list_detection_policies(request: Request) -> list[dict]:
+    return await request.app.state.policy_repository.list_versions()
+
+
+@router.post("/policies/detection/validate", tags=["detection-policy"])
+async def validate_detection_policy(policy: DetectionPolicy) -> dict[str, object]:
+    return {"valid": True, "version": policy.version}
+
+
+@router.post("/policies/detection/drafts", status_code=status.HTTP_201_CREATED, tags=["detection-policy"])
+async def create_detection_policy_draft(
+    request: Request,
+    policy: DetectionPolicy,
+    source: Literal["human", "evolution"] = "human",
+) -> dict[str, object]:
+    created = await request.app.state.policy_repository.save_draft(policy, source)
+    if not created:
+        raise HTTPException(status_code=409, detail="Policy version already exists or policy storage is unavailable.")
+    return {"created": True, "version": policy.version, "source": source}
+
+
+@router.post("/policies/detection/test", tags=["detection-policy"])
+async def test_detection_policy(
+    request: Request,
+    policy: DetectionPolicy = Body(),
+    detection_request: DetectionRequest = Body(alias="request"),
+) -> DetectionResult:
+    return await request.app.state.detection_service.detect(detection_request, policy_override=policy)
+
+
+@router.post("/policies/detection/publish", tags=["detection-policy"])
+async def publish_detection_policy(
+    request: Request,
+    policy: DetectionPolicy,
+    source: Literal["human", "evolution"] = "human",
+) -> dict[str, object]:
+    published = await request.app.state.policy_repository.publish(policy, source)
+    if not published:
+        raise HTTPException(status_code=409, detail="Version exists with a different immutable policy document or storage is unavailable.")
+    return {"published": True, "active_version": policy.version}
+
+
+@router.post("/policies/detection/rollback/{version}", tags=["detection-policy"])
+async def rollback_detection_policy(version: str, request: Request) -> dict[str, object]:
+    activated = await request.app.state.policy_repository.activate(version)
+    if not activated:
+        raise HTTPException(status_code=404, detail="Detection policy version was not found.")
+    return {"activated": True, "active_version": version}

@@ -15,14 +15,14 @@ class FakeRepository:
     async def close(self) -> None:
         return None
 
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         if subject.id == "missing":
             return None
         return DetectionContext(subject=subject, account_ids=[subject.id], evidence=[])
 
 
 class BrokenRepository(FakeRepository):
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         raise OSError("database offline")
 
 
@@ -95,7 +95,59 @@ def test_detect_returns_shared_contract() -> None:
     assert response.json()["detected"] is False
     assert response.json()["triggers"] == []
     assert response.json()["evidence"] == []
+    assert response.json()["policy_ref"] == {"type": "detection", "version": "baseline-v1"}
+    assert [item["component_id"] for item in response.json()["component_results"]] == [
+        "marketplace-rules",
+        "behavior-anomaly",
+    ]
     assert response.headers["X-Detection-Policy-Version"] == "baseline-v1"
+
+
+def test_policy_can_be_validated_and_tested_without_publishing() -> None:
+    policy = {
+        "version": "review-v1",
+        "default_checks": ["rule_based"],
+        "rule_based": {
+            "active_report_statuses": ["open"],
+            "chat_request_phrases": ["outside"],
+            "chat_negations": ["do not"],
+            "risk_domain_suffixes": [".invalid"],
+            "sensitive_security_events": ["password_changed"],
+            "access_window_minutes": 60,
+            "reused_image_min_products": 2,
+            "delivery_claim_terms": ["delivered"],
+        },
+        "anomaly": {
+            "payment_instruments_per_hour": 3,
+            "login_countries_per_day": 3,
+            "login_devices_per_day": 3,
+            "messages_per_hour": 10,
+            "listings_per_hour": 10,
+            "disputes_per_week": 3,
+        },
+        "llm_classifier": {"confidence_threshold": 0.8},
+        "components": [
+            {
+                "id": "rules-next",
+                "type": "rule_based",
+                "version": "builtin-v1",
+                "config": {"access_window_minutes": 30},
+            }
+        ],
+    }
+
+    with make_client() as client:
+        validated = client.post("/policies/detection/validate", json=policy)
+        tested = client.post(
+            "/policies/detection/test",
+            json={"policy": policy, "request": {"subject": {"type": "account", "id": "ACC-0001"}}},
+        )
+
+    assert validated.status_code == 200
+    assert validated.json() == {"valid": True, "version": "review-v1"}
+    assert tested.status_code == 200
+    assert tested.json()["policy_ref"]["version"] == "review-v1"
+    assert tested.json()["component_results"][0]["component_id"] == "rules-next"
 
 
 def test_detect_rejects_unknown_fields() -> None:
