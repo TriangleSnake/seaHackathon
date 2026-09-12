@@ -6,6 +6,19 @@ fraud verdict and the system-owned scoreboard owns scoring.
 
 ## API
 
+For a `message` subject, rules inspect only the target message and reports directly
+targeting it. Account-wide login, payment, listing and dispute signals are not
+loaded, and anomaly checks have no applicable rate rules in this scope. Request
+an `account` subject to inspect account-wide activity; that behavior is unchanged.
+
+The optional LLM receives the target separately from up to 20 earlier messages
+in the same conversation, with sender/recipient IDs and timestamps. Background
+cannot independently trigger rule/anomaly checks. Messages at or after the target
+timestamp are excluded from background, even if visible at simulation time, to
+avoid looking ahead; equal timestamps have no established causal order. LLM
+triggers identify target and background IDs and return the referenced evidence.
+This is text classification; image-only messages remain inconclusive for LLM.
+
 - `GET /health`
 - `GET /ready`
 - `POST /detect`

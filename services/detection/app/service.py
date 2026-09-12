@@ -73,8 +73,11 @@ class DetectionService:
             if check in detectors:
                 triggers.extend(await detectors[check].detect(context))
             elif check == "llm_classifier" and llm_detector:
-                triggers.extend(await llm_detector.detect(context.evidence))
-            # ml_classifier remains a contract-compatible no-op until a model exists.
+                triggers.extend(await llm_detector.detect(
+                    context.evidence,
+                    target_message_id=request.subject.id if request.subject.type == "message" else None,
+                    background=context.conversation_context,
+                ))
 
         triggers = [
             trigger.model_copy(
@@ -84,7 +87,7 @@ class DetectionService:
         ]
 
         referenced = {ref for trigger in triggers for ref in trigger.evidence_refs}
-        evidence = [item for item in context.evidence if item.id in referenced]
+        evidence = [item for item in context.evidence + context.conversation_context if item.id in referenced]
         return DetectionResult(
             detection_id=f"DET-{uuid4()}",
             subject=request.subject,
