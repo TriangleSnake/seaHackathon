@@ -5,7 +5,7 @@ import os
 from contextlib import asynccontextmanager, suppress
 from typing import Any, Literal
 
-from fastapi import Body, FastAPI, HTTPException, status
+from fastapi import Body, FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from .agent import run_patrol
@@ -15,6 +15,7 @@ from .models import PatrolJobAccepted, PatrolJobState, PatrolPolicy, PatrolReque
 from .policy import load_active_policy
 from .policy_store import activate, initialize_policy_storage, list_policies, publish, save_draft
 from .prompt import PATROL_PROMPT_VERSION
+from .runtime import model_override, reasoning_override
 from .storage import initialize_storage, list_schedules, update_schedule
 
 
@@ -42,6 +43,17 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Patrol Service", version="0.2.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def runtime_model_middleware(request: Request, call_next):
+    token = model_override.set(request.headers.get("X-Agent-Model"))
+    reasoning_token = reasoning_override.set(request.headers.get("X-Agent-Reasoning-Effort"))
+    try:
+        return await call_next(request)
+    finally:
+        model_override.reset(token)
+        reasoning_override.reset(reasoning_token)
 
 
 @app.get("/health")

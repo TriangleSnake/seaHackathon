@@ -8,7 +8,7 @@ from typing import Any
 import psycopg
 from psycopg.rows import dict_row
 
-from .models import ManualJobRequest, SystemSchedule, TriggerPolicy
+from .models import AgentModelConfig, ManualJobRequest, SystemSchedule, TriggerPolicy
 from .routing import choose_patrol_strategy, compact_hash, event_idempotency_key
 from .settings import settings
 
@@ -62,6 +62,11 @@ async def initialize_storage() -> None:
           source TEXT PRIMARY KEY, occurred_at TIMESTAMPTZ NOT NULL, event_id TEXT NOT NULL DEFAULT '',
           updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
+        CREATE TABLE IF NOT EXISTS system_agent_models (
+          component TEXT PRIMARY KEY, provider TEXT NOT NULL DEFAULT 'openai', model TEXT NOT NULL,
+          reasoning_effort TEXT NOT NULL DEFAULT 'medium', enabled BOOLEAN NOT NULL DEFAULT true,
+          allowed_models JSONB NOT NULL DEFAULT '[]'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
         """)
         await conn.execute("""
         INSERT INTO system_trigger_policies
@@ -81,10 +86,49 @@ async def initialize_storage() -> None:
         ON CONFLICT (schedule_id) DO NOTHING
         """)
         await conn.execute("""
+        INSERT INTO system_agent_models(component,model,reasoning_effort,allowed_models) VALUES
+          ('detection','gpt-4.1-mini','none','["gpt-4.1-mini","gpt-5-mini","gpt-5.4-mini"]'::jsonb),
+          ('investigation','gpt-5.4-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'::jsonb),
+          ('patrol','gpt-5-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'::jsonb),
+          ('association','gpt-5-mini','medium','["gpt-5-mini","gpt-5.4-mini","gpt-5.4"]'::jsonb),
+          ('codex-builder','gpt-5.4','high','["gpt-5.4-mini","gpt-5.4"]'::jsonb)
+        ON CONFLICT(component) DO NOTHING
+        """)
+        await conn.execute("""
         UPDATE system_jobs SET status='queued', available_at=now(),
           error='Recovered after System service restart', updated_at=now()
         WHERE status='running'
         """)
+
+
+async def list_agent_models() -> list[dict[str, Any]]:
+    async with await connect(rows=True) as conn:
+        rows = await (await conn.execute("SELECT * FROM system_agent_models ORDER BY component")).fetchall()
+        return [dict(row) for row in rows]
+
+
+async def get_agent_model(component: str) -> dict[str, Any] | None:
+    async with await connect(rows=True) as conn:
+        row = await (await conn.execute(
+            "SELECT * FROM system_agent_models WHERE component=%s", (component,)
+        )).fetchone()
+        return dict(row) if row else None
+
+
+async def put_agent_model(config: AgentModelConfig) -> dict[str, Any]:
+    if config.allowed_models and config.model not in config.allowed_models:
+        raise ValueError("model must be included in allowed_models")
+    async with await connect(rows=True) as conn:
+        row = await (await conn.execute("""
+          INSERT INTO system_agent_models(component,provider,model,reasoning_effort,enabled,allowed_models)
+          VALUES (%s,%s,%s,%s,%s,%s::jsonb)
+          ON CONFLICT(component) DO UPDATE SET provider=excluded.provider,model=excluded.model,
+            reasoning_effort=excluded.reasoning_effort,enabled=excluded.enabled,
+            allowed_models=excluded.allowed_models,updated_at=now()
+          RETURNING *
+        """, (config.component, config.provider, config.model, config.reasoning_effort,
+              config.enabled, json.dumps(config.allowed_models)))).fetchone()
+        return dict(row)
 
 
 async def simulation_time() -> datetime:
@@ -226,6 +270,13 @@ async def _insert_job(agent: str, trigger_type: str, trigger_ref: str, event_typ
                       payload: dict[str, Any], max_attempts: int,
                       parent_job_id: str | None = None) -> dict[str, Any]:
     job_id = f"job-{compact_hash(idempotency_key)}"
+    payload = dict(payload)
+    model_config = await get_agent_model(agent)
+    if model_config and model_config["enabled"]:
+        payload.setdefault("_runtime", {
+            "model": model_config["model"],
+            "reasoning_effort": model_config["reasoning_effort"],
+        })
     async with await connect(rows=True) as conn:
         row = await (await conn.execute("""
           INSERT INTO system_jobs

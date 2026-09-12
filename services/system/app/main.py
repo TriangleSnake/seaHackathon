@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Query, status
 
 from . import storage
 from .control import background_tasks, runtime_state
-from .models import JobState, ManualJobRequest, SystemSchedule, TriggerPolicy
+from .models import AgentModelConfig, JobState, ManualJobRequest, SystemSchedule, TriggerPolicy
 
 
 @asynccontextmanager
@@ -55,6 +55,21 @@ async def update_trigger(policy_id: str, policy: TriggerPolicy) -> dict[str, Any
 @app.get("/control/schedules", response_model=list[SystemSchedule])
 async def schedules() -> list[dict[str, Any]]:
     return await storage.list_schedules()
+
+
+@app.get("/control/models", response_model=list[AgentModelConfig])
+async def models() -> list[dict[str, Any]]:
+    return await storage.list_agent_models()
+
+
+@app.put("/control/models/{component}", response_model=AgentModelConfig)
+async def update_model(component: str, config: AgentModelConfig) -> dict[str, Any]:
+    if config.component != component:
+        raise HTTPException(422, "component does not match path")
+    try:
+        return await storage.put_agent_model(config)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @app.put("/control/schedules/{schedule_id}", response_model=SystemSchedule)

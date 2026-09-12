@@ -5,6 +5,7 @@ from typing import Any
 from openai import AsyncOpenAI
 
 from app.detectors.llm import LLMClassification, binary_decision
+from app.runtime import model_override, reasoning_override
 
 
 class OpenAIMessageClassifier:
@@ -13,8 +14,9 @@ class OpenAIMessageClassifier:
         self.model = model
 
     async def classify(self, messages: list[str], threshold: float) -> LLMClassification:
+        reasoning = reasoning_override.get()
         response = await self.client.responses.create(
-            model=self.model,
+            model=model_override.get() or self.model,
             instructions=(
                 "Classify ecommerce chat as suspicious or benign. Reply with exactly "
                 "one lowercase boolean token: true or false. True means the sender "
@@ -33,6 +35,7 @@ class OpenAIMessageClassifier:
             top_logprobs=5,
             max_output_tokens=1,
             store=False,
+            **({"reasoning": {"effort": reasoning}} if reasoning not in {None, "none"} else {}),
         )
         candidate_logprobs: dict[str, float] = {}
         for output in response.output:

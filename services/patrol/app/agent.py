@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import os
 
-from agents import Agent, AgentOutputSchema, Runner
+from agents import Agent, AgentOutputSchema, ModelSettings, Runner
 from agents.mcp import MCPServerStreamableHttp, create_static_tool_filter
+from openai.types.shared import Reasoning
 
 from .models import PatrolPolicy, PatrolRequest, PatrolResult
 from .prompt import build_system_prompt
+from .runtime import model_override, reasoning_override
 
 
 def _run_input(request: PatrolRequest, policy: PatrolPolicy) -> str:
@@ -25,7 +27,7 @@ def _run_input(request: PatrolRequest, policy: PatrolPolicy) -> str:
 
 async def run_patrol(request: PatrolRequest, policy: PatrolPolicy) -> PatrolResult:
     gateway_url = os.environ.get("AGENTGATEWAY_MCP_URL", "http://agentgateway:3000/mcp")
-    model = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
+    model = model_override.get() or os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 
     async with MCPServerStreamableHttp(
         name="fraud-system-tools",
@@ -42,6 +44,11 @@ async def run_patrol(request: PatrolRequest, policy: PatrolPolicy) -> PatrolResu
             instructions=build_system_prompt(policy.model_dump(mode="json")),
             mcp_servers=[server],
             output_type=AgentOutputSchema(PatrolResult, strict_json_schema=False),
+            model_settings=ModelSettings(
+                reasoning=Reasoning(effort=reasoning_override.get())
+                if reasoning_override.get() not in {None, "none"}
+                else None
+            ),
         )
         result = await Runner.run(
             agent,

@@ -10,6 +10,7 @@ from app.api.routes import router
 from app.gateways.openai import OpenAIMessageClassifier
 from app.policies.repository import FilePolicyRepository
 from app.repository import PostgresDetectionRepository
+from app.runtime import model_override, reasoning_override
 from app.service import DetectionService
 from app.settings import Settings
 
@@ -63,11 +64,17 @@ def create_app(
 
     @application.middleware("http")
     async def request_id_middleware(request: Request, call_next):
+        token = model_override.set(request.headers.get("X-Agent-Model"))
+        reasoning_token = reasoning_override.set(request.headers.get("X-Agent-Reasoning-Effort"))
         request_id = request.headers.get("X-Request-ID") or str(uuid4())
         request.state.request_id = request_id
-        response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
-        return response
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        finally:
+            model_override.reset(token)
+            reasoning_override.reset(reasoning_token)
 
     application.include_router(router)
     return application

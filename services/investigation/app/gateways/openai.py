@@ -8,6 +8,7 @@ from typing import Any, Awaitable, Callable, Optional, Protocol
 from openai import AsyncOpenAI
 
 from app.domain.models import AgentAnalysis, AgentRun, ToolCallResult, ToolDefinition
+from app.runtime import model_override, reasoning_override
 
 
 ToolExecutor = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -82,13 +83,15 @@ class OpenAIAnalyzer:
         for _ in range(max_tool_calls + 1):
             active_tools = tool_specs if len(call_results) < max_tool_calls else []
             request: dict[str, Any] = {
-                "model": self._model,
+                "model": model_override.get() or self._model,
                 "instructions": prompt,
                 "input": input_items,
                 "text_format": AgentAnalysis,
                 "max_output_tokens": max_output_tokens,
                 "store": False,
             }
+            if reasoning_override.get() not in {None, "none"}:
+                request["reasoning"] = {"effort": reasoning_override.get()}
             if active_tools:
                 request.update(
                     tools=active_tools,
