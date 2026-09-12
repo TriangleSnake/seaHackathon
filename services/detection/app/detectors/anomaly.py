@@ -24,7 +24,7 @@ def _within_latest(items: list[Evidence], window: timedelta, as_of: datetime | N
     dated = [(item, _time(item)) for item in items]
     valid = [(item, timestamp) for item, timestamp in dated if timestamp is not None]
     if not valid:
-        return items
+        return []
     anchor = as_of or max(timestamp for _, timestamp in valid)
     return [item for item, timestamp in valid if timedelta(0) <= anchor - timestamp < window]
 

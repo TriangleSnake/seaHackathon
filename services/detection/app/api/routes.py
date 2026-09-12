@@ -73,9 +73,19 @@ async def detect(
     response: Response,
     x_request_id: Annotated[str | None, Header()] = None,
 ) -> DetectionResult | JSONResponse:
+    return await _run_detection(payload, request, response, x_request_id)
+
+
+async def _run_detection(
+    payload: DetectionRequest,
+    request: Request,
+    response: Response,
+    x_request_id: str | None,
+    policy_override: DetectionPolicy | None = None,
+) -> DetectionResult | JSONResponse:
     request_id = x_request_id or request.state.request_id
     try:
-        result = await request.app.state.detection_service.detect(payload)
+        result = await request.app.state.detection_service.detect(payload, policy_override=policy_override)
         response.headers["X-Detection-Policy-Version"] = result.policy_ref.version
         return result
     except (CheckUnavailableError, CheckInconclusiveError) as error:
@@ -143,13 +153,24 @@ async def create_detection_policy_draft(
     return {"created": True, "version": policy.version, "source": source}
 
 
-@router.post("/policies/detection/test", tags=["detection-policy"])
+@router.post(
+    "/policies/detection/test",
+    response_model=DetectionResult,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponse},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ErrorResponse},
+        status.HTTP_503_SERVICE_UNAVAILABLE: {"model": ErrorResponse},
+    },
+    tags=["detection-policy"],
+)
 async def test_detection_policy(
     request: Request,
+    response: Response,
     policy: DetectionPolicy = Body(),
     detection_request: DetectionRequest = Body(alias="request"),
-) -> DetectionResult:
-    return await request.app.state.detection_service.detect(detection_request, policy_override=policy)
+    x_request_id: Annotated[str | None, Header()] = None,
+) -> DetectionResult | JSONResponse:
+    return await _run_detection(detection_request, request, response, x_request_id, policy_override=policy)
 
 
 @router.post("/policies/detection/publish", tags=["detection-policy"])

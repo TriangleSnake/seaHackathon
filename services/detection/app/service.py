@@ -163,6 +163,10 @@ class DetectionService:
                         reason="detector_not_registered",
                     )
                 )
+                if component.failure_mode == "fail":
+                    raise CheckUnavailableError(
+                        f"{component.type} version {component.version} is not registered"
+                    )
                 continue
             try:
                 detector = registered.factory(self._config(policy, component))
@@ -203,9 +207,14 @@ class DetectionService:
                 if component.failure_mode == "fail":
                     raise
 
+        as_of = getattr(context, "as_of", None)
         triggers = [
             trigger.model_copy(
-                update={"raw_result": {**(trigger.raw_result or {}), "policy_version": policy.version}}
+                update={"raw_result": {
+                    **(trigger.raw_result or {}),
+                    "policy_version": policy.version,
+                    "as_of": as_of.isoformat() if as_of is not None else None,
+                }}
             )
             for trigger in triggers
         ]

@@ -92,6 +92,7 @@ class LLMDetector:
                         "id": target.id,
                         "sender_account_id": target.data.get("sender_account_id"),
                         "recipient_account_id": target.data.get("recipient_account_id"),
+                        "observed_at": target.observed_at.isoformat() if target.observed_at else None,
                         "text": target.data["text"],
                         "urls": target.data.get("urls", []),
                     },
@@ -100,6 +101,7 @@ class LLMDetector:
                             "id": item.id,
                             "sender_account_id": item.data.get("sender_account_id"),
                             "recipient_account_id": item.data.get("recipient_account_id"),
+                            "observed_at": item.observed_at.isoformat() if item.observed_at else None,
                             "text": item.data["text"],
                             "urls": item.data.get("urls", []),
                         }

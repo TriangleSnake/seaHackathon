@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.domain.context import DetectionContext
 from app.domain.models import DetectionRequest, Evidence, Subject
@@ -50,19 +50,24 @@ def test_repository_message_scope_never_loads_account_risk():
 def test_llm_target_background_and_evidence_are_explicit():
     subject = Subject(type='message', id='target')
     target = message('target', '請到驗證頁重新開通', 'sender')
-    background = message('background', '請問怎麼付款', 'recipient')
+    background = message('background', '請問怎麼付款', 'recipient').model_copy(
+        update={'observed_at': NOW - timedelta(minutes=5)})
     class Repository:
         async def load_context(self, subject):
             return DetectionContext(subject, evidence=[target], conversation_context=[background])
+    captured = {}
     class Classifier:
         async def classify(self, messages, threshold):
             payload = json.loads(messages[0])
+            captured.update(payload)
             assert payload['target_message']['id'] == 'target'
             assert payload['target_message']['sender_account_id'] == 'sender'
             assert payload['background_messages'][0]['sender_account_id'] == 'recipient'
             return LLMClassification(True, {'decision': 'trigger'})
     result = asyncio.run(DetectionService(Repository(), Classifier()).detect(
         DetectionRequest(subject=subject, requested_checks=['llm_classifier'])))
+    assert captured['target_message']['observed_at'] == '2026-09-10T00:00:00+00:00'
+    assert captured['background_messages'][0]['observed_at'] == '2026-09-09T23:55:00+00:00'
     assert result.triggers[0].raw_result['target_message_id'] == 'target'
     assert result.triggers[0].evidence_refs == ['target', 'background']
     assert {e.id for e in result.evidence} == {'target', 'background'}
