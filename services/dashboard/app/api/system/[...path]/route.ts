@@ -7,7 +7,7 @@ function isAllowed(method: string, path: string) {
   if (method === "GET" && /^jobs\/job-[a-f0-9]{24}$/.test(path)) return true;
   if (method === "GET" && /^cases\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(path)) return true;
   if (method === "POST" && path === "jobs") return true;
-  if (method === "PUT" && /^control\/(triggers|schedules)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(path)) return true;
+  if (method === "PUT" && /^control\/(triggers|schedules|models)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(path)) return true;
   return false;
 }
 

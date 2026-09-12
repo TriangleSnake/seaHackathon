@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { AgentPolicyEditor } from "@/features/policies/agent-policy-editor";
 import { DetectionPolicyEditor } from "@/features/policies/detection-policy-editor";
+import { PolicyEditorSwitch } from "@/features/policies/live-agent-policy-editor";
 import { agentPolicyProfiles, getAgentPolicyProfile, getSubAgentProfiles } from "@/lib/api/agent-policies";
 import { structuredPolicyConfigs } from "@/lib/api/structured-policies";
 import { ArrowLeft, ArrowUpRight, Bot, Check, Database, FileCode2, GitBranch, LockKeyhole, RefreshCw, ShieldCheck, Wrench } from "lucide-react";
@@ -27,7 +28,7 @@ export default async function AgentPolicyPage({ params }: { params: Promise<{ ag
       {subAgents.length > 0 && <section className="panel subagent-registry"><header><div><Bot size={18}/><div><span>DYNAMIC SUB-AGENT REGISTRY</span><h2>Investigation Sub-agents</h2></div></div><b>{subAgents.length} 個已註冊</b></header><div className="subagent-grid">{subAgents.map((subAgent) => <Link href={`/policies/${profile.slug}/${subAgent.slug}`} key={subAgent.slug}><div><span className={`implementation-state ${subAgent.implementationState ?? "implemented"}`}>{subAgent.implementationState === "placeholder" ? "尚未實作" : "可用"}</span><h3>{subAgent.name}</h3><p>{subAgent.role}</p></div><ArrowUpRight size={15}/></Link>)}</div></section>}
 
       {profile.slug === "detection" && <DetectionPolicyEditor/>}
-      {structuredPolicy && <AgentPolicyEditor config={structuredPolicy} toolCatalog={profile.toolConfiguration?.tools ?? []}/>}
+      {structuredPolicy && (profile.slug === "patrol" || profile.slug === "association") && <PolicyEditorSwitch agent={profile.slug} demo={<AgentPolicyEditor config={structuredPolicy} toolCatalog={profile.toolConfiguration?.tools ?? []}/>}/>}
 
       <section className="panel applied-policy-panel"><header><div><ShieldCheck size={18}/><div><span>VERSIONED POLICY</span><h2>已發布版本</h2></div></div><b>{profile.policies.length} 個 Policy</b></header>{profile.policies.length > 0 ? <div>{profile.policies.map((policy) => <article key={`${policy.name}-${policy.version}`}><span className="policy-order">{String(profile.policies.indexOf(policy) + 1).padStart(2, "0")}</span><div><div><h3>{policy.name}</h3><code>{policy.version}</code></div><small>{policy.source}</small></div></article>)}</div> : <div className="empty-policy-state">尚未發布可用的 Agent Policy。</div>}</section>
 

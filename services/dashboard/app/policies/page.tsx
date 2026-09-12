@@ -2,6 +2,7 @@ import { AppShell } from "@/components/app-shell";
 import { agentPolicyProfiles } from "@/lib/api/agent-policies";
 import { ArrowRight, Bot, BookOpenCheck } from "lucide-react";
 import Link from "next/link";
+import { AgentModelControl } from "@/features/policies/agent-model-control";
 
 export default function PoliciesPage() {
   const topLevelAgents = agentPolicyProfiles.filter((profile) => !profile.parentAgent);
@@ -14,6 +15,7 @@ export default function PoliciesPage() {
       <div><Bot/><span>Investigation Sub-agents</span><strong>{subAgentCount}</strong><small>成員可隨版本替換</small></div>
       <div><BookOpenCheck/><span>已發布 Policy</span><strong>{policyCount}</strong><small>不可變更版本</small></div>
     </section>
+    <AgentModelControl/>
     <section className="panel agent-registry">
       <header><div><span>TOP-LEVEL AGENT REGISTRY</span><h2>選擇 Agent</h2></div><span className="registry-state"><i/>Registry synced</span></header>
       <div className="agent-policy-grid">{topLevelAgents.map((profile) => {
