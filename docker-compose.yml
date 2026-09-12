@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: environment-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-fraud_intelligence}
       POSTGRES_USER: ${POSTGRES_USER:-fraud}
@@ -11,11 +12,15 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./environment/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
       - ./environment/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql:ro
+      - ./environment/tests:/workspace/environment/tests:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fraud} -d ${POSTGRES_DB:-fraud_intelligence}"]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 5s
+    networks:
+      - fraud-intelligence-network
 
   system-tools:
     build:
@@ -29,6 +34,8 @@ services:
         condition: service_healthy
     expose:
       - "8000"
+    networks:
+      - fraud-intelligence-network
 
   agentgateway:
     image: cr.agentgateway.dev/agentgateway:v1.5.0
@@ -39,6 +46,12 @@ services:
       - "${AGENTGATEWAY_PORT:-3000}:3000"
     volumes:
       - ./agentgateway/config.yaml:/config/config.yaml:ro
+    networks:
+      - fraud-intelligence-network
 
 volumes:
   postgres-data:
+
+networks:
+  fraud-intelligence-network:
+    name: fraud-intelligence-network
