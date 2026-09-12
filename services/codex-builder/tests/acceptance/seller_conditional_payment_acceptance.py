@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+import os
 from pathlib import Path
 import sys
 
 
-DETECTION_ROOT = Path(__file__).resolve().parents[3] / "detection"
+DETECTION_ROOT = Path(
+    os.environ.get(
+        "DETECTION_CANDIDATE_ROOT",
+        str(Path(__file__).resolve().parents[3] / "detection"),
+    )
+).resolve()
 if str(DETECTION_ROOT) not in sys.path:
     sys.path.insert(0, str(DETECTION_ROOT))
 

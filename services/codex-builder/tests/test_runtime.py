@@ -149,6 +149,7 @@ def test_successful_build_commits_only_allowed_diff_and_publishes_metadata(
     assert payload["candidate_commit"] == metadata.candidate_commit
     assert "OPENAI_API_KEY" not in json.dumps(payload)
     assert "must-not-reach-codex" not in json.dumps(payload)
+    assert "DETECTION_CANDIDATE_ROOT" not in metadata.codex.argv
 
 
 def test_forbidden_path_change_fails_closed_before_tests(tmp_path: Path) -> None:

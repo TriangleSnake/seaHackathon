@@ -75,6 +75,7 @@ class CodeBuilderSettings:
         no_bytecode = (
             ("PYTHONDONTWRITEBYTECODE", "1"),
             ("PYTHONPATH", "{workspace}/services/detection"),
+            ("DETECTION_CANDIDATE_ROOT", "{workspace}/services/detection"),
         )
         return cls(
             source_repository=Path(source_repository).resolve(),
