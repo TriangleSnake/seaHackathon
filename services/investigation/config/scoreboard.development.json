@@ -15,7 +15,7 @@
         "max_agent_calls": 3,
         "max_tool_calls": 8,
         "max_investigation_steps": 12,
-        "max_tokens": 12000,
+        "max_tokens": 0,
         "max_cost_usd": 1.0
       },
       "stopping_rules": [

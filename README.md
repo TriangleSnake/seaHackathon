@@ -12,7 +12,7 @@ Recommended REST contracts:
   - response: investigation.schema.json#/$defs/InvestigationResult
   - Docker Compose URL: `http://investigation:8000/investigate`
   - host URL: `http://localhost:10002/investigate`
-  - runs the evidence-first orchestrator and three specialist agents
+  - runs one LLM Orchestrator that plans and reports across three specialist agents
 - POST /patrol/run
   - request: patrol.schema.json#/$defs/PatrolRequest
   - response: patrol.schema.json#/$defs/PatrolResult
@@ -96,5 +96,5 @@ integrity-test instructions are documented in
 - Investigation does **not** define its own thresholds or budget.
   - It receives only an immutable `scoreboard_config_ref`.
 - `scoreboard.schema.json` is owned by the System/control plane.
-  - It defines scoring policy version, fraud/normal thresholds, agent/tool/step/token/cost budgets, stopping rules, and agent priorities.
+  - It defines scoring policy version, fraud/normal thresholds, agent/tool/step/token/cost budgets, stopping rules, and agent priorities. A token budget of `0` means unlimited.
 - Investigation returns the resulting `ScoreboardState` for auditability/reproducibility.

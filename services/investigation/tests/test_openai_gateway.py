@@ -4,7 +4,7 @@ import asyncio
 from types import SimpleNamespace
 from typing import Any
 
-from app.domain.models import AgentAnalysis, ToolDefinition
+from app.domain.models import AgentAnalysis, OrchestratorDecision, ToolDefinition
 from app.gateways.openai import OpenAIAnalyzer
 
 
@@ -46,6 +46,44 @@ def test_openai_adapter_uses_structured_non_stored_response() -> None:
     assert client.responses.arguments["store"] is False
     assert client.responses.arguments["max_output_tokens"] == 321
     assert client.closed is True
+
+
+def test_openai_adapter_generates_orchestrator_decision_without_tools() -> None:
+    client = FakeOpenAIClient()
+
+    class DecisionResponses:
+        def __init__(self) -> None:
+            self.arguments: dict[str, Any] = {}
+
+        async def parse(self, **kwargs: Any) -> Any:
+            self.arguments = kwargs
+            return SimpleNamespace(
+                output_parsed=OrchestratorDecision(
+                    action="invoke_agent",
+                    agent="chat",
+                    reason="先檢查訊息。",
+                    investigation_focus=["URL 風險"],
+                ),
+                usage=SimpleNamespace(input_tokens=8, output_tokens=4),
+            )
+
+    responses = DecisionResponses()
+    client.responses = responses
+    analyzer = OpenAIAnalyzer("", "test-model", client=client)  # type: ignore[arg-type]
+    decision, input_tokens, output_tokens = asyncio.run(
+        analyzer.generate_structured(
+            "orchestrator prompt",
+            {"task": "plan_next_step"},
+            OrchestratorDecision,
+            200,
+        )
+    )
+    assert decision.agent == "chat"
+    assert input_tokens == 8
+    assert output_tokens == 4
+    assert responses.arguments["text_format"] is OrchestratorDecision
+    assert "tools" not in responses.arguments
+    assert responses.arguments["store"] is False
 
 
 class ToolLoopResponses:

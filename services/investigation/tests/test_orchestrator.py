@@ -12,6 +12,8 @@ from app.domain.models import (
     AgentRun,
     Finding,
     InvestigationRequest,
+    OrchestratorDecision,
+    OrchestratorReport,
     ToolCallResult,
     ToolDefinition,
 )
@@ -129,6 +131,49 @@ class DirectEvidenceAgent:
         )
 
 
+class PlanningOrchestrator:
+    name = "orchestrator"
+
+    def __init__(self) -> None:
+        self.decisions = [
+            OrchestratorDecision(
+                action="invoke_agent",
+                agent="order",
+                reason="先確認訂單訊號。",
+                investigation_focus=["付款活動"],
+            ),
+            OrchestratorDecision(
+                action="continue_agent",
+                agent="order",
+                reason="需要同一專家補查帳號活動。",
+                investigation_focus=["帳號活動"],
+            ),
+            OrchestratorDecision(
+                action="stop",
+                reason="兩輪調查後已足夠整理報告。",
+            ),
+        ]
+        self.contexts: list[dict[str, Any]] = []
+
+    async def decide(
+        self, context: dict[str, Any], max_output_tokens: int
+    ) -> tuple[OrchestratorDecision, int, int]:
+        assert max_output_tokens > 0
+        self.contexts.append(context)
+        return self.decisions.pop(0), 5, 2
+
+    async def report(
+        self, context: dict[str, Any], max_output_tokens: int
+    ) -> tuple[OrchestratorReport, int, int]:
+        assert context["deterministic_verdict"] == "fraud"
+        assert max_output_tokens > 0
+        return (
+            OrchestratorReport(
+                summary="Orchestrator 已整合兩輪 Sub-agent 調查。",
+            ),
+            6,
+            3,
+        )
 def request() -> InvestigationRequest:
     return InvestigationRequest.model_validate(
         {
@@ -168,6 +213,28 @@ def test_direct_evidence_stops_and_reaches_fraud_verdict() -> None:
     assert result.scoreboard["fraud_score"] == 1.0
     assert result.confidence == 1.0
     assert result.findings[0].evidence_refs == ["prior-fraud-case"]
+
+
+def test_llm_orchestrator_can_continue_specialist_and_write_report() -> None:
+    planner = PlanningOrchestrator()
+    orchestrator = InvestigationOrchestrator(
+        CaseGateway(),
+        repository(),
+        [DirectEvidenceAgent()],  # type: ignore[list-item]
+        orchestrator_agent=planner,  # type: ignore[arg-type]
+    )
+
+    result = asyncio.run(orchestrator.investigate(request(), "request-managed"))
+
+    assert [item.agent for item in result.agents_invoked] == ["order", "order"]
+    assert "付款活動" in result.agents_invoked[0].reason
+    assert "帳號活動" in result.agents_invoked[1].reason
+    assert "繼續調查" in result.agents_invoked[1].reason
+    assert result.summary == "Orchestrator 已整合兩輪 Sub-agent 調查。"
+    assert result.stop_reason == "direct_evidence"
+    assert result.scoreboard["agent_usage"][0]["agent_id"] == "orchestrator"
+    assert len(planner.contexts) == 3
+    assert "configured_weight" not in str(planner.contexts)
 
 
 def test_gateway_failures_are_reported_without_crashing() -> None:

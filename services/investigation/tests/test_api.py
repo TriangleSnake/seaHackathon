@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from fastapi.testclient import TestClient
 
-from app.agents import ChatAgent, MarketplaceInfoAgent, OrderAgent
+from app.agents import ChatAgent, MarketplaceInfoAgent, OrchestratorAgent, OrderAgent
 from app.api.readiness import ReadinessError
 from app.core.orchestrator import InvestigationOrchestrator
 from app.domain.models import (
@@ -13,6 +13,8 @@ from app.domain.models import (
     AgentItemScore,
     AgentRun,
     Finding,
+    OrchestratorDecision,
+    OrchestratorReport,
     ToolCallResult,
     ToolDefinition,
 )
@@ -77,6 +79,9 @@ class FakeGateway:
 
 
 class FakeAnalyzer:
+    def __init__(self) -> None:
+        self.orchestrator_decisions = 0
+
     async def analyze(
         self,
         agent: str,
@@ -147,6 +152,43 @@ class FakeAnalyzer:
     async def close(self) -> None:
         return None
 
+    async def generate_structured(
+        self,
+        instructions: str,
+        context: dict[str, Any],
+        output_model: type[Any],
+        max_output_tokens: int,
+    ) -> tuple[Any, int, int]:
+        assert instructions and max_output_tokens > 0
+        if output_model is OrchestratorDecision:
+            self.orchestrator_decisions += 1
+            if context["specialist_results"]:
+                return (
+                    OrchestratorDecision(
+                        action="stop", reason="訂單調查結果已足夠。"
+                    ),
+                    10,
+                    5,
+                )
+            return (
+                OrchestratorDecision(
+                    action="invoke_agent",
+                    agent="order",
+                    reason="先調查付款活動。",
+                    investigation_focus=["付款活動"],
+                ),
+                10,
+                5,
+            )
+        assert output_model is OrchestratorReport
+        return (
+            OrchestratorReport(
+                summary="Orchestrator 已整合訂單調查結果。",
+            ),
+            10,
+            5,
+        )
+
 
 def make_orchestrator() -> InvestigationOrchestrator:
     analyzer = FakeAnalyzer()
@@ -156,15 +198,21 @@ def make_orchestrator() -> InvestigationOrchestrator:
         ChatAgent(analyzer, prompts / "chat.md"),
         MarketplaceInfoAgent(analyzer, prompts / "marketplace_info.md"),
     ]
+    orchestrator_agent = OrchestratorAgent(
+        analyzer, prompts / "orchestrator.md"
+    )
     return InvestigationOrchestrator(
         FakeGateway(),
         FilePolicyRepository(str(ROOT / "config" / "scoreboard.development.json")),
         agents,
+        orchestrator_agent=orchestrator_agent,
     )
 
 
 def test_production_agent_registry_matches_architecture() -> None:
-    assert make_orchestrator().agent_names == (
+    orchestrator = make_orchestrator()
+    assert orchestrator.orchestrator_name == "orchestrator"
+    assert orchestrator.agent_names == (
         "order",
         "chat",
         "marketplace_info",
@@ -241,6 +289,19 @@ def test_investigate_runs_agents_and_returns_scoreboard() -> None:
         response = client.post("/investigate", json=valid_request())
     body = response.json()
     assert response.status_code == 200
+    assert set(body) == {
+        "case_id",
+        "subject",
+        "verdict",
+        "confidence",
+        "summary",
+        "findings",
+        "evidence",
+        "agents_invoked",
+        "agent_results",
+        "scoreboard",
+        "stop_reason",
+    }
     assert "X-Investigation-Placeholder" not in response.headers
     assert body["verdict"] == "suspicious"
     assert body["findings"][0]["evidence_refs"] == ["PAY-0001"]
@@ -251,6 +312,8 @@ def test_investigate_runs_agents_and_returns_scoreboard() -> None:
     assert body["agents_invoked"][0]["case_type"] == "order"
     assert body["agent_results"][0]["raw_analysis"]["item_scores"][0]["score"] == 3
     assert body["agent_results"][0]["score_aggregate"]["weighted_score"] == 0.6
+    assert body["summary"] == "Orchestrator 已整合訂單調查結果。"
+    assert "啟動調查" in body["agents_invoked"][0]["reason"]
 
 
 def test_investigate_rejects_unknown_request_fields() -> None:

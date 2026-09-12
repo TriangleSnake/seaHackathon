@@ -14,6 +14,8 @@ EvidenceSource = Literal[
 ]
 FindingImpact = Literal["supports_fraud", "supports_legitimate", "neutral"]
 Verdict = Literal["fraud", "suspicious", "normal", "unknown"]
+OrchestratorAction = Literal["invoke_agent", "continue_agent", "stop"]
+SpecialistName = Literal["order", "chat", "marketplace_info"]
 StopReason = Literal[
     "direct_evidence",
     "fraud_threshold",
@@ -98,6 +100,29 @@ class AgentInvocation(StrictModel):
     sequence: int = Field(ge=1)
     routing_score: int = Field(ge=0)
     reason: str
+
+
+class OrchestratorDecision(StrictModel):
+    """One LLM orchestrator decision between specialist investigation rounds."""
+
+    action: OrchestratorAction
+    agent: Optional[SpecialistName] = None
+    reason: str = Field(min_length=1)
+    investigation_focus: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_action_target(self) -> "OrchestratorDecision":
+        if self.action == "stop" and self.agent is not None:
+            raise ValueError("stop decisions must not select an agent")
+        if self.action != "stop" and self.agent is None:
+            raise ValueError("agent decisions must select an agent")
+        return self
+
+
+class OrchestratorReport(StrictModel):
+    """Internal synthesis for the canonical InvestigationResult.summary field."""
+
+    summary: str = Field(min_length=1)
 
 
 class AgentAnalysis(StrictModel):
@@ -188,7 +213,7 @@ class ScoreboardBudget(StrictModel):
     max_agent_calls: int = Field(ge=0)
     max_tool_calls: int = Field(ge=0)
     max_investigation_steps: int = Field(ge=0)
-    max_tokens: int = Field(ge=0)
+    max_tokens: int = Field(ge=0, description="0 means unlimited")
     max_cost_usd: float = Field(ge=0)
 
 
@@ -262,12 +287,8 @@ class ScoreboardConfig(StrictModel):
         return self.budget.max_investigation_steps
 
     @property
-    def max_total_tokens(self) -> int:
-        return self.budget.max_tokens
-
-    @property
     def max_output_tokens_per_agent(self) -> int:
-        return min(1200, self.budget.max_tokens)
+        return 2000
 
     @property
     def minimum_score_delta(self) -> float:
