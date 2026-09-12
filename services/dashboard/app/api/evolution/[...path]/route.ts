@@ -1,0 +1,3 @@
+import { NextRequest, NextResponse } from "next/server";
+const base=()=> (process.env.DASHBOARD_EVOLUTION_URL??"http://evolution:8000").replace(/\/$/,"");
+export async function GET(request:NextRequest,{params}:{params:Promise<{path:string[]}>}){const path=(await params).path.join("/");if(!["health","evolution/runs","defense-versions"].includes(path))return NextResponse.json({detail:"Not found"},{status:404});try{const response=await fetch(`${base()}/${path}${request.nextUrl.search}`,{cache:"no-store",signal:AbortSignal.timeout(5000)});return new NextResponse(await response.text(),{status:response.status,headers:{"content-type":"application/json"}})}catch{return NextResponse.json({detail:"Evolution unavailable"},{status:503})}}
