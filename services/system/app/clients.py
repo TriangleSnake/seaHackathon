@@ -56,8 +56,16 @@ async def patrol_status(status_url: str) -> dict[str, Any]:
 
 async def run_investigation(job: dict[str, Any]) -> dict[str, Any]:
     detection = dict(job["payload"]["detection_result"])
-    detection.pop("policy_ref", None)
-    detection.pop("component_results", None)
+    # Investigation's published contract requires the Detection policy provenance.
+    # Preserve real Detection output and provide a compatibility value for older
+    # queued/manual jobs created before policy_ref became mandatory.
+    detection.setdefault(
+        "policy_ref",
+        {
+            "type": "detection",
+            "version": job.get("policy_version") or "legacy-system-routing",
+        },
+    )
     payload = {
         "case_id": job["payload"]["case_id"],
         "detection_result": detection,

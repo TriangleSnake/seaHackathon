@@ -19,6 +19,9 @@ class HandoffPayloadTests(unittest.TestCase):
         self.assertEqual(payload["detection_result"]["triggers"][0]["reason"], "same device")
         self.assertEqual(payload["detection_result"]["evidence"][0]["id"], "E1")
         self.assertEqual(payload["detection_result"]["triggers"][0]["raw_result"]["hypothesis"], "coordinated abuse")
+        self.assertEqual(payload["detection_result"]["policy_ref"], {
+            "type": "detection", "version": "patrol:patrol-exploit@test"
+        })
 
 
 if __name__ == "__main__":

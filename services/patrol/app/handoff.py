@@ -36,6 +36,12 @@ def build_investigation_payload(
         "detection_result": {
             "detection_id": f"patrol:{result.run_id}:{discovery.subject.id}",
             "subject": discovery.subject.model_dump(mode="json"),
+            # Patrol acts as the detecting component for this handoff. Adapt its
+            # evolvable policy identity to Investigation's Detection policy ref.
+            "policy_ref": {
+                "type": "detection",
+                "version": f"patrol:{result.policy_ref.id}@{result.policy_ref.version}",
+            },
             "detected": True,
             "triggers": [
                 {
