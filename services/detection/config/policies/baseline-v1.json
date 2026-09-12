@@ -1,0 +1,23 @@
+{
+  "version": "baseline-v1",
+  "default_checks": ["rule_based", "anomaly"],
+  "rule_based": {
+    "active_report_statuses": ["open", "reviewing"],
+    "chat_request_phrases": ["驗證頁重新開通", "補填付款資料", "離開賣場", "外部轉帳", "先匯保留金", "加客服完成"],
+    "chat_negations": ["不需要私下", "不會私下", "請不要提供", "只會使用平台", "不開外部"],
+    "risk_domain_suffixes": [".invalid"],
+    "sensitive_security_events": ["password_reset", "email_changed", "mfa_disabled"],
+    "access_window_minutes": 120,
+    "reused_image_min_products": 2,
+    "delivery_claim_terms": ["未收到", "空包裹", "內容與訂單不符"]
+  },
+  "anomaly": {
+    "payment_instruments_per_hour": 2,
+    "login_countries_per_day": 3,
+    "login_devices_per_day": 4,
+    "messages_per_hour": 8,
+    "listings_per_hour": 5,
+    "disputes_per_week": 2
+  },
+  "llm_classifier": {"confidence_threshold": 0.6}
+}

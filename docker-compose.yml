@@ -49,11 +49,29 @@ services:
     networks:
       - fraud-intelligence-network
 
+  detection:
+    build:
+      context: ./services/detection
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${DETECTION_OPENAI_MODEL:-gpt-4.1-mini}
+      DETECTION_POLICY_DIR: /app/config/policies
+      DEFAULT_DETECTION_POLICY_VERSION: ${DEFAULT_DETECTION_POLICY_VERSION:-baseline-v1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${DETECTION_PORT:-10001}:8000"
+    networks:
+      - fraud-intelligence-network
+
   investigation:
     build:
       context: ./services/investigation
     environment:
       AGENTGATEWAY_URL: http://agentgateway:3000/mcp
+      DETECTION_URL: http://detection:8000
       AGENTGATEWAY_TIMEOUT_SECONDS: ${AGENTGATEWAY_TIMEOUT_SECONDS:-5}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.4-mini}
@@ -61,6 +79,8 @@ services:
       - agentgateway
     ports:
       - "${INVESTIGATION_PORT:-10002}:8000"
+    networks:
+      - fraud-intelligence-network
 
 volumes:
   postgres-data:

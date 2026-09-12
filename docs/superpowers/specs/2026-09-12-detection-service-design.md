@@ -16,18 +16,27 @@ calculate the system fraud score.
   subjects by resolving each subject to the relevant account and evidence.
 - Every trigger references evidence IDs returned in the same response.
 - Unknown subjects return `404`; dependency failures return `503`.
+- Callers may select one immutable detection policy with `policy_ref`; missing
+  versions fail explicitly and never fall back to another policy.
 
 ## Detectors
 
-Rule-based checks are explicit, versioned rules for reports, suspicious chat
+Policy values are config-based, immutable, versioned JSON artifacts. Rule-based
+checks are explicit rules for reports, suspicious chat
 language or URLs, account-access security events, and disputed payment or
 delivery activity. Anomaly checks use fixed, explainable window thresholds for
 login diversity, listing bursts, message bursts, payment churn, and dispute
 patterns. A trigger is emitted only when a configured threshold is crossed.
 
 The LLM classifier is opt-in: it runs only when `llm_classifier` is requested
-and `OPENAI_API_KEY` is configured. Its label and log probabilities are stored
-only in `raw_result`; they are not converted into a fraud score. The
+and `OPENAI_API_KEY` is configured. It requests one `true` or `false` token,
+normalizes the two candidate log probabilities, and triggers only when
+`P(true) >= 0.60` by default. The threshold is configurable and should be
+recalibrated once labeled validation data exists. Baseline and candidate calls
+may use the same data and simulation time without changing the default policy.
+Missing binary candidates
+cause an abstention. Its label and log probabilities are stored only in
+`raw_result`; they are not converted into a fraud score. The
 `ml_classifier` enum remains contract-compatible but returns no trigger until a
 model is implemented.
 
