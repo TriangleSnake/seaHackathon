@@ -4,11 +4,13 @@ import { cases, getCaseInvestigation } from "@/lib/api/cases";
 import { ArrowLeft, Braces, Check, CheckCircle2, ChevronDown, Database, ExternalLink, FileText, GitBranch, MessageSquareText, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LiveCaseDetail } from "@/features/cases/live-case-detail";
 
 export function generateStaticParams() { return cases.map((item) => ({ id:item.id })); }
 
 export default async function CaseDetailPage({ params }: { params:Promise<{id:string}> }) {
   const { id } = await params;
+  if (process.env.DASHBOARD_DATA_MODE !== "demo") return <AppShell><LiveCaseDetail caseId={id}/></AppShell>;
   const item = cases.find((entry) => entry.id === id);
   if (!item) notFound();
   const investigation = getCaseInvestigation(id);

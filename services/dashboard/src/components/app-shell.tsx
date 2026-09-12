@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const mode = useDashboardMode();
-  const hasLiveReadModel = pathname === "/overview" || pathname.startsWith("/policies/detection") || pathname === "/patrol" || pathname.startsWith("/patrol/") || pathname === "/association";
+  const hasLiveReadModel = pathname === "/overview" || pathname.startsWith("/policies/detection") || pathname === "/patrol" || pathname.startsWith("/patrol/") || pathname === "/association" || pathname === "/cases" || pathname.startsWith("/cases/");
   return <div className="shell">
     <a href="#main" className="skip-link">跳至主要內容</a>
     <aside className={open ? "sidebar open" : "sidebar"} aria-label="主要導覽">
