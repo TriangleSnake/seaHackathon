@@ -197,6 +197,7 @@ services:
       - fraud-intelligence-network
 
   dashboard:
+    image: seahackathon-dashboard:latest
     build:
       context: ./services/dashboard
     environment:
@@ -212,6 +213,7 @@ services:
       - fraud-intelligence-network
 
   dashboard-demo:
+    image: seahackathon-dashboard:latest
     build:
       context: ./services/dashboard
     environment:
