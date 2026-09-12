@@ -4,6 +4,12 @@
 
 本專案是開發／展示系統，不是已驗證的生產風控產品。**Detection 命中代表需要調查，不代表已確認詐騙，也不是系統的 fraud score。**
 
+## 授權與第三方資料
+
+本 repository 的原始程式碼目前尚未宣告專案 license。Cofacts 衍生的
+Environment seed 內容採 CC BY-SA 4.0；AgentGateway v1.5.0 採 Apache-2.0。
+完整來源、使用範圍及顯名聲明請見 [Third-Party Notices](THIRD_PARTY_NOTICES.md)。
+
 ## 架構與責任
 
 | 元件 | 責任 | 程式與文件 |
