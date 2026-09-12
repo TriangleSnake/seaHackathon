@@ -109,9 +109,11 @@
       "required": [
         "detection_id",
         "subject",
+        "policy_ref",
         "detected",
         "triggers",
-        "evidence"
+        "evidence",
+        "component_results"
       ],
       "properties": {
         "detection_id": {
@@ -119,6 +121,12 @@
         },
         "subject": {
           "$ref": "common.schema.json#/$defs/Subject"
+        },
+        "policy_ref": {
+          "allOf": [
+            {"$ref": "common.schema.json#/$defs/PolicyRef"},
+            {"properties": {"type": {"const": "detection"}}}
+          ]
         },
         "detected": {
           "type": "boolean"
@@ -134,7 +142,25 @@
           "items": {
             "$ref": "common.schema.json#/$defs/Evidence"
           }
+        },
+        "component_results": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ComponentResult"}
         }
+      }
+    },
+    "ComponentResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "detector", "version", "status", "trigger_count", "latency_ms"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "detector": {"type": "string", "enum": ["rule_based", "anomaly", "llm_classifier", "ml_classifier"]},
+        "version": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "enum": ["completed", "abstained", "unavailable", "failed"]},
+        "trigger_count": {"type": "integer", "minimum": 0},
+        "latency_ms": {"type": "number", "minimum": 0},
+        "reason": {"type": ["string", "null"]}
       }
     }
   }

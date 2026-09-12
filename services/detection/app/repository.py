@@ -101,24 +101,27 @@ class PostgresDetectionRepository:
             data=_json_safe(values),
         )
 
-    async def load_context(self, subject: Subject) -> DetectionContext | None:
+    async def load_context(self, subject: Subject, required_evidence: set[str] | None = None) -> DetectionContext | None:
         account_ids = await self._resolve_accounts(subject)
         if account_ids is None:
             return None
 
+        required = required_evidence if required_evidence is not None else {"message","report_record","login_event","account_security_event","product","product_image","payment_attempt","delivery_event","refund","dispute"}
         evidence: list[Evidence] = []
-        evidence.extend(await self._load_messages(subject, account_ids))
-        evidence.extend(await self._load_reports(subject, account_ids))
-        evidence.extend(await self._load_account_access(account_ids))
-        evidence.extend(await self._load_products(subject, account_ids))
-        evidence.extend(await self._load_payments(subject, account_ids))
-        evidence.extend(await self._load_delivery(subject, account_ids))
-        evidence.extend(await self._load_claims(subject, account_ids))
+        if "message" in required: evidence.extend(await self._load_messages(subject, account_ids))
+        if "report_record" in required: evidence.extend(await self._load_reports(subject, account_ids))
+        if required & {"login_event", "account_security_event"}: evidence.extend(await self._load_account_access(account_ids))
+        if required & {"product", "product_image"}: evidence.extend(await self._load_products(subject, account_ids))
+        if "payment_attempt" in required: evidence.extend(await self._load_payments(subject, account_ids))
+        if "delivery_event" in required: evidence.extend(await self._load_delivery(subject, account_ids))
+        if required & {"refund", "dispute"}: evidence.extend(await self._load_claims(subject, account_ids))
+        row = await self._fetch_all("SELECT simulation_time FROM simulation_state WHERE singleton_id = 1")
         unique = {item.id: item for item in evidence}
         return DetectionContext(
             subject=subject,
             account_ids=account_ids,
             evidence=list(unique.values()),
+            as_of=row[0]["simulation_time"] if row else None,
         )
 
     async def _load_messages(

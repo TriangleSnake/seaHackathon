@@ -38,6 +38,7 @@ def valid_request() -> dict:
         "detection_result": {
             "detection_id": "detection-001",
             "subject": {"type": "account", "id": "acct-suspicious-1"},
+            "policy_ref": {"type": "detection", "version": "baseline-v1"},
             "detected": True,
             "triggers": [
                 {
@@ -53,6 +54,16 @@ def valid_request() -> dict:
                     "source": "detection",
                     "type": "login_event",
                     "data": {"device_id": "device-shared-001"},
+                }
+            ],
+            "component_results": [
+                {
+                    "component_id": "marketplace-rules",
+                    "detector": "rule_based",
+                    "version": "builtin-v1",
+                    "status": "completed",
+                    "trigger_count": 1,
+                    "latency_ms": 0.2,
                 }
             ],
         },

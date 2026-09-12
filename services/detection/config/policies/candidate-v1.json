@@ -1,6 +1,10 @@
 {
   "version": "candidate-v1",
   "default_checks": ["rule_based", "anomaly"],
+  "components": [
+    {"id": "marketplace-rules", "type": "rule_based", "version": "builtin-v1", "enabled": true, "failure_mode": "continue", "config": {}},
+    {"id": "behavior-anomaly", "type": "anomaly", "version": "builtin-v1", "enabled": true, "failure_mode": "continue", "config": {}}
+  ],
   "rule_based": {
     "active_report_statuses": ["open", "reviewing"],
     "chat_request_phrases": ["驗證頁重新開通", "補填付款資料", "離開賣場", "外部轉帳", "先匯保留金", "加客服完成", "收款設定未完成"],

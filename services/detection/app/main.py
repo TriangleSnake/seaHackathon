@@ -31,8 +31,18 @@ def create_app(
             resolved_settings.openai_model,
         )
 
+    policy_repository = FilePolicyRepository(
+        resolved_settings.policy_dir,
+        resolved_settings.database_url if repository is None else None,
+    )
+
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+        await policy_repository.initialize()
+        for bundled in ("baseline-v1", "candidate-v1"):
+            policy = policy_repository.resolve(bundled)
+            if not any(row["version"] == bundled for row in await policy_repository.list_versions()):
+                await policy_repository.save_draft(policy, "human")
         yield
         await application.state.repository.close()
 
@@ -46,9 +56,10 @@ def create_app(
     application.state.detection_service = DetectionService(
         resolved_repository,
         resolved_classifier,
-        policy_repository=FilePolicyRepository(resolved_settings.policy_dir),
+        policy_repository=policy_repository,
         default_policy_version=resolved_settings.default_policy_version,
     )
+    application.state.policy_repository = policy_repository
 
     @application.middleware("http")
     async def request_id_middleware(request: Request, call_next):

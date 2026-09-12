@@ -34,6 +34,21 @@ def test_llm_detector_preserves_raw_classifier_output() -> None:
     assert triggers[0].evidence_refs == ["MSG-0903"]
 
 
+def test_llm_detector_only_references_the_suspicious_message() -> None:
+    class SelectiveClassifier:
+        async def classify(self, messages, threshold):
+            suspicious = "外部" in messages[0]
+            return LLMClassification(suspicious=suspicious, raw_result={"label": suspicious})
+
+    items = [
+        Evidence(id="SAFE", source="environment", type="message", data={"text": "平台內交易"}),
+        Evidence(id="RISK", source="environment", type="message", data={"text": "請到外部付款"}),
+    ]
+    triggers = asyncio.run(LLMDetector(SelectiveClassifier(), 0.6).detect(items))
+    assert len(triggers) == 1
+    assert triggers[0].evidence_refs == ["RISK"]
+
+
 def test_binary_decision_accepts_true_above_threshold() -> None:
     decision = binary_decision({"true": -0.1053605, "false": -2.3025851}, 0.6)
 
