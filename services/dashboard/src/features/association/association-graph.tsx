@@ -149,6 +149,7 @@ export function AssociationGraph({ graph = associationGraph }: { graph?: Associa
       {selectedLabel ? <>
         <header><div className="graph-detail-heading"><span className="detail-entity-icon">{selectedEntity ? <EntityIcon type={selectedEntity.entityType}/> : <GitBranch size={17}/>}</span><div><small>{selectedEntity ? selectedEntity.entityType ?? "ENTITY" : "RELATION"}</small><h2>{selectedLabel}</h2></div></div><button onClick={() => setSelection({ kind: "entity", id: graph.focusEntityId })} aria-label="回到核心實體"><X size={18}/></button></header>
         <div className={`entity-risk ${priorityTone(selectedEntity?.riskScore ?? selectedRelation?.confidence)}`}><div><span>{selectedEntity ? "調查優先度" : "關聯信心度"}</span><strong>{selectedEntity ? priorityLabel(selectedEntity.riskScore) : "Evidence backed"}</strong></div><b>{(selectedEntity?.riskScore ?? selectedRelation?.confidence)?.toFixed(2) ?? "—"}</b></div>
+        {selectedEntity?.assessmentReason && <p className="entity-assessment-reason">{selectedEntity.assessmentReason}</p>}
         <dl className="entity-facts">
           {directRelations !== undefined && <div><dt>直接關聯</dt><dd>{directRelations}</dd></div>}
           <div><dt>相關案件</dt><dd>{relatedCases.length}</dd></div>

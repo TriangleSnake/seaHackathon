@@ -28,6 +28,12 @@ graph and identify related subjects that merit investigation.
   `ip:...`); do not create an alternate ID for the same entity.
 - `association_score` expresses relationship strength and investigation value,
   not fraud probability.
+- Assess every retained node other than the case subject. Set its
+  `association_score` from 0 to 1 and give an evidence-grounded
+  `assessment_reason`, including low scores for benign or incidental links.
+  These node assessments are independent of whether the entity meets the
+  stricter threshold for inclusion in `related_subjects`. Leave both fields
+  null only for the case subject or when evidence cannot support an assessment.
 - For an observed edge, copy source confidence when supplied; use `1` only for
   an exact database relationship whose tool output supplies no uncertainty.
 - Stay within policy hop, node, turn, and candidate budgets.

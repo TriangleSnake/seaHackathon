@@ -41,7 +41,13 @@
           "enum": ["account", "shop", "product", "device", "ip", "payment_account", "domain", "url", "conversation", "order", "transaction", "message", "other"]
         },
         "label": {"type": ["string", "null"]},
+        "association_score": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "assessment_reason": {"type": ["string", "null"], "minLength": 1},
         "attributes": {"type": "object", "additionalProperties": true}
+      },
+      "dependentRequired": {
+        "association_score": ["assessment_reason"],
+        "assessment_reason": ["association_score"]
       }
     },
     "GraphEdge": {

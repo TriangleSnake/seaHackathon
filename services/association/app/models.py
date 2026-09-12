@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class StrictModel(BaseModel):
@@ -46,7 +46,15 @@ class GraphNode(StrictModel):
     id: str = Field(min_length=1)
     type: Literal["account", "shop", "product", "device", "ip", "payment_account", "domain", "url", "conversation", "order", "transaction", "message", "other"]
     label: str | None = None
+    association_score: float | None = Field(default=None, ge=0, le=1)
+    assessment_reason: str | None = Field(default=None, min_length=1)
     attributes: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_complete_assessment(self) -> "GraphNode":
+        if (self.association_score is None) != (self.assessment_reason is None):
+            raise ValueError("association_score and assessment_reason must be supplied together")
+        return self
 
 
 class GraphEdge(StrictModel):

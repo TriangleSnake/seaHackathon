@@ -3,6 +3,7 @@ export interface AssociationEntity {
   label: string;
   entityType?: string;
   riskScore?: number;
+  assessmentReason?: string;
   firstObserved?: string;
   caseIds: string[];
   evidenceRefs?: string[];

@@ -361,6 +361,7 @@
 .entity-risk span { color: currentColor; opacity: .72; font-size: 12px; }
 .entity-risk strong { margin-top: 3px; font-size: 14px; }
 .entity-risk > b { font: 22px ui-monospace; }
+.entity-assessment-reason { margin: -4px 18px 16px; color: #9fb0bd; font-size: 13px; line-height: 1.6; }
 
 .entity-facts {
   display: grid;

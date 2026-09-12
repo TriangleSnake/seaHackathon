@@ -50,7 +50,7 @@ export interface AssociationJobState {
     case_id: string;
     strategy: "focused" | "discovery";
     policy_ref: { id: string; version: string };
-    nodes: Array<{ id: string; type: string; label?: string | null; attributes: Record<string, unknown> }>;
+    nodes: Array<{ id: string; type: string; label?: string | null; association_score?: number | null; assessment_reason?: string | null; attributes: Record<string, unknown> }>;
     edges: Array<{ source: string; target: string; type: string; relationship: "observed" | "inferred"; value?: string | null; confidence: number; occurrence_count?: number | null; first_seen_at?: string | null; last_seen_at?: string | null; evidence_refs: string[] }>;
     related_subjects: Array<{ subject: { type: string; id: string }; association_score: number; reason: string; relation_paths: Array<{ nodes: string[]; edge_types: string[]; evidence_refs: string[] }>; evidence_refs: string[] }>;
     evidence: Array<{ id: string; source: string; type: string; ref_id?: string | null; observed_at?: string | null; data: Record<string, unknown> }>;
