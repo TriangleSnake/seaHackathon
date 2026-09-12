@@ -138,6 +138,7 @@ def test_successful_build_commits_only_allowed_diff_and_publishes_metadata(
     metadata = result.metadata
     assert metadata.base_commit == base
     assert metadata.codex.status == "succeeded"
+    assert metadata.codex.argv[:3] == ("--ask-for-approval", "never", "exec")
     assert metadata.changed_paths == ("services/detection/app/repository.py",)
     assert metadata.path_boundary_valid is True
     assert metadata.protected_tests_unchanged is True

@@ -333,6 +333,8 @@ class RealCodexCodeBuilder:
             raise CodeBuilderError(f"Detection implementation root is missing: {writable_root}")
         argv = (
             executable,
+            "--ask-for-approval",
+            "never",
             "exec",
             "--ephemeral",
             "--ignore-user-config",
@@ -342,8 +344,6 @@ class RealCodexCodeBuilder:
             "never",
             "--sandbox",
             "workspace-write",
-            "--ask-for-approval",
-            "never",
             "-C",
             str(writable_root),
             "-",
