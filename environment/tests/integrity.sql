@@ -26,7 +26,7 @@ BEGIN
     SELECT array_agg(name ORDER BY name)
       INTO missing_views
       FROM unnest(ARRAY[
-        'visible_account_status_events', 'visible_login_events',
+        'visible_products', 'visible_account_status_events', 'visible_login_events',
         'visible_account_security_events', 'visible_messages',
         'visible_product_price_events', 'visible_product_status_events',
         'visible_transaction_status_events', 'visible_payment_attempts',

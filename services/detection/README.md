@@ -130,6 +130,10 @@ is unchanged; error responses must not be counted as negative predictions.
 
 ## Local run
 
+On existing database volumes, apply
+`environment/migrations/001-visible-products.sql` before rebuilding this service.
+Product evidence now reads time-correct prices from `visible_products`.
+
 ```bash
 docker compose up -d --build detection
 docker compose exec -T postgres \

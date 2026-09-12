@@ -262,7 +262,7 @@ class PostgresDetectionRepository:
             f"""
             SELECT p.id, p.shop_id, p.seller_account_id, p.title, p.price,
                    p.currency, p.created_at
-              FROM products p CROSS JOIN simulation_state s
+              FROM visible_products p CROSS JOIN simulation_state s
              WHERE s.singleton_id = 1 AND p.created_at <= s.simulation_time
                AND {where}
              ORDER BY p.created_at DESC LIMIT 100
