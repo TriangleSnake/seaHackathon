@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Mapping, Protocol, Any
 
 from .domain import (
     BuildOutcome,
     CandidatePolicy,
+    CodeCandidate,
     CandidatePolicyRecord,
     DefenseVersionSnapshot,
     DiagnosisResult,
@@ -14,6 +16,7 @@ from .domain import (
     FormalPolicyVersion,
     PolicyChangeProposal,
     PolicyType,
+    RevisionFeedback,
 )
 
 
@@ -27,6 +30,7 @@ class EvolutionPlanner(Protocol):
         run: EvolutionRun,
         context: EvolutionContext,
         diagnosis: DiagnosisResult,
+        feedback: RevisionFeedback | None = None,
     ) -> PolicyChangeProposal: ...
 
 
@@ -45,6 +49,13 @@ class CandidateBuilder(Protocol):
         proposal: PolicyChangeProposal,
         directive: ImplementationDirective,
     ) -> BuildOutcome: ...
+
+
+class ArtifactPublisher(Protocol):
+    @property
+    def root(self) -> Path: ...
+
+    def publish(self, version: str, artifact: Mapping[str, Any]) -> str: ...
 
 
 class DefenseVersionRepository(Protocol):
@@ -72,12 +83,17 @@ class DefenseVersionRepository(Protocol):
 
 
 class CandidatePolicyRegistry(Protocol):
+    def allocate_candidate_policy_version(self, policy_type: PolicyType) -> str: ...
+
+    def has_build(self, build_id: str) -> bool: ...
+
     def register(
         self,
         candidate_result: Mapping[str, Any],
         target_policy: PolicyType,
         base: DefenseVersionSnapshot,
         candidate_policy: CandidatePolicy | None,
+        code_candidate: CodeCandidate | None = None,
     ) -> CandidatePolicyRecord: ...
 
     def get(self, candidate_id: str) -> CandidatePolicyRecord: ...

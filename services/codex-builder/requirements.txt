@@ -1,0 +1,2 @@
+-r ../evolution/requirements.txt
+-r ../detection/requirements.txt

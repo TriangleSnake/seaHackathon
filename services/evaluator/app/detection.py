@@ -1,10 +1,23 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, NoReturn, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
-from .errors import BaselineExecutionError, DatasetAccessError
+from .errors import (
+    BaselineExecutionError,
+    DatasetAccessError,
+    DetectionHttpError,
+    DetectionPolicyNotFoundError,
+    DetectionPolicyTraceError,
+    DetectionRequestRejectedError,
+    DetectionResponseError,
+    DetectionTimeoutError,
+    DetectionTransportError,
+)
 from .gates import DetectionGateConfig, DetectionGateProvider
 from .models import (
     DetectionCase,
@@ -12,6 +25,26 @@ from .models import (
     EvaluationJob,
     PolicyEvaluationOutcome,
     PolicyType,
+)
+from .settings import DetectionHttpSettings
+
+
+_DETECTION_POLICY_VERSION_HEADER = "X-Detection-Policy-Version"
+_DETECTION_CHECKS = frozenset(
+    {"rule_based", "anomaly", "llm_classifier", "ml_classifier"}
+)
+_SUBJECT_TYPES = frozenset(
+    {"account", "shop", "product", "order", "transaction", "message"}
+)
+_EVIDENCE_SOURCES = frozenset(
+    {
+        "environment",
+        "detection",
+        "investigation",
+        "patrol",
+        "association",
+        "external",
+    }
 )
 
 
@@ -31,6 +64,392 @@ class DetectionRunner(Protocol):
     """Executes one immutable policy artifact against label-free case input."""
 
     def run(self, policy_ref: str, case_input: DetectionInput) -> DetectionDecision: ...
+
+
+@dataclass(frozen=True)
+class DetectionHttpResponse:
+    """Small transport-neutral HTTP response used for deterministic tests."""
+
+    status_code: int
+    headers: Mapping[str, str]
+    body: bytes
+
+
+class DetectionHttpTransport(Protocol):
+    def post(
+        self,
+        url: str,
+        payload: Mapping[str, Any],
+        timeout_seconds: float,
+    ) -> DetectionHttpResponse: ...
+
+
+class UrllibDetectionHttpTransport:
+    """Dependency-free blocking HTTP transport for evaluator worker processes."""
+
+    def post(
+        self,
+        url: str,
+        payload: Mapping[str, Any],
+        timeout_seconds: float,
+    ) -> DetectionHttpResponse:
+        request = Request(
+            url,
+            data=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=timeout_seconds) as response:
+                return DetectionHttpResponse(
+                    status_code=response.status,
+                    headers=dict(response.headers.items()),
+                    body=response.read(),
+                )
+        except HTTPError as exc:
+            try:
+                return DetectionHttpResponse(
+                    status_code=exc.code,
+                    headers=dict(exc.headers.items()) if exc.headers else {},
+                    body=exc.read(),
+                )
+            finally:
+                exc.close()
+
+
+class HttpDetectionRunner:
+    """Execute one exact Detection policy version through ``POST /detect``.
+
+    Requested checks are immutable runner configuration so baseline and candidate
+    executions use the same detectors. The wire request is constructed from an
+    explicit allow-list; case facts, evaluation labels, gates, and dataset metadata
+    cannot cross the Detection boundary.
+    """
+
+    def __init__(
+        self,
+        requested_checks: tuple[str, ...] | list[str],
+        *,
+        settings: DetectionHttpSettings | None = None,
+        transport: DetectionHttpTransport | None = None,
+    ) -> None:
+        if isinstance(requested_checks, (str, bytes)):
+            raise ValueError("requested_checks must be a sequence of check names")
+        checks = tuple(requested_checks)
+        if any(not isinstance(check, str) for check in checks):
+            raise ValueError("requested_checks must contain only strings")
+        unsupported = set(checks) - _DETECTION_CHECKS
+        if unsupported:
+            raise ValueError(f"Unsupported Detection checks: {sorted(unsupported)}")
+        if len(checks) != len(set(checks)):
+            raise ValueError("requested_checks must not contain duplicates")
+
+        resolved_settings = settings or DetectionHttpSettings.from_env()
+        self._requested_checks = checks
+        self._detect_url = f"{resolved_settings.base_url.rstrip('/')}/detect"
+        self._timeout_seconds = resolved_settings.timeout_seconds
+        self._transport = transport or UrllibDetectionHttpTransport()
+
+    @classmethod
+    def from_env(
+        cls,
+        requested_checks: tuple[str, ...] | list[str],
+        *,
+        transport: DetectionHttpTransport | None = None,
+    ) -> "HttpDetectionRunner":
+        return cls(
+            requested_checks,
+            settings=DetectionHttpSettings.from_env(),
+            transport=transport,
+        )
+
+    def run(self, policy_ref: str, case_input: DetectionInput) -> DetectionDecision:
+        if not isinstance(policy_ref, str) or not policy_ref:
+            raise ValueError("Detection policy version must be a non-empty string")
+
+        subject = {"type": case_input.subject_type, "id": case_input.subject_id}
+        request = {
+            "subject": subject,
+            "requested_checks": list(self._requested_checks),
+            "policy_ref": {"type": "detection", "version": policy_ref},
+            "trigger_context": {
+                "source": "api",
+                "reason": "baseline_candidate_comparison",
+            },
+        }
+
+        response = self._post(request, policy_ref)
+        _raise_for_detection_status(response, policy_ref)
+        result = _parse_detection_result(response.body)
+        if result["subject"] != subject:
+            raise DetectionResponseError(
+                "DetectionResult subject does not match the requested subject"
+            )
+
+        actual_version = _header_value(
+            response.headers, _DETECTION_POLICY_VERSION_HEADER
+        )
+        if actual_version is None:
+            raise DetectionPolicyTraceError(
+                f"Detection response is missing {_DETECTION_POLICY_VERSION_HEADER}"
+            )
+        if actual_version != policy_ref:
+            raise DetectionPolicyTraceError(
+                "Detection executed an unexpected policy version: "
+                f"requested {policy_ref!r}, response header reported {actual_version!r}"
+            )
+
+        detected = result["detected"]
+        triggers = result["triggers"]
+        if not detected and triggers:
+            raise DetectionResponseError(
+                "DetectionResult is inconsistent: detected=false with positive triggers"
+            )
+        trigger_count = max(1, len(triggers)) if detected else 0
+        return DetectionDecision(detected=detected, trigger_count=trigger_count)
+
+    def _post(
+        self, request: Mapping[str, Any], policy_ref: str
+    ) -> DetectionHttpResponse:
+        try:
+            response = self._transport.post(
+                self._detect_url, request, self._timeout_seconds
+            )
+        except TimeoutError as exc:
+            raise DetectionTimeoutError(
+                f"Detection timed out while executing policy {policy_ref!r}"
+            ) from exc
+        except URLError as exc:
+            if isinstance(exc.reason, TimeoutError):
+                raise DetectionTimeoutError(
+                    f"Detection timed out while executing policy {policy_ref!r}"
+                ) from exc
+            raise DetectionTransportError(
+                f"Detection network request failed for policy {policy_ref!r}: {exc.reason}"
+            ) from exc
+        except OSError as exc:
+            raise DetectionTransportError(
+                f"Detection network request failed for policy {policy_ref!r}: {exc}"
+            ) from exc
+        if not isinstance(response, DetectionHttpResponse):
+            raise DetectionResponseError(
+                "Detection transport returned an invalid response object"
+            )
+        return response
+
+
+def _raise_for_detection_status(
+    response: DetectionHttpResponse, policy_ref: str
+) -> None:
+    status_code = response.status_code
+    if not isinstance(status_code, int) or isinstance(status_code, bool):
+        raise DetectionResponseError("Detection transport returned an invalid HTTP status")
+    if 200 <= status_code < 300:
+        return
+
+    error_code, api_message = _decode_api_error(response.body)
+    detail = f": {api_message}" if api_message else ""
+    if status_code == 404 and error_code == "policy_not_found":
+        raise DetectionPolicyNotFoundError(
+            f"Detection policy {policy_ref!r} was not found{detail}",
+            status_code=status_code,
+            error_code=error_code,
+        )
+    if status_code == 422 or error_code in {
+        "subject_not_found",
+        "unsupported_subject",
+        "unsupported_check",
+    }:
+        raise DetectionRequestRejectedError(
+            f"Detection rejected the evaluation request with HTTP {status_code}"
+            f"{_format_error_code(error_code)}{detail}",
+            status_code=status_code,
+            error_code=error_code,
+        )
+    raise DetectionHttpError(
+        f"Detection failed with HTTP {status_code}{_format_error_code(error_code)}{detail}",
+        status_code=status_code,
+        error_code=error_code,
+    )
+
+
+def _format_error_code(error_code: str | None) -> str:
+    return f" ({error_code})" if error_code else ""
+
+
+def _decode_api_error(body: bytes) -> tuple[str | None, str | None]:
+    try:
+        payload = json.loads(body)
+    except (json.JSONDecodeError, UnicodeDecodeError, TypeError):
+        return None, None
+    if not isinstance(payload, Mapping):
+        return None, None
+
+    error = payload.get("error")
+    if isinstance(error, Mapping):
+        code = error.get("code")
+        message = error.get("message")
+        return (
+            code if isinstance(code, str) else None,
+            message if isinstance(message, str) else None,
+        )
+
+    detail = payload.get("detail")
+    if detail is not None:
+        return None, json.dumps(detail, separators=(",", ":"))[:500]
+    return None, None
+
+
+def _parse_detection_result(body: bytes) -> Mapping[str, Any]:
+    try:
+        result = json.loads(body)
+    except (json.JSONDecodeError, UnicodeDecodeError, TypeError) as exc:
+        raise DetectionResponseError(
+            "Detection returned malformed JSON instead of a DetectionResult"
+        ) from exc
+    _validate_detection_result(result)
+    return result
+
+
+def _validate_detection_result(value: Any) -> None:
+    result = _require_object(value, "DetectionResult")
+    _require_keys(
+        result,
+        required={"detection_id", "subject", "detected", "triggers", "evidence"},
+        optional=set(),
+        path="DetectionResult",
+    )
+    if not isinstance(result["detection_id"], str):
+        _invalid("DetectionResult.detection_id must be a string")
+    _validate_subject(result["subject"], "DetectionResult.subject")
+    if not isinstance(result["detected"], bool):
+        _invalid("DetectionResult.detected must be a boolean")
+
+    triggers = _require_array(result["triggers"], "DetectionResult.triggers")
+    for index, trigger in enumerate(triggers):
+        _validate_trigger(trigger, f"DetectionResult.triggers[{index}]")
+
+    evidence = _require_array(result["evidence"], "DetectionResult.evidence")
+    for index, item in enumerate(evidence):
+        _validate_evidence(item, f"DetectionResult.evidence[{index}]")
+
+
+def _validate_subject(value: Any, path: str) -> None:
+    subject = _require_object(value, path)
+    _require_keys(subject, required={"type", "id"}, optional=set(), path=path)
+    if not isinstance(subject["type"], str) or subject["type"] not in _SUBJECT_TYPES:
+        _invalid(f"{path}.type is not supported")
+    if not isinstance(subject["id"], str) or not subject["id"]:
+        _invalid(f"{path}.id must be a non-empty string")
+
+
+def _validate_trigger(value: Any, path: str) -> None:
+    trigger = _require_object(value, path)
+    _require_keys(
+        trigger,
+        required={"type", "detector", "reason", "evidence_refs"},
+        optional={"rule_id", "raw_result"},
+        path=path,
+    )
+    if not isinstance(trigger["type"], str):
+        _invalid(f"{path}.type must be a string")
+    if (
+        not isinstance(trigger["detector"], str)
+        or trigger["detector"] not in _DETECTION_CHECKS
+    ):
+        _invalid(f"{path}.detector is not supported")
+    if not isinstance(trigger["reason"], str):
+        _invalid(f"{path}.reason must be a string")
+
+    if "rule_id" in trigger and trigger["rule_id"] is not None and not isinstance(
+        trigger["rule_id"], str
+    ):
+        _invalid(f"{path}.rule_id must be a string or null")
+    if "raw_result" in trigger and trigger["raw_result"] is not None and not isinstance(
+        trigger["raw_result"], Mapping
+    ):
+        _invalid(f"{path}.raw_result must be an object or null")
+
+    evidence_refs = _require_array(trigger["evidence_refs"], f"{path}.evidence_refs")
+    if any(not isinstance(reference, str) for reference in evidence_refs):
+        _invalid(f"{path}.evidence_refs must contain only strings")
+    if len(evidence_refs) != len(set(evidence_refs)):
+        _invalid(f"{path}.evidence_refs must contain unique values")
+
+
+def _validate_evidence(value: Any, path: str) -> None:
+    evidence = _require_object(value, path)
+    _require_keys(
+        evidence,
+        required={"id", "source", "type", "data"},
+        optional={"ref_id", "observed_at"},
+        path=path,
+    )
+    for key in ("id", "type"):
+        if not isinstance(evidence[key], str) or not evidence[key]:
+            _invalid(f"{path}.{key} must be a non-empty string")
+    if (
+        not isinstance(evidence["source"], str)
+        or evidence["source"] not in _EVIDENCE_SOURCES
+    ):
+        _invalid(f"{path}.source is not supported")
+    if "ref_id" in evidence and evidence["ref_id"] is not None and not isinstance(
+        evidence["ref_id"], str
+    ):
+        _invalid(f"{path}.ref_id must be a string or null")
+    if (
+        "observed_at" in evidence
+        and evidence["observed_at"] is not None
+        and not isinstance(evidence["observed_at"], str)
+    ):
+        _invalid(f"{path}.observed_at must be a string or null")
+    if not isinstance(evidence["data"], Mapping):
+        _invalid(f"{path}.data must be an object")
+
+
+def _require_object(value: Any, path: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        _invalid(f"{path} must be an object")
+    return value
+
+
+def _require_array(value: Any, path: str) -> list[Any]:
+    if not isinstance(value, list):
+        _invalid(f"{path} must be an array")
+    return value
+
+
+def _require_keys(
+    value: Mapping[str, Any],
+    *,
+    required: set[str],
+    optional: set[str],
+    path: str,
+) -> None:
+    missing = required - set(value)
+    if missing:
+        _invalid(f"{path} is missing fields: {sorted(missing)}")
+    unexpected = set(value) - required - optional
+    if unexpected:
+        _invalid(f"{path} has unexpected fields: {sorted(unexpected)}")
+
+
+def _header_value(headers: Mapping[str, str], name: str) -> str | None:
+    if not isinstance(headers, Mapping):
+        raise DetectionResponseError("Detection response headers are invalid")
+    lower_name = name.lower()
+    for key, value in headers.items():
+        if isinstance(key, str) and key.lower() == lower_name:
+            if not isinstance(value, str):
+                raise DetectionResponseError(
+                    f"Detection response header {name} is not a string"
+                )
+            return value
+    return None
+
+
+def _invalid(message: str) -> NoReturn:
+    raise DetectionResponseError(f"Invalid DetectionResult: {message}")
 
 
 class ContractDetectionRunner:

@@ -9,6 +9,7 @@ from typing import Any, Iterable, Mapping
 
 from .domain import (
     CandidatePolicy,
+    CodeCandidate,
     CandidatePolicyRecord,
     DefenseVersionSnapshot,
     FormalPolicyVersion,
@@ -35,6 +36,26 @@ class InMemoryCandidatePolicyRegistry:
 
     def __init__(self) -> None:
         self._records: dict[str, CandidatePolicyRecord] = {}
+        self._reserved_versions: set[str] = set()
+        self._lock = Lock()
+
+    def allocate_candidate_policy_version(self, policy_type: PolicyType) -> str:
+        prefix = f"{_POLICY_PREFIX[policy_type]}-CAND"
+        pattern = re.compile(rf"^{prefix}-(\d+)$")
+        with self._lock:
+            versions = set(self._reserved_versions)
+            versions.update(
+                record.candidate_policy_version
+                for record in self._records.values()
+                if record.candidate_policy_version is not None
+            )
+            version = _next_version(prefix, pattern, versions)
+            self._reserved_versions.add(version)
+            return version
+
+    def has_build(self, build_id: str) -> bool:
+        with self._lock:
+            return any(record.build_id == build_id for record in self._records.values())
 
     def register(
         self,
@@ -42,6 +63,7 @@ class InMemoryCandidatePolicyRegistry:
         target_policy: PolicyType,
         base: DefenseVersionSnapshot,
         candidate_policy: CandidatePolicy | None,
+        code_candidate: CodeCandidate | None = None,
     ) -> CandidatePolicyRecord:
         candidate_id = _required_string(candidate_result, "candidate_id")
         build_id = _required_string(candidate_result, "build_id")
@@ -50,10 +72,8 @@ class InMemoryCandidatePolicyRegistry:
             raise VersionRepositoryError(
                 f"Unsupported candidate build status: {status}"
             )
-        if candidate_id in self._records:
-            raise VersionRepositoryError(
-                f"Candidate already registered: {candidate_id}"
-            )
+        with self._lock:
+            self._assert_registration_available(candidate_id, candidate_policy)
 
         base_ref = candidate_result.get("base_defense_version")
         if not isinstance(base_ref, Mapping) or base_ref.get("version") != base.version:
@@ -69,11 +89,11 @@ class InMemoryCandidatePolicyRegistry:
                 "Base defense must contain exactly one reference for the target policy"
             )
 
-        if status == "built" and candidate_policy is None:
+        if status == "built" and (candidate_policy is None) == (code_candidate is None):
             raise VersionRepositoryError(
                 "A built candidate requires an internal CandidatePolicy"
             )
-        if status == "failed" and candidate_policy is not None:
+        if status == "failed" and (candidate_policy is not None or code_candidate is not None):
             raise VersionRepositoryError(
                 "A failed candidate cannot register a CandidatePolicy"
             )
@@ -104,8 +124,19 @@ class InMemoryCandidatePolicyRegistry:
                 raise VersionRepositoryError(
                     "Candidate policy identity cannot consume a production version"
                 )
+            candidate_pattern = re.compile(
+                rf"^{_POLICY_PREFIX[target_policy]}-CAND-"
+                r"[A-Za-z0-9][A-Za-z0-9._-]*$"
+            )
+            if not candidate_pattern.fullmatch(candidate_policy.policy_ref.version):
+                raise VersionRepositoryError(
+                    "Candidate policy identity must use the target policy's "
+                    f"candidate namespace: {_POLICY_PREFIX[target_policy]}-CAND-*"
+                )
 
         frozen_result = _deep_freeze(deepcopy(dict(candidate_result)))
+        if code_candidate and code_candidate.candidate_id != candidate_id:
+            raise VersionRepositoryError("Code candidate identity mismatch")
         record = CandidatePolicyRecord(
             candidate_id=candidate_id,
             build_id=build_id,
@@ -120,12 +151,34 @@ class InMemoryCandidatePolicyRegistry:
             build_log_ref=_optional_string(candidate_result.get("build_log_ref")),
             build_status=status,
             candidate_result=frozen_result,
+            code_candidate=code_candidate,
         )
-        self._records[candidate_id] = record
+        with self._lock:
+            self._assert_registration_available(candidate_id, candidate_policy)
+            self._records[candidate_id] = record
+            if candidate_policy is not None:
+                self._reserved_versions.discard(candidate_policy.policy_ref.version)
         return record
 
+    def _assert_registration_available(
+        self, candidate_id: str, candidate_policy: CandidatePolicy | None
+    ) -> None:
+        if candidate_id in self._records:
+            raise VersionRepositoryError(
+                f"Candidate already registered: {candidate_id}"
+            )
+        if candidate_policy is not None and any(
+            existing.candidate_policy_version == candidate_policy.policy_ref.version
+            for existing in self._records.values()
+        ):
+            raise VersionRepositoryError(
+                "Candidate policy version already registered: "
+                f"{candidate_policy.policy_ref.version}"
+            )
+
     def get(self, candidate_id: str) -> CandidatePolicyRecord:
-        return self._records[candidate_id]
+        with self._lock:
+            return self._records[candidate_id]
 
     def resolve(self, candidate_id: str) -> CandidatePolicy:
         record = self.get(candidate_id)
@@ -142,7 +195,8 @@ class InMemoryCandidatePolicyRegistry:
         )
 
     def list_records(self) -> tuple[CandidatePolicyRecord, ...]:
-        return tuple(self._records.values())
+        with self._lock:
+            return tuple(self._records.values())
 
 
 class InMemoryVersionRepository:

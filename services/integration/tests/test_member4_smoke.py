@@ -44,6 +44,7 @@ from services.evolution.app.domain import (
     PolicyGap,
     PolicyReference,
     PolicyType,
+    RevisionFeedback,
 )
 from services.evolution.app.orchestrator import EvolutionOrchestrator
 from services.evolution.app.lifecycle import VersionLifecycle
@@ -102,8 +103,9 @@ class DeterministicPlanner:
         run: EvolutionRun,
         context: EvolutionContext,
         diagnosis: DiagnosisResult,
+        feedback: RevisionFeedback | None = None,
     ) -> PolicyChangeProposal:
-        del diagnosis
+        del diagnosis, feedback
         return PolicyChangeProposal(
             proposal_id=f"proposal-{run.run_id}",
             target_policy=PolicyType.DETECTION,
