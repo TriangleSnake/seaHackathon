@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+mcp:
+  port: 3000
+  statefulMode: stateless
+  policies:
+    cors:
+      allowOrigins:
+        - "*"
+      allowHeaders:
+        - "*"
+      exposeHeaders:
+        - "Mcp-Session-Id"
+  targets:
+    - name: system
+      mcp:
+        host: http://system-tools:8000/mcp

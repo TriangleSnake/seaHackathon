@@ -1,1 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fraud_intelligence}
+      POSTGRES_USER: ${POSTGRES_USER:-fraud}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fraud_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./environment/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./environment/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fraud} -d ${POSTGRES_DB:-fraud_intelligence}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+  system-tools:
+    build:
+      context: ./services/system-tools
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD:-fraud_dev_password}@postgres:5432/${POSTGRES_DB:-fraud_intelligence}
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000"
+
+  agentgateway:
+    image: cr.agentgateway.dev/agentgateway:v1.5.0
+    command: ["-f", "/config/config.yaml"]
+    depends_on:
+      - system-tools
+    ports:
+      - "${AGENTGATEWAY_PORT:-3000}:3000"
+    volumes:
+      - ./agentgateway/config.yaml:/config/config.yaml:ro
+
+volumes:
+  postgres-data:

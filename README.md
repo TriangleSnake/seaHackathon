@@ -35,6 +35,47 @@ case review, appeal, and policy update.
 Tracing recommendation:
 use HTTP `X-Request-ID` and W3C `traceparent` headers instead of repeating trace metadata in every JSON body.
 
+## Local agent tool gateway
+
+The local stack uses the official Linux Foundation `agentgateway` as the MCP
+proxy. Agents connect only to the gateway; the gateway forwards tool calls to
+the `system-tools` MCP server, which executes allow-listed parameterized queries
+against the system PostgreSQL database.
+
+```text
+Agent -> http://localhost:3000/mcp -> agentgateway -> system-tools -> PostgreSQL
+```
+
+Start the stack:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Run the end-to-end smoke test:
+
+```bash
+./scripts/smoke-test-mcp.sh
+```
+
+The gateway exposes these read-only tools:
+
+- `database_health`
+- `search_accounts`
+- `get_account_activity`
+- `find_shared_ip_accounts`
+- `find_shared_device_accounts`
+- `get_entity_neighbors`
+- `get_previous_cases`
+
+No generic SQL execution tool is exposed. Add new database capabilities as
+bounded domain tools so agents cannot bypass access controls or query limits.
+
+The sample database is initialized only when the PostgreSQL volume is first
+created. To apply schema changes to an existing development database, use a
+migration or recreate the development volume intentionally.
+
 
 ## v0.2 corrections
 
