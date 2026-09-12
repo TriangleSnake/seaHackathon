@@ -1,0 +1,1 @@
+"""Investigation domain types."""

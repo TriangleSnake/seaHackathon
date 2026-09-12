@@ -10,6 +10,10 @@ Recommended REST contracts:
 - POST /investigate
   - request: investigation.schema.json#/$defs/InvestigationRequest
   - response: investigation.schema.json#/$defs/InvestigationResult
+  - Docker Compose URL: `http://investigation:8000/investigate`
+  - host URL: `http://localhost:10002/investigate`
+  - currently returns a schema-compatible placeholder marked by the
+    `X-Investigation-Placeholder: true` response header
 - POST /patrol/run
   - request: patrol.schema.json#/$defs/PatrolRequest
   - response: patrol.schema.json#/$defs/PatrolResult

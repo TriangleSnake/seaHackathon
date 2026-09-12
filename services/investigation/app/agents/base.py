@@ -1,0 +1,1 @@
+"""Shared investigation-agent contract."""
