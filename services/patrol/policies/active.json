@@ -1,0 +1,36 @@
+{
+  "policy_id": "patrol-default",
+  "version": "0.1.0",
+  "objective": "Discover evidence-backed subjects that merit focused fraud investigation.",
+  "allowed_tools": [
+    "get_patrol_overview",
+    "search_accounts",
+    "get_account_activity",
+    "find_high_density_ips",
+    "find_new_account_bursts",
+    "find_shared_ip_accounts",
+    "find_shared_device_accounts",
+    "get_entity_neighbors",
+    "get_previous_cases",
+    "get_evidence_records"
+  ],
+  "exploration_guidance": [
+    "Look for coordination, burst behavior, and proximity to previously confirmed fraud.",
+    "Use a second independent signal when a shared network indicator may be benign.",
+    "Prefer recent, high-impact, evidence-rich candidates."
+  ],
+  "evidence_requirements": {
+    "minimum_evidence_refs": 1,
+    "prefer_independent_signals": 2,
+    "skip_duplicate_open_cases": true
+  },
+  "budget": {
+    "max_turns": 12,
+    "max_discoveries": 5
+  },
+  "stopping_conditions": [
+    "No evidence-backed lead remains.",
+    "The maximum turn budget is reached.",
+    "The maximum discovery count is reached."
+  ]
+}

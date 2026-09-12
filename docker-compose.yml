@@ -40,5 +40,20 @@ services:
     volumes:
       - ./agentgateway/config.yaml:/config/config.yaml:ro
 
+  patrol:
+    build:
+      context: ./services/patrol
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
+      AGENTGATEWAY_MCP_URL: http://agentgateway:3000/mcp
+      PATROL_POLICY_PATH: /app/policies/active.json
+    depends_on:
+      - agentgateway
+    ports:
+      - "${PATROL_PORT:-10003}:10003"
+    volumes:
+      - ./services/patrol/policies:/app/policies:ro
+
 volumes:
   postgres-data:

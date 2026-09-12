@@ -324,5 +324,44 @@ async def get_previous_cases(
     return {"cases": rows, "count": len(rows)}
 
 
+@mcp.tool()
+async def get_evidence_records(evidence_ids: list[str]) -> dict[str, Any]:
+    """Resolve record IDs into canonical Evidence objects for a PatrolResult."""
+    ids = list(dict.fromkeys(item for item in evidence_ids if item))[:100]
+    if not ids:
+        return {"evidence": [], "missing_ids": []}
+    rows = await fetch_all(
+        """
+        SELECT id, 'environment' AS source, 'login_event' AS type,
+               account_id AS ref_id, occurred_at AS observed_at,
+               jsonb_build_object('account_id', account_id,
+                                  'ip_address', ip_address::text,
+                                  'device_id', device_id,
+                                  'attributes', attributes) AS data
+        FROM login_events WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'environment', type, target_account_id, created_at,
+               jsonb_build_object('target_account_id', target_account_id,
+                                  'reason', reason, 'status', status,
+                                  'attributes', attributes)
+        FROM report_records WHERE id = ANY(%s)
+        UNION ALL
+        SELECT id, 'investigation', 'previous_case', subject_id, created_at,
+               jsonb_build_object('case_id', id, 'source', source,
+                                  'subject_type', subject_type,
+                                  'subject_id', subject_id, 'status', status,
+                                  'risk_score', risk_score,
+                                  'trigger_reason', trigger_reason)
+        FROM cases WHERE id = ANY(%s)
+        """,
+        (ids, ids, ids),
+    )
+    found_ids = {row["id"] for row in rows}
+    return {
+        "evidence": rows,
+        "missing_ids": [item for item in ids if item not in found_ids],
+    }
+
+
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
