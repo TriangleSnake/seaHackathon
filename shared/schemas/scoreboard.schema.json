@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scoreboard.schema.json",
+  "title": "System Scoreboard Contracts",
+  "$defs": {
+    "ScoreboardConfigRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_hash": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ScoreboardBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_agent_calls",
+        "max_tool_calls",
+        "max_investigation_steps",
+        "max_tokens",
+        "max_cost_usd"
+      ],
+      "properties": {
+        "max_agent_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_investigation_steps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_cost_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "StoppingRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id",
+        "enabled",
+        "priority",
+        "parameters"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "AgentPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_id",
+        "enabled",
+        "priority",
+        "cost_weight"
+      ],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Runtime-resolved agent identifier; agent names are intentionally not enumerated."
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_weight": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "ScoreboardConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_id",
+        "version",
+        "status",
+        "scoring_policy_version",
+        "fraud_threshold",
+        "normal_threshold",
+        "budget",
+        "stopping_rules",
+        "agents",
+        "created_at",
+        "created_by"
+      ],
+      "properties": {
+        "config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "active",
+            "retired"
+          ]
+        },
+        "scoring_policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fraud_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "normal_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Must be lower than fraud_threshold."
+        },
+        "budget": {
+          "$ref": "#/$defs/ScoreboardBudget"
+        },
+        "stopping_rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StoppingRule"
+          },
+          "minItems": 1
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentPolicy"
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ScoreboardUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_calls",
+        "tool_calls",
+        "investigation_steps",
+        "tokens",
+        "cost_usd"
+      ],
+      "properties": {
+        "agent_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "investigation_steps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "AgentUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_id",
+        "calls",
+        "tool_calls",
+        "tokens",
+        "cost_usd"
+      ],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "ScoreboardNotStartedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "placeholder",
+        "status",
+        "config_ref"
+      ],
+      "properties": {
+        "placeholder": {
+          "const": true
+        },
+        "status": {
+          "const": "not_started"
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ScoreboardConfigRef"
+        }
+      }
+    },
+    "ScoreboardRuntimeState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "config_ref",
+        "scoring_policy_version",
+        "fraud_score",
+        "usage",
+        "budget",
+        "agent_usage",
+        "stop_reason",
+        "updated_at"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "running",
+            "stopped"
+          ]
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ScoreboardConfigRef"
+        },
+        "scoring_policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fraud_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "usage": {
+          "$ref": "#/$defs/ScoreboardUsage"
+        },
+        "budget": {
+          "$ref": "#/$defs/ScoreboardBudget"
+        },
+        "agent_usage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AgentUsage"
+          }
+        },
+        "stop_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "direct_evidence",
+            "fraud_threshold",
+            "false_positive_evidence",
+            "budget_exhausted",
+            "diminishing_returns",
+            "insufficient_evidence",
+            null
+          ]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ScoreboardState": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ScoreboardNotStartedState"
+        },
+        {
+          "$ref": "#/$defs/ScoreboardRuntimeState"
+        }
+      ]
+    }
+  }
+}
