@@ -129,6 +129,14 @@ class PostgresDetectionRepository:
         evidence: list[Evidence] = []
         evidence.extend(await self._load_messages(subject, account_ids))
         evidence.extend(await self._load_reports(subject, account_ids))
+        if subject.type == "message":
+            return DetectionContext(
+                subject=subject,
+                account_ids=account_ids,
+                evidence=evidence,
+                as_of=as_of,
+                conversation_context=await self._load_message_background(subject.id),
+            )
         evidence.extend(await self._load_account_access(account_ids))
         evidence.extend(await self._load_products(subject, account_ids))
         evidence.extend(await self._load_payments(subject, account_ids))
@@ -168,6 +176,23 @@ class PostgresDetectionRepository:
             params,
         )
         return [self._evidence("message", row, "created_at") for row in rows]
+
+    async def _load_message_background(self, message_id: str) -> list[Evidence]:
+        rows = await self._fetch_all(
+            """
+            SELECT m.id, m.conversation_id, m.sender_account_id,
+                   m.recipient_account_id, m.text, m.urls, m.created_at
+              FROM visible_messages m
+              JOIN visible_messages target ON target.id = %s
+             WHERE m.conversation_id = target.conversation_id
+               AND m.created_at < target.created_at
+             ORDER BY m.created_at DESC, m.id DESC LIMIT 20
+            """,
+            (message_id,),
+        )
+        # The target is never dropped by the background limit. Equal-time messages
+        # are excluded because their causal order is unknown.
+        return [self._evidence("message", row, "created_at") for row in reversed(rows)]
 
     async def _load_reports(
         self, subject: Subject, account_ids: list[str]
