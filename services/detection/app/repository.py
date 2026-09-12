@@ -203,7 +203,7 @@ class PostgresDetectionRepository:
               FROM visible_messages target
               JOIN visible_messages prior
                 ON prior.conversation_id = target.conversation_id
-               AND (prior.created_at, prior.id) < (target.created_at, target.id)
+               AND prior.created_at < target.created_at
              WHERE target.id = %s
              ORDER BY prior.created_at DESC, prior.id DESC
              LIMIT 20

@@ -147,9 +147,11 @@ def test_context_keeps_snapshot_when_clock_changes_mid_query():
     asyncio.run(run())
 
 
-def test_message_background_has_conversation_time_and_size_boundaries():
+@pytest.mark.parametrize('prefix_base', ['000-scope-', 'zzz-scope-'])
+def test_message_background_has_conversation_time_and_size_boundaries(prefix_base):
     async def run():
-        prefix = 'scope-' + uuid4().hex
+        # Both ID orders must exclude equal-time peers; IDs are not causal time.
+        prefix = prefix_base + uuid4().hex
         repository = PostgresDetectionRepository(DATABASE_URL, pool_size=2)
         previous = await _simulation_time()
         try:
