@@ -161,7 +161,15 @@ class DetectionService:
                 continue
             try:
                 detector = registered.factory(self._config(policy, component))
-                found = await (detector.detect(context.evidence) if component.type == "llm_classifier" else detector.detect(context))
+                found = await (
+                    detector.detect(
+                        context.evidence,
+                        target_message_id=(request.subject.id if request.subject.type == "message" else None),
+                        background=context.conversation_context,
+                    )
+                    if component.type == "llm_classifier"
+                    else detector.detect(context)
+                )
                 triggers.extend(found)
                 component_results.append(
                     ComponentResult(

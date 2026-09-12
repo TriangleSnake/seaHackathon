@@ -37,6 +37,9 @@ class AnomalyDetector:
         self.as_of = as_of
 
     async def detect(self, context: DetectionContext) -> list[DetectionTrigger]:
+        if context.subject.type == "message":
+            # Message content scope has no account-wide rate/diversity checks.
+            return []
         triggers: list[DetectionTrigger] = []
         as_of = self.as_of or context.as_of
         triggers.extend(self._payment_churn(context.evidence, as_of))

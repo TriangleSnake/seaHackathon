@@ -141,6 +141,15 @@ class PostgresDetectionRepository:
         evidence: list[Evidence] = []
         if "message" in required: evidence.extend(await self._load_messages(subject, account_ids))
         if "report_record" in required: evidence.extend(await self._load_reports(subject, account_ids))
+        if subject.type == "message":
+            unique = {item.id: item for item in evidence}
+            return DetectionContext(
+                subject=subject,
+                account_ids=account_ids,
+                evidence=list(unique.values()),
+                as_of=as_of,
+                conversation_context=await self._load_message_background(subject.id),
+            )
         if required & {"login_event", "account_security_event"}: evidence.extend(await self._load_account_access(account_ids))
         if required & {"product", "product_image"}: evidence.extend(await self._load_products(subject, account_ids))
         if "payment_attempt" in required: evidence.extend(await self._load_payments(subject, account_ids))
@@ -178,6 +187,23 @@ class PostgresDetectionRepository:
              ORDER BY m.created_at DESC LIMIT 100
             """,
             params,
+        )
+        return [self._evidence("message", row, "created_at") for row in rows]
+
+    async def _load_message_background(self, message_id: str) -> list[Evidence]:
+        rows = await self._fetch_all(
+            """
+            SELECT prior.id, prior.conversation_id, prior.sender_account_id,
+                   prior.recipient_account_id, prior.text, prior.urls, prior.created_at
+              FROM visible_messages target
+              JOIN visible_messages prior
+                ON prior.conversation_id = target.conversation_id
+               AND (prior.created_at, prior.id) < (target.created_at, target.id)
+             WHERE target.id = %s
+             ORDER BY prior.created_at DESC, prior.id DESC
+             LIMIT 20
+            """,
+            (message_id,),
         )
         return [self._evidence("message", row, "created_at") for row in rows]
 
