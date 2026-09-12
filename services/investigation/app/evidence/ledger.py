@@ -22,6 +22,7 @@ class EvidenceLedger:
     def ingest_tool_payload(self, tool_name: str, payload: dict[str, Any]) -> list[Evidence]:
         """Turn every record carrying an `id` into independently citable evidence."""
         added: list[Evidence] = []
+        source = "external" if payload.get("provider") == "virustotal" else "environment"
 
         def walk(value: Any, path: str) -> None:
             if isinstance(value, dict):
@@ -29,7 +30,7 @@ class EvidenceLedger:
                 if isinstance(record_id, str) and record_id:
                     item = Evidence(
                         id=record_id,
-                        source="environment",
+                        source=source,
                         type=f"{tool_name}:{path or 'record'}",
                         ref_id=record_id,
                         data=value,

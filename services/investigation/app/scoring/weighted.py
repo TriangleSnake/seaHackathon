@@ -31,18 +31,22 @@ class AgentScoreAggregator:
                 configured_weight is None
                 or configured_weight <= 0
                 or not set(item.evidence_refs).issubset(known)
+                or (item.score == 5) != item.is_direct_evidence
+                or (item.is_direct_evidence and not analysis.direct_evidence_found)
             ):
                 rejected += 1
                 continue
             effective_weight = configured_weight * item.confidence
+            normalized_score = item.score / 5
             contributions.append(
                 WeightedItemContribution(
                     item_type=item.item_type,
                     score=item.score,
+                    is_direct_evidence=item.is_direct_evidence,
                     confidence=item.confidence,
                     configured_weight=configured_weight,
                     effective_weight=effective_weight,
-                    weighted_contribution=item.score * effective_weight,
+                    weighted_contribution=normalized_score * effective_weight,
                     evidence_refs=item.evidence_refs,
                 )
             )

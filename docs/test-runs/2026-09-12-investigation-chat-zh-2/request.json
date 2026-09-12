@@ -1,0 +1,47 @@
+{
+  "case_id": "TEST-CHAT-0901-ZH-2",
+  "detection_result": {
+    "detection_id": "DET-CHAT-0901-ZH-2",
+    "subject": {
+      "type": "message",
+      "id": "MSG-0901"
+    },
+    "detected": true,
+    "triggers": [
+      {
+        "type": "suspected_phishing_url",
+        "detector": "rule_based",
+        "rule_id": "RULE-CHAT-001",
+        "reason": "賣家要求買家前往外部頁面重新驗證收款設定。",
+        "raw_result": {
+          "url": "https://verify-market.invalid/session"
+        },
+        "evidence_refs": [
+          "MSG-0901"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "MSG-0901",
+        "source": "detection",
+        "type": "message",
+        "ref_id": "CONV-031",
+        "observed_at": "2026-09-02T02:00:00Z",
+        "data": {
+          "conversation_id": "CONV-031",
+          "sender_account_id": "ACC-0052",
+          "recipient_account_id": "ACC-0111",
+          "text": "系統顯示收款設定未完成，請到驗證頁重新開通，完成後我才能出貨。",
+          "urls": [
+            "https://verify-market.invalid/session"
+          ]
+        }
+      }
+    ]
+  },
+  "existing_evidence": [],
+  "scoreboard_config_ref": {
+    "version": "development-v1"
+  }
+}

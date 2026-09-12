@@ -1,0 +1,6 @@
+investigation-1 | INFO:     192.168.65.1:19927 - "POST /investigate HTTP/1.1" 200 OK
+investigation-1 | INFO:     {"event": "http_request_completed", "request_id": "test-chat-msg-0901-zh-2", "traceparent": null, "method": "POST", "path": "/investigate", "status_code": 200, "duration_ms": 7323.24}
+agentgateway-1  | 2026-09-12T06:25:14.522472Z info request gateway=default/default listener=mcp route=internal/default src.addr=172.19.0.6:48900 http.method=POST http.host=agentgateway http.path=/mcp http.version=HTTP/1.1 http.status=200 protocol=mcp mcp.method.name=initialize duration=9ms
+agentgateway-1  | 2026-09-12T06:25:14.548038Z info request gateway=default/default listener=mcp route=internal/default src.addr=172.19.0.6:48900 http.method=POST http.host=agentgateway http.path=/mcp http.version=HTTP/1.1 http.status=200 protocol=mcp mcp.method.name=tools/list duration=24ms
+agentgateway-1  | 2026-09-12T06:25:17.903309Z info request gateway=default/default listener=mcp route=internal/default src.addr=172.19.0.6:48900 http.method=POST http.host=agentgateway http.path=/mcp http.version=HTTP/1.1 http.status=200 protocol=mcp mcp.method.name=tools/call mcp.target=system mcp.resource.type=tool gen_ai.tool.name=get_evidence_records duration=26ms
+
