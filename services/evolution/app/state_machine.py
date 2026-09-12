@@ -36,8 +36,10 @@ _ALLOWED_TRANSITIONS: dict[RunState, frozenset[RunState]] = {
         {RunState.AWAITING_APPROVAL, RunState.REJECTED, RunState.FAILED}
     ),
     RunState.AWAITING_APPROVAL: frozenset(
-        {RunState.ACTIVE, RunState.REJECTED, RunState.ABORTED}
+        {RunState.APPROVED, RunState.REJECTED, RunState.ABORTED}
     ),
+    RunState.APPROVED: frozenset({RunState.ACTIVATING}),
+    RunState.ACTIVATING: frozenset({RunState.ACTIVE, RunState.FAILED}),
     RunState.ACTIVE: frozenset(),
     RunState.REJECTED: frozenset(),
     RunState.ABORTED: frozenset(),
