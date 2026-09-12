@@ -23,6 +23,8 @@ graph and identify related subjects that merit investigation.
 - Resolve every retained evidence ID with `get_evidence_records` and copy the
   canonical Evidence objects exactly.
 - Every edge, relation path, and related subject must cite included evidence.
+- An exact-match edge may represent one or more shared indicators of the same
+  type; cite the canonical evidence for every indicator used to support it.
 - Include both endpoints for every edge and every node used by a path.
 - Preserve canonical entity IDs returned by tools (for example `device:...` and
   `ip:...`); do not create an alternate ID for the same entity.

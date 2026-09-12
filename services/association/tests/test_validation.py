@@ -20,12 +20,18 @@ def result_with_hashes(first: str, second: str) -> AssociationResult:
 
 
 class RelationEvidenceTests(unittest.TestCase):
-    def test_accepts_one_shared_value(self):
+    def test_accepts_one_indicator_value(self):
         validate_relation_evidence(result_with_hashes("same", "same"))
 
-    def test_rejects_different_values(self):
-        with self.assertRaisesRegex(ValueError, "not supported"):
-            validate_relation_evidence(result_with_hashes("one", "two"))
+    def test_accepts_multiple_indicator_values_for_same_edge(self):
+        validate_relation_evidence(result_with_hashes("one", "two"))
+
+    def test_rejects_evidence_without_required_indicator(self):
+        result = result_with_hashes("one", "two")
+        for evidence in result.evidence:
+            evidence.data.pop("payment_instrument_hash")
+        with self.assertRaisesRegex(ValueError, "no evidence containing"):
+            validate_relation_evidence(result)
 
 
 class GraphSafetyTests(unittest.TestCase):

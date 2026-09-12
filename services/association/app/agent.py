@@ -37,7 +37,13 @@ def _evidence_values(association: AssociationResult, evidence_refs: list[str], k
 
 
 def validate_relation_evidence(association: AssociationResult) -> None:
-    """Reject graph claims whose cited raw evidence does not share the claimed key."""
+    """Require at least one concrete indicator for every exact-match edge.
+
+    One pair of entities may legitimately share multiple indicators of the same
+    kind (for example, two payment instruments).  Rejecting more than one
+    distinct value incorrectly turns stronger corroboration into a validation
+    failure.
+    """
     evidence_keys = {
         "shared_device": "device_id",
         "shared_ip": "ip_address",
@@ -49,9 +55,9 @@ def validate_relation_evidence(association: AssociationResult) -> None:
         if key is None:
             continue
         values = _evidence_values(association, edge.evidence_refs, key)
-        if len(values) != 1:
+        if not values:
             raise ValueError(
-                f"Association edge {edge.type!r} is not supported by one shared {key}"
+                f"Association edge {edge.type!r} has no evidence containing {key}"
             )
 
 
